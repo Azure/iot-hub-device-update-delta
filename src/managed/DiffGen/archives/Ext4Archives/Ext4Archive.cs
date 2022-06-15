@@ -4,7 +4,7 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-﻿namespace Ext4Archives
+namespace Ext4Archives
 {
     using System;
     using System.Diagnostics;
