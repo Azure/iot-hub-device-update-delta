@@ -4,7 +4,7 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-﻿namespace Microsoft.AzureDeviceUpdate.Diffs
+namespace Microsoft.AzureDeviceUpdate.Diffs
 {
     using System;
     using System.Collections.Generic;

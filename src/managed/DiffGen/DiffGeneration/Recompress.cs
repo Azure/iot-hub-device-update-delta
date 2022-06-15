@@ -4,7 +4,7 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;

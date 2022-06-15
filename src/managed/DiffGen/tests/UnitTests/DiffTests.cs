@@ -4,7 +4,7 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-﻿using ArchiveUtility;
+using ArchiveUtility;
 using CpioArchives;
 using Ext4Archives;
 using Microsoft.AzureDeviceUpdate.Diffs;
