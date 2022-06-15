@@ -1,0 +1,220 @@
+﻿{
+  "Type": "tar",
+  "Subtype": "old",
+  "Chunks": [
+    {
+      "Id": 0,
+      "Name": "Chunk.Header.Payload=deb.deb",
+      "Type": "Chunk",
+      "Offset": 0,
+      "Length": 512,
+      "Hashes": {
+        "Sha256": "AE2C3526761D46E06D274E577E808FD1A4BF03E2E31E88C882C90BE0B357607D",
+        "Md5": "B2A83A359DC501B619760CF4D55CD8C9"
+      }
+    },
+    {
+      "Id": 1,
+      "Name": "Chunk.Payload=deb.deb",
+      "Type": "Chunk",
+      "Offset": 512,
+      "Length": 8,
+      "Hashes": {
+        "Sha256": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221",
+        "Md5": "EA0142D83C111211219A87E6D1991396"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 2,
+                "Name": "deb.deb",
+                "Type": "Payload",
+                "Length": 8,
+                "Hashes": {
+                  "Sha256": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221",
+                  "Md5": "EA0142D83C111211219A87E6D1991396"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 3,
+      "Name": "Chunk.Padding@520",
+      "Type": "Chunk",
+      "Offset": 520,
+      "Length": 504,
+      "Hashes": {
+        "Sha256": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE",
+        "Md5": "5D2A33958EBE530732FD9C258850C5AA"
+      }
+    },
+    {
+      "Id": 4,
+      "Name": "Chunk.Header.Payload=mnt/c/tests/samples/cpio_samples/absolute/txt.txt",
+      "Type": "Chunk",
+      "Offset": 1024,
+      "Length": 512,
+      "Hashes": {
+        "Sha256": "34DB35B45EF36BAEA3CB0C0B70ACB7F732BDABEF852DF621700AC90A7CB90CA4",
+        "Md5": "08ADEFB4E5587CC5B836B21EA7821CE2"
+      }
+    },
+    {
+      "Id": 5,
+      "Name": "Chunk.Payload=mnt/c/tests/samples/cpio_samples/absolute/txt.txt",
+      "Type": "Chunk",
+      "Offset": 1536,
+      "Length": 8,
+      "Hashes": {
+        "Sha256": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918",
+        "Md5": "F15F36FC9FC367C4674E078AEEA7468F"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 6,
+                "Name": "mnt/c/tests/samples/cpio_samples/absolute/txt.txt",
+                "Type": "Payload",
+                "Length": 8,
+                "Hashes": {
+                  "Sha256": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918",
+                  "Md5": "F15F36FC9FC367C4674E078AEEA7468F"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 7,
+      "Name": "Chunk.Padding@1544",
+      "Type": "Chunk",
+      "Offset": 1544,
+      "Length": 504,
+      "Hashes": {
+        "Sha256": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE",
+        "Md5": "5D2A33958EBE530732FD9C258850C5AA"
+      }
+    },
+    {
+      "Id": 8,
+      "Name": "Chunk.Zeroes@2048",
+      "Type": "Chunk",
+      "Offset": 2048,
+      "Length": 512,
+      "Hashes": {
+        "Sha256": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560",
+        "Md5": "BF619EAC0CDF3F68D496EA9344137E8B"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 512
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 9,
+      "Name": "Chunk.Zeroes@2560",
+      "Type": "Chunk",
+      "Offset": 2560,
+      "Length": 512,
+      "Hashes": {
+        "Sha256": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560",
+        "Md5": "BF619EAC0CDF3F68D496EA9344137E8B"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 512
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "Payload": [
+    {
+      "Id": 2,
+      "Name": "deb.deb",
+      "Type": "Payload",
+      "Length": 8,
+      "Hashes": {
+        "Sha256": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221",
+        "Md5": "EA0142D83C111211219A87E6D1991396"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 1,
+                "Name": "Chunk.Payload=deb.deb",
+                "Type": "Chunk",
+                "Offset": 512,
+                "Length": 8,
+                "Hashes": {
+                  "Sha256": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221",
+                  "Md5": "EA0142D83C111211219A87E6D1991396"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 6,
+      "Name": "mnt/c/tests/samples/cpio_samples/absolute/txt.txt",
+      "Type": "Payload",
+      "Length": 8,
+      "Hashes": {
+        "Sha256": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918",
+        "Md5": "F15F36FC9FC367C4674E078AEEA7468F"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 5,
+                "Name": "Chunk.Payload=mnt/c/tests/samples/cpio_samples/absolute/txt.txt",
+                "Type": "Chunk",
+                "Offset": 1536,
+                "Length": 8,
+                "Hashes": {
+                  "Sha256": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918",
+                  "Md5": "F15F36FC9FC367C4674E078AEEA7468F"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

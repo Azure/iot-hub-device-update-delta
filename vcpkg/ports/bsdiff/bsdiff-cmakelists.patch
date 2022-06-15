@@ -1,0 +1,64 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index ad3df4b..a175345 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required(VERSION 3.10)
++cmake_minimum_required(VERSION 3.20)
+ 
+ project(bsdiff)
+ 
+@@ -6,14 +6,7 @@ option(BUILD_SHARED_LIBS "Set to ON to build shared libraries" OFF)
+ option(BUILD_STANDALONES "Set to OFF to not build standalones" ON)
+ 
+ # bzip2
+-add_library(bzip2 STATIC
+-    3rdparty/bzip2/bzlib.c
+-    3rdparty/bzip2/compress.c
+-    3rdparty/bzip2/decompress.c
+-    3rdparty/bzip2/blocksort.c
+-    3rdparty/bzip2/crctable.c
+-    3rdparty/bzip2/huffman.c
+-    3rdparty/bzip2/randtable.c)
++find_package(BZip2 REQUIRED)
+ 
+ # libdivsufsort
+ function(add_libdivsufsort)
+@@ -38,7 +31,6 @@ add_library(bsdiff
+     source/bsdiff.c
+     source/bspatch.c)
+ target_include_directories(bsdiff
+-    PRIVATE "3rdparty/bzip2"
+     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/libdivsufsort/include"
+     PRIVATE "include")
+ if (BUILD_SHARED_LIBS)
+@@ -47,7 +39,9 @@ endif()
+ if (MSVC)
+     target_compile_definitions(bsdiff PRIVATE "_CRT_SECURE_NO_WARNINGS")
+ endif()
+-target_link_libraries(bsdiff PRIVATE bzip2 PRIVATE divsufsort PRIVATE divsufsort64)
++target_link_libraries(bsdiff PRIVATE BZip2::BZip2 PRIVATE divsufsort PRIVATE divsufsort64)
++
++set_target_properties(bsdiff PROPERTIES PUBLIC_HEADERS include/bsdiff.h)
+ 
+ if (BUILD_STANDALONES)
+     # bsdiff_diff
+@@ -65,4 +59,18 @@ if (BUILD_STANDALONES)
+     if (BUILD_SHARED_LIBS)
+         target_compile_definitions(bsdiff_patch PRIVATE "BSDIFF_DLL")
+     endif()
++
++    install(TARGETS 
++        bsdiff bsdiff_diff bsdiff_patch divsufsort divsufsort64
++        RUNTIME DESTINATION bin
++        LIBRARY DESTINATION lib
++        ARCHIVE DESTINATION lib
++        )
++else()
++    install(TARGETS 
++        bsdiff divsufsort divsufsort64
++        RUNTIME DESTINATION bin
++        LIBRARY DESTINATION lib
++        ARCHIVE DESTINATION lib
++        )
+ endif()

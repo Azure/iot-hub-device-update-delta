@@ -1,0 +1,10 @@
+# Disable CRLF-mapping for all files.
+* -text
+
+*.sh -crlf
+
+*.ext4 -text
+*.zst -text
+*.dat -text
+*.deflate -text
+*.swu -text

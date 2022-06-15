@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>ADU-Diffs.DiffGenTool</id>
+    <version>$version$</version>
+    <title>DiffGenTool</title>
+    <projectUrl>http://msdn.microsoft.com/OS.Fun</projectUrl>
+    <authors>Microsoft</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>This package contains the tool used to generate ADU Diffs.</description>
+    <copyright>Microsoft</copyright>
+    <tags></tags>
+  </metadata>
+  <files>
+    <file src="*.cs*" target="." />
+  </files>
+</package>

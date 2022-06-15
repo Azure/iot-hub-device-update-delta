@@ -1,0 +1,95 @@
+# File: build-diffapi-windows-template.yml
+parameters:
+# Required Parameters
+- name: configuration
+  type: string
+
+# Optional Parameters
+- name: platform
+  type: string
+  default: x64
+- name: setupVcpkgScript
+  type: string
+  default: $(Build.SourcesDirectory)/build/setup_vcpkg.ps1
+- name: copyScript
+  type: string
+  default: $(Build.SourcesDirectory)/build/copy-native-code-windows.ps1
+- name: copyTestsScript
+  type: string
+  default: $(Build.SourcesDirectory)/build/copy-native-tests-windows.ps1
+- name: vcpkgRoot
+  type: string
+  default: $(Agent.BuildDirectory)/vcpkg
+- name: buildRoot
+  type: string
+  default: $(Agent.BuildDirectory)/build
+- name: diffsGtestDir
+  type: string
+  default: $(Agent.BuildDirectory)/build/diffs/gtest/
+- name: testDataRoot
+  type: string
+  default: $(Build.SourcesDirectory)/data
+- name: zstdCompressDir
+  type: string
+  default: $(Agent.BuildDirectory)/build/tools/zstd_compress_file/
+- name: ioUtilityGtestDir
+  type: string
+  default: $(Agent.BuildDirectory)/build/io_utility/gtest/
+
+steps:
+  - task: PowerShell@2
+    inputs:
+      filePath: '${{ parameters.setupVcpkgScript }}'
+      arguments: '${{ parameters.vcpkgRoot }} $(Build.SourcesDirectory)'
+
+  - task: CMake@1
+    inputs:
+      cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(Agent.BuildDirectory)/build -DCMAKE_TOOLCHAIN_FILE=${{ parameters.vcpkgRoot }}/scripts/buildsystems/vcpkg.cmake
+
+  - task: VSBuild@1
+    inputs:
+      solution: '$(Agent.BuildDirectory)/build/adu_diffs.sln'
+      msbuildArgs: '-p:DebugSymbols=true'
+      platform: '${{ parameters.platform }}'
+      configuration: '${{ parameters.configuration }}'
+
+  - task: CmdLine@2
+    displayName: 'Show built files'
+    inputs:
+      script: |
+        dir $(Agent.BuildDirectory)\build /s
+
+  - pwsh: mkdir -p $(Build.ArtifactStagingDirectory)/drop
+
+  - task: PowerShell@2
+    displayName: 'Copy Unsigned Native Binaries'
+    inputs:
+      filePath: '${{ parameters.copyScript }}'
+      arguments: '$(Agent.BuildDirectory)/build ${{ parameters.vcpkgRoot }} $(Build.ArtifactStagingDirectory)/drop ${{ parameters.configuration }}'
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Binaries'
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)/drop'
+      artifactType: 'pipeline'
+      artifactName: 'unsigned-binaries-drop.${{ parameters.configuration }}.${{ parameters.platform }}-windows'
+
+  - pwsh: mkdir -p $(Build.ArtifactStagingDirectory)/tests
+
+  - task: PowerShell@2
+    displayName: 'Copy Test Binaries'
+    inputs:
+      filePath: '${{ parameters.copyTestsScript }}'
+      arguments: '$(Agent.BuildDirectory)/build ${{ parameters.vcpkgRoot }} $(Build.ArtifactStagingDirectory)/tests ${{ parameters.configuration }}'
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Tests'
+    inputs:
+      targetPath: '$(Build.ArtifactStagingDirectory)/tests'
+      artifactType: 'pipeline'
+      artifactName: 'tests-drop.${{ parameters.configuration }}.${{ parameters.platform }}-windows'
+
+  - task: CmdLine@2
+    displayName: Run Tests
+    inputs:
+      script: '${{ parameters.diffsGtestDir }}\${{ parameters.configuration }}\\diffs_gtest.exe --test_data_root "${{ parameters.testDataRoot }}" --zstd_compress_file "${{ parameters.zstdCompressDir }}\${{ parameters.configuration }}\zstd_compress_file.exe"'

@@ -1,0 +1,32 @@
+# File: diffapi-ubuntu2004-arm.yml
+# This pipeline builds the diffapi project using CMake in ubuntu 20.04. The project is cross-compiled to arm.
+trigger:
+  branches:
+    include:
+    - user/*
+  paths:
+    include:
+    - src
+    exclude:
+    - src/managed
+
+pool:
+  vmImage: ubuntu-20.04
+
+variables:
+  vcpkg_triplet: arm-linux
+  dependencies: gcc make gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf g++-9-arm-linux-gnueabihf binutils-arm-linux-gnueabihf
+  cmake_c_compiler: /usr/bin/arm-linux-gnueabihf-gcc-9
+  cmake_cxx_compiler: /usr/bin/arm-linux-gnueabihf-g++-9
+  test_dependencies: qemu-system-arm qemu-utils qemu-user
+  qemu_command: "qemu-arm -L /usr/arm-linux-gnueabihf "
+
+extends:
+  template: ../templates/all-native-linux.yml
+  parameters:
+    vcpkg_triplet: $(vcpkg_triplet)
+    dependencies: $(dependencies)
+    cmake_c_compiler: $(cmake_c_compiler)
+    cmake_cxx_compiler: $(cmake_cxx_compiler)
+    test_dependencies: $(test_dependencies)
+    qemu_command: $(qemu_command)

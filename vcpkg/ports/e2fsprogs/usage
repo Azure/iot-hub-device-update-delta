@@ -1,0 +1,5 @@
+The package e2fsprogs provides CMake integration:
+
+    find_package(e2fsprogs REQUIRED)
+    target_include_directories(main PRIVATE ${E2FSPROGS_INCLUDE_DIRS})
+    target_link_libraries(main PRIVATE ${E2FSPROGS_LIBRARIES})
