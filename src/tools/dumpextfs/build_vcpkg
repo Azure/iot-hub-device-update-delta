@@ -1,0 +1,1 @@
+g++ -I$1/include main.cpp dump_json.cpp hash_utility.cpp load_ext4.cpp file_details.cpp $1/lib/libext2fs.a $1/lib/libcom_err.a /lib/x86_64-linux-gnu/libmhash.a -pthread -std=c++17 -o dumpextfs -static

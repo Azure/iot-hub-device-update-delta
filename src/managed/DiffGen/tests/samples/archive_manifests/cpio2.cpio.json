@@ -1,0 +1,125 @@
+﻿{
+  "Type": "cpio",
+  "Subtype": "binary",
+  "Chunks": [
+    {
+      "Id": 0,
+      "Name": "Chunk.Header.Payload=tg.tar.gz",
+      "Type": "Chunk",
+      "Offset": 0,
+      "Length": 36,
+      "Hashes": {
+        "Sha256": "0F4C9A7FC43727F144EA91E7622C18777D8C371D983AECEC5AD689B074A564A0",
+        "Md5": "B80FFDC387F02A3196449AF9F1C552DB"
+      }
+    },
+    {
+      "Id": 1,
+      "Name": "Chunk.Payload=tg.tar.gz",
+      "Type": "Chunk",
+      "Offset": 36,
+      "Length": 169,
+      "Hashes": {
+        "Sha256": "C21A1A5883A22A5B311242D38DF6A52237C8C5DF7BCE1BE33D92BE3A63B473D0",
+        "Md5": "EC92E114BD56FCE47363308723B8E3B2"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 2,
+                "Name": "tg.tar.gz",
+                "Type": "Payload",
+                "Length": 169,
+                "Hashes": {
+                  "Sha256": "C21A1A5883A22A5B311242D38DF6A52237C8C5DF7BCE1BE33D92BE3A63B473D0",
+                  "Md5": "EC92E114BD56FCE47363308723B8E3B2"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 3,
+      "Name": "Chunk.Padding@205",
+      "Type": "Chunk",
+      "Offset": 205,
+      "Length": 1,
+      "Hashes": {
+        "Sha256": "6E340B9CFFB37A989CA544E6BB780A2C78901D3FB33738768511A30617AFA01D",
+        "Md5": "93B885ADFE0DA089CDF634904FD59F71"
+      }
+    },
+    {
+      "Id": 4,
+      "Name": "Chunk.Header.Payload=TRAILER!!!",
+      "Type": "Chunk",
+      "Offset": 206,
+      "Length": 38,
+      "Hashes": {
+        "Sha256": "0964681AD34A193230538A09D00CDFB75B9AF8C86514449F5F1EF9552AF8AD63",
+        "Md5": "7D3B721B75725E308A76B5C882F64E13"
+      }
+    },
+    {
+      "Id": 5,
+      "Name": "Chunk.Gap@244",
+      "Type": "Chunk",
+      "Offset": 244,
+      "Length": 268,
+      "Hashes": {
+        "Sha256": "38BBA6186C2E0320D30F77C0985A842E25C44C67341A2D6B5A522A4BCD067A1D",
+        "Md5": "645605496AC18D914435EC4427573DA7"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 268
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "Payload": [
+    {
+      "Id": 2,
+      "Name": "tg.tar.gz",
+      "Type": "Payload",
+      "Length": 169,
+      "Hashes": {
+        "Sha256": "C21A1A5883A22A5B311242D38DF6A52237C8C5DF7BCE1BE33D92BE3A63B473D0",
+        "Md5": "EC92E114BD56FCE47363308723B8E3B2"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 1,
+                "Name": "Chunk.Payload=tg.tar.gz",
+                "Type": "Chunk",
+                "Offset": 36,
+                "Length": 169,
+                "Hashes": {
+                  "Sha256": "C21A1A5883A22A5B311242D38DF6A52237C8C5DF7BCE1BE33D92BE3A63B473D0",
+                  "Md5": "EC92E114BD56FCE47363308723B8E3B2"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

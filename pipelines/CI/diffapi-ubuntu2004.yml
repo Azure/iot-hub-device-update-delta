@@ -1,0 +1,22 @@
+# File: diffapi-ubuntu2004.yml
+# This pipeline builds the diffapi project using CMake in ubuntu 20.04
+trigger:
+  branches:
+    include:
+    - user/*
+  paths:
+    include:
+    - src
+    exclude:
+    - src/managed
+
+pool:
+  vmImage: ubuntu-20.04
+
+variables:
+  vcpkg_triplet: x64-linux
+
+extends:
+  template: ../templates/all-native-linux.yml
+  parameters:
+    vcpkg_triplet: $(vcpkg_triplet)

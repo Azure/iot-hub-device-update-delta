@@ -1,0 +1,12 @@
+{
+  "name": "bsdiff",
+  "version-string": "1.0.0",
+  "description": "BSDiff",
+  "homepage": "https://github.com/zhuyie/bsdiff",
+  "dependencies": [ 
+    {
+      "name": "bzip2",
+      "host": true
+    }
+    ]
+}

@@ -1,0 +1,88 @@
+trigger:
+  branches:
+    include:
+    - user/*
+  paths:
+    include:
+    - src
+
+variables:
+- name: solution
+  value: '$(Build.SourcesDirectory)/build/diff-generation.sln'
+- name: platform
+  value: 'x64'
+- name: configuration
+  value: 'Release'
+- name: unittests_bin_dir
+  value: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\UnitTests\bin
+- name: archiveutilitytest_bin_dir
+  value: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\ArchiveUtilityTest\bin
+- name: nuget_files_dir
+  value: $(Build.ArtifactStagingDirectory)/nuget_files
+
+stages:
+  - stage: BuildNativeCode
+    jobs:
+    - job: BuildWindowsNativeCode
+      displayName: Build Windows Native Code for Test
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: /pipelines/templates/build-native-x64-windows.yml
+          parameters:
+            configuration: 'Release'
+    - job: CrossCompile_dumpextfs_x64_windows
+      displayName: 'Cross-Compile dumpextfs.exe - x64-windows'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - template: /pipelines/templates/crosscompile-dumpextfs.yml
+
+  - stage: BuildAndTestManagedCode
+    jobs:
+    - job: BuildAndTestManagedCode
+      displayName: Build and Test Managed Code
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - task: UseDotNet@2
+          displayName: 'Use .NET Standard sdk'
+          inputs:
+            packageType: sdk
+            version: 5.x
+            installationPath: $(Agent.ToolsDirectory)/dotnet
+
+        - task: NuGetToolInstaller@1
+
+        - task: NuGetCommand@2
+          inputs:
+            restoreSolution: '$(solution)'
+
+        - task: VSBuild@1
+          inputs:
+            solution: '$(solution)'
+            platform: '$(platform)'
+            configuration: '$(configuration)'
+
+        - task: DownloadPipelineArtifact@2
+          displayName: 'Download unsigned x64-windows binaries'
+          inputs:
+            artifactName: 'unsigned-binaries-drop.Release.x64-windows'
+            targetPath: $(nuget_files_dir)
+
+        - task: DownloadPipelineArtifact@2
+          displayName: 'Download unsigned x64-windows binaries'
+          inputs:
+            artifactName: 'unsigned-dumpextfs-drop.Release.x64-windows'
+            targetPath: $(nuget_files_dir)
+
+        - pwsh: copy $(nuget_files_dir)\* $(unittests_bin_dir)\$(configuration)\net5.0
+          displayName: 'Copy Nuget Files to UnitTests'
+
+        - task: VSTest@2
+          inputs:
+            platform: '$(platform)'
+            configuration: '$(configuration)'
+            testAssemblyVer2: |
+                $(unittests_bin_dir)\$(configuration)\net5.0\UnitTests.dll
+                $(archiveutilitytest_bin_dir)\$(configuration)\net5.0\ArchiveUtilityTest.dll

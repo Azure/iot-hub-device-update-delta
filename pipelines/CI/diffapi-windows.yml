@@ -1,0 +1,152 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+trigger:
+  branches:
+    include:
+    - user/*
+  paths:
+    include:
+    - src
+    exclude:
+    - src/managed
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+  buildPlatform: 'x64'
+  buildConfiguration: 'Release'
+  vcpkg_dir: $(Agent.BuildDirectory)\VCPKG
+  diffapi_build_dir: $(Agent.BuildDirectory)\diffapi-build
+  diffapi_solution: $(diffapi_build_dir)\diffs.sln
+  cmakeToolchainFile: $(vcpkg_dir)/scripts/buildsystems/vcpkg.cmake
+  solution: $(diffapi_build_dir)/adu_diffs.sln
+  diffapi_output_dir: $(diffapi_build_dir)\diffs\api\$(buildConfiguration)
+  io_utility_gtest_dir: $(diffapi_build_dir)\io_utility\gtest\$(buildConfiguration)
+  diff_gtest_dir: $(diffapi_build_dir)\diffs\gtest\$(buildConfiguration)
+  test_data_root: $(Build.SourcesDirectory)\data
+  zstd_compress_file_dir: $(diffapi_build_dir)\tools\zstd_compress_file\$(buildConfiguration)
+  zstd_compress_file_binary: zstd_compress_file.exe
+  zstd_compress_file: $(zstd_compress_file_dir)\$(zstd_compress_file_binary)
+  applydiff_tool_output_dir: $(diffapi_build_dir)\tools\applydiff\$(buildConfiguration)\
+  dumpdiff_tool_output_dir: $(diffapi_build_dir)\tools\dumpdiff\$(buildConfiguration)\
+  third_party_license_folder: $(Build.SourcesDirectory)\licenses
+  vcpkg_triplet: $(buildPlatform)-windows
+  ms_gsl_dir: $(vcpkg_dir)\packages\ms-gsl-$(vcpkg_triplet)\share\Microsoft.GSL
+  zstd_dir: $(vcpkg_dir)\packages\zstd_$(vcpkg_triplet)\share\zstd
+
+steps:
+- task: CmdLine@2
+  displayName: 'Dump setup_vcpkg.cmd'
+  inputs:
+    script: |
+      type $(Build.Repository.LocalPath)\vcpkg\setup_vcpkg.cmd
+
+- task: CmdLine@2
+  displayName: 'Setup VCPKG'
+  inputs:
+    script: |
+      $(Build.Repository.LocalPath)\vcpkg\setup_vcpkg.cmd $(vcpkg_dir) $(Build.Repository.LocalPath)\vcpkg\ports $(vcpkg_triplet)
+
+- task: CmdLine@2
+  displayName: 'Show ms-gsl and zstd folders'
+  inputs:
+    script: |
+      dir $(ms_gsl_dir) /s
+      dir $(zstd_dir) /s
+
+- task: CMake@1
+  inputs:
+    cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(diffapi_build_dir) -DCMAKE_TOOLCHAIN_FILE=$(cmakeToolchainFile)
+
+- task: CmdLine@2
+  displayName: 'Show diffapi_build_dir'
+  inputs:
+    script: |
+      dir $(diffapi_build_dir) /s
+
+- task: NuGetCommand@2
+  inputs:
+    restoreSolution: '$(solution)'
+    displayName: 'Restore diffapi'
+
+- task: VSBuild@1
+  inputs:
+    solution: '$(solution)'
+    platform: '$(buildPlatform)'
+    configuration: '$(buildConfiguration)'
+    displayName: 'Build diffapi'
+
+- task: CmdLine@2
+  displayName: Show diff api build contents
+  inputs:
+    script: dir /s $(diffapi_build_dir)
+
+- task: CmdLine@2
+  displayName: 'Copy Test Binaries'
+  inputs:
+    script: |
+        mkdir -p $(Build.ArtifactStagingDirectory)\Tests
+        copy /y $(io_utility_gtest_dir)\* $(Build.ArtifactStagingDirectory)\Tests
+        copy /y $(diff_gtest_dir)\* $(Build.ArtifactStagingDirectory)\Tests
+        copy /y $(zstd_compress_file) $(Build.ArtifactStagingDirectory)\Tests
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish Test Binaries'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)\Tests'
+    artifactType: 'pipeline'
+    artifactName: 'tests'
+
+- task: CmdLine@2
+  displayName: Run Tests
+  inputs:
+    script: $(diff_gtest_dir)\diffs_gtest.exe --test_data_root $(test_data_root) --zstd_compress_file $(zstd_compress_file)
+    
+- task: CmdLine@2
+  displayName: Make licenses folder
+  inputs:
+    script: |
+        mkdir -p $(Build.ArtifactStagingDirectory)\licenses
+        copy /y $(Build.Repository.LocalPath)\licenses\LICENSE.windows $(Build.ArtifactStagingDirectory)\licenses\LICENSE
+        copy /y $(vcpkg_dir)\packages\bsdiff_$(vcpkg_triplet)\share\bsdiff\copyright $(Build.ArtifactStagingDirectory)\licenses\LICENSE.bsdiff
+        copy /y $(vcpkg_dir)\packages\bzip2_$(vcpkg_triplet)\share\bzip2\copyright $(Build.ArtifactStagingDirectory)\licenses\LICENSE.bzip2
+        copy /y $(vcpkg_dir)\packages\ms-gsl_$(vcpkg_triplet)\share\ms-gsl\copyright $(Build.ArtifactStagingDirectory)\licenses\LICENSE.ms-gsl
+        copy /y $(vcpkg_dir)\packages\zlib_$(vcpkg_triplet)\share\zlib\copyright $(Build.ArtifactStagingDirectory)\licenses\LICENSE.zlib
+        copy /y $(vcpkg_dir)\packages\zstd_$(vcpkg_triplet)\share\zstd\LICENSE $(Build.ArtifactStagingDirectory)\licenses\LICENSE.zstd        
+
+- task: CmdLine@2
+  displayName: 'Copy DiffApi Binaries'
+  inputs:
+    script: |
+        mkdir -p $(Build.ArtifactStagingDirectory)\DiffApi
+        copy /y $(diffapi_output_dir)\*.dll $(Build.ArtifactStagingDirectory)\DiffApi
+        copy /y $(diffapi_output_dir)\*.pdb $(Build.ArtifactStagingDirectory)\DiffApi
+        copy /y $(diffapi_output_dir)\*.lib $(Build.ArtifactStagingDirectory)\DiffApi
+        copy /y $(Build.ArtifactStagingDirectory)\licenses\* $(Build.ArtifactStagingDirectory)\DiffApi
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish diffapi'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)\DiffApi'
+    artifactType: 'pipeline'
+    artifactName: 'drop'
+
+- task: CmdLine@2
+  displayName: 'Copy tools'
+  inputs:
+    script: |
+        mkdir -p $(Build.ArtifactStagingDirectory)\tools
+        copy /y $(zstd_compress_file) $(Build.ArtifactStagingDirectory)\tools
+        copy /y $(applydiff_tool_output_dir)\*.exe $(Build.ArtifactStagingDirectory)\tools
+        copy /y $(dumpdiff_tool_output_dir)\*.exe $(Build.ArtifactStagingDirectory)\tools
+        copy /y $(Build.ArtifactStagingDirectory)\licenses\* $(Build.ArtifactStagingDirectory)\tools        
+
+- task: PublishPipelineArtifact@1
+  displayName: 'Publish tools'
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)\tools'
+    artifactType: 'pipeline'
+    artifactName: 'tools'

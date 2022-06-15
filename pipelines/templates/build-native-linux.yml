@@ -1,0 +1,63 @@
+# File: build-native-linux.yml
+# This template implements building the diff api on linux systems.
+parameters:
+- name: dependencies
+  type: string
+- name: setup_vcpkg_script
+  type: string
+- name: vcpkg_dir
+  type: string
+- name: vcpkg_ports
+  type: string
+- name: vcpkg_triplet
+  type: string
+  default: x64-linux
+- name: source_location
+  type: string
+- name: build_location
+  type: string
+- name: cmake_c_compiler
+  type: string
+- name: cmake_cxx_compiler
+  type: string
+- name: package_location_dir
+  type: string
+  default:
+
+steps:
+- bash: |
+    sudo apt update
+    sudo apt-get install -y ${{ parameters.dependencies }}
+    sudo apt-get install -y ninja-build
+    sudo apt-get install -y autoconf autopoint
+    apt list ${{ parameters.dependencies }}
+    apt list ninja-build autoconf autopoint
+    apt list | grep installed
+  displayName: 'Install Dependencies'
+
+- bash: |
+    cat ${{ parameters.setup_vcpkg_script }}
+  displayName: 'Dump vcpkg setup script.'
+
+- bash: |
+    chmod +x ${{ parameters.setup_vcpkg_script }}
+    ${{ parameters.setup_vcpkg_script }} ${{ parameters.vcpkg_dir }} ${{ parameters.vcpkg_ports }} ${{ parameters.vcpkg_triplet }}
+  displayName: 'Setup VCPKG'
+
+- task: CMake@1
+  inputs:
+    cmakeArgs: -S ${{ parameters.source_location }} -B ${{ parameters.build_location }} -DCMAKE_TOOLCHAIN_FILE=${{ parameters.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake -G "Unix Makefiles" -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkg_triplet }} -DCMAKE_C_COMPILER=${{ parameters.cmake_c_compiler }} -DCMAKE_CXX_COMPILER=${{ parameters.cmake_cxx_compiler }} --trace
+  displayName: 'CMake'
+
+- bash: |
+    cd ${{ parameters.build_location }}
+    make
+    ls -R ${{ parameters.build_location }}
+  displayName: 'Build diffapi'
+
+- ${{ if ne('${{ parameters.package_location_dir }}', '') }}:
+  - bash: |
+      cd ${{ parameters.build_location }}
+      cpack -G DEB
+      ls -R ${{ parameters.package_location_dir }}
+    displayName: 'Create debian package'

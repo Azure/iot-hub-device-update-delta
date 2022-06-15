@@ -1,0 +1,32 @@
+# File: diffapi-ubuntu2004-arm64.yml
+# This pipeline builds the diffapi project using CMake in ubuntu 20.04. The project is cross-compiled to arm64.
+trigger:
+  branches:
+    include:
+    - user/*
+  paths:
+    include:
+    - src
+    exclude:
+    - src/managed
+
+pool:
+  vmImage: ubuntu-20.04
+
+variables:
+  vcpkg_triplet: arm64-linux
+  dependencies: gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu g++-9-aarch64-linux-gnu
+  cmake_c_compiler: /usr/bin/aarch64-linux-gnu-gcc-9
+  cmake_cxx_compiler: /usr/bin/aarch64-linux-gnu-g++-9
+  test_dependencies: qemu-system-arm qemu-efi-aarch64 qemu-utils qemu-user
+  qemu_command: "qemu-aarch64 -L /usr/aarch64-linux-gnu "
+
+extends:
+  template: ../templates/all-native-linux.yml
+  parameters:
+    vcpkg_triplet: $(vcpkg_triplet)
+    dependencies: $(dependencies)
+    cmake_c_compiler: $(cmake_c_compiler)
+    cmake_cxx_compiler: $(cmake_cxx_compiler)
+    test_dependencies: $(test_dependencies)
+    qemu_command: $(qemu_command)

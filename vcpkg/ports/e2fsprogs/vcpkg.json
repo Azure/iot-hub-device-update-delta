@@ -1,0 +1,7 @@
+{
+  "name": "e2fsprogs",
+  "version": "1.46.5",
+  "description": "e2fsprogs",
+  "homepage": "http://e2fsprogs.sourceforge.net/",
+  "supports": "(mingw & x64) | (linux & (x64 | arm | arm64))"
+}

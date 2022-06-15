@@ -1,0 +1,20 @@
+diff --git a/cipher/poly1305.c b/cipher/poly1305.c
+index 41e55e8d..d04b25d1 100644
+--- a/cipher/poly1305.c
++++ b/cipher/poly1305.c
+@@ -297,6 +297,7 @@ static unsigned int poly1305_final (poly1305_context_t *ctx,
+ 	       : "=r" (HI), "=r" (LO) \
+ 	       : "0" (HI), "1" (LO), "r" (A), "r" (B) )
+ 
++#if 0
+ /* A += B (arm) */
+ #define ADD_1305_32(A4, A3, A2, A1, A0, B4, B3, B2, B1, B0) \
+       __asm__ ("adds %0, %0, %5\n" \
+@@ -307,6 +308,7 @@ static unsigned int poly1305_final (poly1305_context_t *ctx,
+ 	       : "+r" (A0), "+r" (A1), "+r" (A2), "+r" (A3), "+r" (A4) \
+ 	       : "r" (B0), "r" (B1), "r" (B2), "r" (B3), "r" (B4) \
+ 	       : "cc" )
++#endif
+ 
+ #endif /* HAVE_COMPATIBLE_GCC_ARM_PLATFORM_AS */
+ 
