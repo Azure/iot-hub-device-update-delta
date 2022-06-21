@@ -1,0 +1,24 @@
+software =
+{
+    version = "1.0";
+    description = "software 1.0";
+    hardware-compatibility: [ "1.0", "1.2", "1.3"];
+    images: (
+        {
+            filename = "img.img";
+            volume = "img";
+        },
+        {
+            filename = "iso.iso";
+            volume = "iso";
+        }
+    );
+    files: (
+        {
+            filename = "deb.deb";
+            path = "/deb";
+            device = "/dev/mmcblk0p1";
+            filesystem = "vfat"
+        }
+    );
+}

@@ -1,0 +1,68 @@
+trigger:
+  branches:
+    include:
+    - user/*
+  paths:
+    include:
+    - src
+
+stages:
+  # We require heterogenous environments for these jobs, so they
+  # are in a stage where we parallelize them and then publish
+  - stage: BuildNativeCode
+    jobs:
+    - job: BuildWindowsNativeCode_x64_windows_Release
+      displayName: 'Build Windows Native Code - x64-windows (Release)'
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: ../templates/build-native-x64-windows.yml
+          parameters:
+            configuration: 'Release'
+
+    - job: CrossCompile_dumpextfs_x64_windows
+      displayName: 'Cross-Compile dumpextfs.exe - x64-windows'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - template: ../templates/crosscompile-dumpextfs.yml
+
+    - job: BuildLinuxNativeCodeRelease_x64
+      displayName: 'Build Linux Native Code - x64-linux'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - template: ../templates/all-native-linux.yml
+          parameters:
+            vcpkg_triplet: x64-linux
+
+  - stage: BuildManagedCodeAndPublish
+    jobs:
+    - job: BuildManagedCodeAndPublish
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: ../templates/build-diffgen.yml
+          parameters:
+            build_nuget: false
+            enable_signing: false
+
+  - stage: EndToEndTests
+    jobs:
+    - job: EndToEndTestsWindows
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: ../templates/end-to-end-tests.yml
+          parameters:
+            diffgentool_artifact_name: diffgen-tool.Release.x64-windows
+
+    - job: EndToEndTestsLinux
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - template: ../templates/end-to-end-tests.yml
+          parameters:
+            diffgentool_artifact_name: diffgen-tool.Release.x64-linux
+            install_dependencies_script: $(Build.SourcesDirectory)/build/install-diffgentool-x64-linux-deps.sh
+            post_download_artifact_script: $(Build.SourcesDirectory)/build/setup-diffgentool-x64-linux.sh

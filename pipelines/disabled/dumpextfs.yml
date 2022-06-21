@@ -1,0 +1,23 @@
+# C/C++ with GCC
+# Build your C/C++ project with GCC using make.
+# Add steps that publish test results, save build artifacts, deploy, and more:
+# https://docs.microsoft.com/azure/devops/pipelines/apps/c-cpp/gcc
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  dependencies: g++-9 g++-mingw-w64-i686 g++-mingw-w64-x86-64 g++-mingw-w64 g++ mingw-w64-common mingw-w64-i686-dev mingw-w64-x86-64-dev mingw-w64
+
+extends:
+  template: dumpextfs-template.yml
+  parameters:
+    build_script: build_vcpkg.win32
+    output_binary: dumpextfs.exe
+    vcpkg_triplet: x64-mingw-static
+    dependencies: $(dependencies)
+    enable_sign: true
+

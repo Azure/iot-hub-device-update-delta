@@ -1,0 +1,104 @@
+/**
+ * @file error_codes.h
+ *
+ * @copyright Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT License.
+ */
+#pragma once
+
+#include <cstdint>
+
+namespace error_utility
+{
+enum class error_code : uint16_t
+{
+	none                       = 0,
+	standard_library_exception = 1,
+
+	hash_provider_initialization_failure = 10000,
+	hash_initialization_failure          = 10001,
+	hash_data_failure                    = 10002,
+	hash_get_value                       = 10003,
+	hash_alg_to_bcrypt_alg_id            = 10004,
+	hash_alg_id_to_algorithm_name        = 10005,
+	hash_alg_to_gcrypt_algo              = 10006,
+
+	io_reader_read_failure                                        = 20000,
+	io_stream_read_error                                          = 20001,
+	io_stored_blob_reader_read_offset                             = 20003,
+	io_zlib_reader_seek_not_supported                             = 20100,
+	io_zlib_reader_init_failed                                    = 20101,
+	io_zlib_reader_already_initialized                            = 20102,
+	io_zlib_state_not_ready                                       = 20103,
+	io_zlib_reader_inflate_failed                                 = 20104,
+	io_zlib_reader_no_more_data                                   = 20105,
+	io_zlib_init_type_invalid                                     = 20106,
+	io_zstd_compressstream2_failed                                = 20200,
+	io_zstd_decompress_stream_failed                              = 20201,
+	io_zstd_decompress_cannot_finish                              = 20202,
+	io_zstd_dictionary_too_large                                  = 20203,
+	io_binary_file_reader_failed_open                             = 20300,
+	io_binary_file_readerwriter_failed_open                       = 20301,
+	io_binary_file_writer_failed_open                             = 20302,
+	io_child_reader_parent_is_null                                = 20400,
+	io_child_reader_out_of_bounds                                 = 20401,
+	io_sequential_reader_bad_offset                               = 20500,
+	io_sequential_write_bad_offset                                = 20600,
+	io_chained_reader_not_enough_data                             = 20700,
+	io_chained_reader_offset_in_reader_past_size                  = 20701,
+	io_producer_consumer_reader_writer_invalid_offset             = 20800,
+	io_producer_consumer_reader_writer_writing_when_done          = 20801,
+	io_producer_consumer_reader_writer_reading_too_much_available = 20802,
+	io_stored_blob_reader_factory_too_large                       = 20900,
+	io_temp_file_backed_reader_tmpfile_failed                     = 21000,
+
+	diff_magic_header_wrong                                 = 30000,
+	diff_version_wrong                                      = 30001,
+	diff_read_diff_size_mismatch                            = 30002,
+	diff_bad_hash_type                                      = 30003,
+	diff_archive_item_missing_recipe                        = 30004,
+	diff_inline_asset_byte_count_mismatch                   = 30005,
+	diff_remainder_offset_too_large                         = 30006,
+	diff_remainder_length_too_large                         = 30007,
+	diff_cannot_delete_file                                 = 30008,
+	diff_verify_hash_failure                                = 30009,
+	diff_invalid_recipe_type                                = 30010,
+	diff_chunk_count_too_large                              = 30011,
+	diff_write_chunk_at_unexpected_offset                   = 30012,
+	diff_write_incorrect_inline_assets                      = 30013,
+	diff_dump_nested_delta_item_missing_recipe              = 30014,
+	diff_dump_nested_delta_item_not_inline_asset            = 30015,
+	diff_dump_parameter_invalid_type                        = 30016,
+	diff_remainder_chunk_length_too_large                   = 30015,
+	diff_inline_asset_offset_too_large                      = 30016,
+	diff_inline_asset_length_too_large                      = 30017,
+	diff_cannot_add_implicit_offset                         = 30018,
+	diff_cannot_add_implicit_length                         = 30019,
+	diff_invalid_recipe_parameter_type                      = 30100,
+	diff_recipe_parameter_read_invalid_type                 = 30101,
+	diff_recipe_parameter_invalid_type_for_apply            = 30102,
+	diff_recipe_parameter_invalid_type_for_get_number_value = 30103,
+	diff_recipe_invalid_parameter_count                     = 30104,
+	diff_recipe_parameter_count_too_large                   = 30105,
+	diff_copy_source_offset_too_large                       = 30200,
+	diff_copy_source_length_too_large                       = 30201,
+	diff_region_offset_too_large                            = 30300,
+	diff_region_length_too_large                            = 30301,
+	diff_zstd_number_parameter_too_large                    = 30400,
+	diff_recipe_zstd_decompression_not_supported            = 30401,
+	diff_invalid_compression_context_type                   = 30500,
+	diff_no_way_to_make_source_reader                       = 30600,
+	diff_no_way_to_make_nested_source_reader                = 30601,
+	diff_all_zero_length_too_large                          = 30700,
+	diff_recipe_gz_decompression_recipe_not_supported       = 30800,
+	diff_bspatch_failure                                    = 30900,
+	diff_bspatch_cannot_open_target                         = 30901,
+	diff_zstd_apply_failure                                 = 31000,
+	diff_zstd_cannot_open_target                            = 31001,
+
+	api_could_not_delete_file        = 40000,
+	api_unexpected_hash_type         = 40001,
+	api_unexpected_archive_item_type = 40002,
+	api_unexpected_recipe_type       = 40003,
+};
+}

@@ -1,0 +1,5 @@
+The package bsdiff provides CMake integration:
+
+    find_package(bsdiff REQUIRED)
+    target_include_directories(main PRIVATE ${BSDIFF_INCLUDE_DIRS})
+    target_link_libraries(main PRIVATE ${BSDIFF_LIBRARIES})

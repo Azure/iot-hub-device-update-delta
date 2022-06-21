@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <RootNamespace>Microsoft.AzureDeviceUpdate.Diffs</RootNamespace>
+    <AssemblyName>ADUDiffGeneration</AssemblyName>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
+    <Description>Diff Generation Library</Description>
+    <Copyright>Copyright (c) Microsoft Corporation.  All rights reserved.</Copyright>
+    <RepositoryType>git</RepositoryType>
+    <RepositoryUrl>https://microsoft.visualstudio.com/OS.Fun/_git/AzureDeviceUpdateDiffs</RepositoryUrl>
+    <AssemblyVersion>0.0.0.0</AssemblyVersion>
+    <FileVersion>0.0.0.0</FileVersion>
+    <IncludeReferencedProjects>true</IncludeReferencedProjects>
+    <DefineConstants Condition="'$(TargetOS)' == 'LINUX'">$(DefineConstants);LINUX</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\archives\Ext4Archives\Ext4Archives.csproj" />
+    <ProjectReference Include="..\ArchiveUtility\ArchiveUtility.csproj" />
+    <ProjectReference Include="..\archives\CpioArchives\CpioArchives.csproj" />
+    <ProjectReference Include="..\archives\SWUpdateArchives\SWUpdateArchives.csproj" />
+    <ProjectReference Include="..\archives\TarArchives\TarArchives.csproj" />
+  </ItemGroup>
+
+</Project>

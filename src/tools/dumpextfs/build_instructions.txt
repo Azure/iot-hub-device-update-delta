@@ -1,0 +1,49 @@
+Setup:
+(in bash)
+install compiler and cross compiler stuff:
+I think just doing g++ and mingw-w64 will pull all of these:
+
+    g++-9
+    g++-mingw-w64-i686
+    g++-mingw-w64-x86-64
+    g++-mingw-w64
+    g++
+    mingw-w64-common
+    mingw-w64-i686-dev
+    mingw-w64-x86-64-dev
+    mingw-w64
+
+And if building for linux, apt install libmhash-dev
+
+Building:
+
+(in windows - I get a cert failure in ubuntu, you may as well)
+git clone https://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git
+(switch to bash)
+
+cd e2fsprogs
+if building for windows:
+    (this will call ./configure with some set of parameters and generate a bunch of headers/etc)
+    /mnt/d/adu_delta/wsl/AzureDeviceUpdateDiffs/src/tools/dumpextfs/call_configure
+if building for linux:
+    (same thing, but different)
+    /mnt/d/adu_delta/wsl/AzureDeviceUpdateDiffs/src/tools/dumpextfs/call_configure_linux
+
+git apply /mnt/d/adu_delta/wsl/AzureDeviceUpdateDiffs/src/tools/dumpextfs/e2fsprogs.patch (wherever you have it)
+git status (to verify that these files are modified):
+        modified:   lib/ext2fs/ext2fs.h
+        modified:   lib/ext2fs/fileio.c
+cd lib/et
+make
+cd ../ext2fs
+make
+
+cd to ADU enlistment
+cd DumpExt4Fs
+if building for windows:
+    ./build_dll.win32 /mnt/c/code/e2fsprogs
+    ./build.win32 /mnt/c/code/e2fsprogs
+if building for linux:
+    ./build /mnt/d/adu_delta/wsl/e2fsprogs
+if building for linux with e2fsprogs vcpkg port:
+    ./build.vcpkg /mnt/d/adu_delta/wsl/vcpkg/packages/e2fsprogs_<target_triplet> (e.g. /mnt/d/adu_delta/wsl/vcpkg/packages/e2fsprogs_x64-linux)

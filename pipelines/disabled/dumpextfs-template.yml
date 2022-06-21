@@ -1,0 +1,97 @@
+# File: dumpextfs-template.yml
+# This template uses multiple other templates to build,
+# test and publish the content for the diffapi project.
+parameters:
+- name: dumpextfs_dir
+  type: string
+  default: $(Build.SourcesDirectory)/src/tools/dumpextfs
+- name: build_script
+  type: string
+- name: vcpkg_dir
+  type: string
+  default: $(Agent.BuildDirectory)/vcpkg
+- name: output_binary
+  type: string
+  default: dumpextfs
+- name: vcpkg_triplet
+  type: string
+- name: dependencies
+  type: string
+  default: g++-9
+- name: enable_sign
+  type: boolean
+  default: false
+
+steps:
+
+- bash: |
+    sudo apt-get install -y ${{ parameters.dependencies }}
+  displayName: 'Install dumpextfs dependencies'
+
+- bash: |
+    git clone https://github.com/microsoft/vcpkg ${{ parameters.vcpkg_dir }}
+    ${{ parameters.vcpkg_dir }}/bootstrap-vcpkg.sh
+  displayName: 'Setup VCPKG'
+
+- bash: |
+    ${{ parameters.vcpkg_dir }}/vcpkg install e2fsprogs:${{ parameters.vcpkg_triplet }} --overlay-ports=$(Build.Repository.LocalPath)/vcpkg/ports/e2fsprogs
+  displayName: 'Install e2fsprogs package'
+
+- bash: |
+    cd ${{ parameters.dumpextfs_dir }}
+    chmod +x ${{ parameters.build_script }}
+    ./${{ parameters.build_script }} ${{ parameters.vcpkg_dir }}/packages/e2fsprogs_${{ parameters.vcpkg_triplet }}
+  displayName: 'Build dumpextfs'
+
+- ${{ if eq(parameters.enable_sign, true) }}:
+  - task: EsrpCodeSigning@1
+    inputs:
+      ConnectedServiceName: 'ADU Diffs ESRP CodeSigning'
+      FolderPath: '${{ parameters.dumpextfs_dir }}'
+      Pattern: '${{ parameters.output_binary }}'
+      signConfigType: 'inlineSignParams'
+      inlineOperation: |
+        [
+          {
+            "keyCode": "CP-231522",
+            "operationSetCode": "SigntoolSign",
+            "parameters": [
+              {
+                "parameterName": "OpusName",
+                "parameterValue": "Microsoft"
+              },
+              {
+                "parameterName": "OpusInfo",
+                "parameterValue": "http://www.microsoft.com"
+              },
+              {
+                "parameterName": "PageHash",
+                "parameterValue": "/NPH"
+              },
+              {
+                "parameterName": "FileDigest",
+                "parameterValue": "/fd sha256"
+              },
+              {
+                "parameterName": "TimeStamp",
+                "parameterValue": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+              }
+            ],
+            "toolName": "signtool.exe",
+            "toolVersion": "6.2.9304.0"
+          }
+        ]
+      SessionTimeout: '60'
+      MaxConcurrency: '50'
+      MaxRetryAttempts: '5'
+
+- bash: |
+    cp ${{ parameters.dumpextfs_dir }}/${{ parameters.output_binary }} $(Build.ArtifactStagingDirectory)
+    cp ${{ parameters.vcpkg_dir }}/packages/e2fsprogs_${{ parameters.vcpkg_triplet }}/share/e2fsprogs/copyright $(Build.ArtifactStagingDirectory)/LICENSE.e2fsprogs
+  displayName: 'Copy dumpextfs binary and license to staging directory.'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(Build.ArtifactStagingDirectory)'
+    artifactType: 'pipeline'
+    artifactName: 'drop'

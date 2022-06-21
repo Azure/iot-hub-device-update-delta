@@ -1,0 +1,432 @@
+﻿{
+  "Type": "ext4",
+  "Subtype": "ext4",
+  "Chunks": [
+    {
+      "Id": 1,
+      "Name": "Chunk@274432",
+      "Type": "Chunk",
+      "Offset": 274432,
+      "Length": 1,
+      "Hashes": {
+        "Sha256": "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB",
+        "Md5": "0CC175B9C0F1B6A831C399E269772661"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 0,
+                "Name": "/a.txt",
+                "Type": "Payload",
+                "Length": 1,
+                "Hashes": {
+                  "Sha256": "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB",
+                  "Md5": "0CC175B9C0F1B6A831C399E269772661"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 3,
+      "Name": "Chunk@278528",
+      "Type": "Chunk",
+      "Offset": 278528,
+      "Length": 1,
+      "Hashes": {
+        "Sha256": "3E23E8160039594A33894F6564E1B1348BBD7A0088D42C4ACB73EEAED59C009D",
+        "Md5": "92EB5FFEE6AE2FEC3AD71C777531578F"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 2,
+                "Name": "/f1/b.txt",
+                "Type": "Payload",
+                "Length": 1,
+                "Hashes": {
+                  "Sha256": "3E23E8160039594A33894F6564E1B1348BBD7A0088D42C4ACB73EEAED59C009D",
+                  "Md5": "92EB5FFEE6AE2FEC3AD71C777531578F"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 5,
+      "Name": "Chunk@282624",
+      "Type": "Chunk",
+      "Offset": 282624,
+      "Length": 1,
+      "Hashes": {
+        "Sha256": "2E7D2C03A9507AE265ECF5B5356885A53393A2029D241394997265A1A25AEFC6",
+        "Md5": "4A8A08F09D37B73795649038408B5F33"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 4,
+                "Name": "/f1/f11/c.txt",
+                "Type": "Payload",
+                "Length": 1,
+                "Hashes": {
+                  "Sha256": "2E7D2C03A9507AE265ECF5B5356885A53393A2029D241394997265A1A25AEFC6",
+                  "Md5": "4A8A08F09D37B73795649038408B5F33"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 7,
+      "Name": "Chunk@286720",
+      "Type": "Chunk",
+      "Offset": 286720,
+      "Length": 1,
+      "Hashes": {
+        "Sha256": "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB",
+        "Md5": "0CC175B9C0F1B6A831C399E269772661"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 6,
+                "Name": "/f2/a.txt",
+                "Type": "Payload",
+                "Length": 1,
+                "Hashes": {
+                  "Sha256": "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB",
+                  "Md5": "0CC175B9C0F1B6A831C399E269772661"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 8,
+      "Name": "Chunk.Gap@0",
+      "Type": "Chunk",
+      "Offset": 0,
+      "Length": 274432,
+      "Hashes": {
+        "Sha256": "E1908288E39C7A4402467F23912152D3AAFB8ECFCE85F0784A2F1B2EFFF5D2BA",
+        "Md5": "D1D1FD8E7628547F4B642E5CFCCA1C08"
+      }
+    },
+    {
+      "Id": 9,
+      "Name": "Chunk.Gap@274433",
+      "Type": "Chunk",
+      "Offset": 274433,
+      "Length": 1023,
+      "Hashes": {
+        "Sha256": "5724796860BAA23469B3118EFF2567C96A0B64B7DADAF99EAFB7BA3C65B9AA56",
+        "Md5": "EE4325C998D610499EF9749837313581"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 1023
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 10,
+      "Name": "Chunk.Gap@275456",
+      "Type": "Chunk",
+      "Offset": 275456,
+      "Length": 3072,
+      "Hashes": {
+        "Sha256": "E80232B4D18D0BB7E794BE263BA937626F383F9917D4B8A737BA893A8F752293",
+        "Md5": "D2A70550489DE356A2CD6BFC40711204"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 3072
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 11,
+      "Name": "Chunk.Gap@278529",
+      "Type": "Chunk",
+      "Offset": 278529,
+      "Length": 1023,
+      "Hashes": {
+        "Sha256": "5724796860BAA23469B3118EFF2567C96A0B64B7DADAF99EAFB7BA3C65B9AA56",
+        "Md5": "EE4325C998D610499EF9749837313581"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 1023
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 12,
+      "Name": "Chunk.Gap@279552",
+      "Type": "Chunk",
+      "Offset": 279552,
+      "Length": 3072,
+      "Hashes": {
+        "Sha256": "E80232B4D18D0BB7E794BE263BA937626F383F9917D4B8A737BA893A8F752293",
+        "Md5": "D2A70550489DE356A2CD6BFC40711204"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 3072
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 13,
+      "Name": "Chunk.Gap@282625",
+      "Type": "Chunk",
+      "Offset": 282625,
+      "Length": 1023,
+      "Hashes": {
+        "Sha256": "5724796860BAA23469B3118EFF2567C96A0B64B7DADAF99EAFB7BA3C65B9AA56",
+        "Md5": "EE4325C998D610499EF9749837313581"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 1023
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 14,
+      "Name": "Chunk.Gap@283648",
+      "Type": "Chunk",
+      "Offset": 283648,
+      "Length": 3072,
+      "Hashes": {
+        "Sha256": "E80232B4D18D0BB7E794BE263BA937626F383F9917D4B8A737BA893A8F752293",
+        "Md5": "D2A70550489DE356A2CD6BFC40711204"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 3072
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 15,
+      "Name": "Chunk.Gap@286721",
+      "Type": "Chunk",
+      "Offset": 286721,
+      "Length": 1023,
+      "Hashes": {
+        "Sha256": "5724796860BAA23469B3118EFF2567C96A0B64B7DADAF99EAFB7BA3C65B9AA56",
+        "Md5": "EE4325C998D610499EF9749837313581"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 1023
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 16,
+      "Name": "Chunk.Gap@287744",
+      "Type": "Chunk",
+      "Offset": 287744,
+      "Length": 3808256,
+      "Hashes": {
+        "Sha256": "48BD23785A72ED1B231375AA59DAA2F1B39CC254475462D89E9FC807E46FC0EC",
+        "Md5": "FC3B9C095238E1A529D229958A392837"
+      }
+    }
+  ],
+  "Payload": [
+    {
+      "Id": 0,
+      "Name": "/a.txt",
+      "Type": "Payload",
+      "Length": 1,
+      "Hashes": {
+        "Sha256": "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB",
+        "Md5": "0CC175B9C0F1B6A831C399E269772661"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 1,
+                "Name": "Chunk@274432",
+                "Type": "Chunk",
+                "Offset": 274432,
+                "Length": 1,
+                "Hashes": {
+                  "Sha256": "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB",
+                  "Md5": "0CC175B9C0F1B6A831C399E269772661"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 2,
+      "Name": "/f1/b.txt",
+      "Type": "Payload",
+      "Length": 1,
+      "Hashes": {
+        "Sha256": "3E23E8160039594A33894F6564E1B1348BBD7A0088D42C4ACB73EEAED59C009D",
+        "Md5": "92EB5FFEE6AE2FEC3AD71C777531578F"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 3,
+                "Name": "Chunk@278528",
+                "Type": "Chunk",
+                "Offset": 278528,
+                "Length": 1,
+                "Hashes": {
+                  "Sha256": "3E23E8160039594A33894F6564E1B1348BBD7A0088D42C4ACB73EEAED59C009D",
+                  "Md5": "92EB5FFEE6AE2FEC3AD71C777531578F"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 4,
+      "Name": "/f1/f11/c.txt",
+      "Type": "Payload",
+      "Length": 1,
+      "Hashes": {
+        "Sha256": "2E7D2C03A9507AE265ECF5B5356885A53393A2029D241394997265A1A25AEFC6",
+        "Md5": "4A8A08F09D37B73795649038408B5F33"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 5,
+                "Name": "Chunk@282624",
+                "Type": "Chunk",
+                "Offset": 282624,
+                "Length": 1,
+                "Hashes": {
+                  "Sha256": "2E7D2C03A9507AE265ECF5B5356885A53393A2029D241394997265A1A25AEFC6",
+                  "Md5": "4A8A08F09D37B73795649038408B5F33"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 6,
+      "Name": "/f2/a.txt",
+      "Type": "Payload",
+      "Length": 1,
+      "Hashes": {
+        "Sha256": "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB",
+        "Md5": "0CC175B9C0F1B6A831C399E269772661"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 7,
+                "Name": "Chunk@286720",
+                "Type": "Chunk",
+                "Offset": 286720,
+                "Length": 1,
+                "Hashes": {
+                  "Sha256": "CA978112CA1BBDCAFAC231B39A23DC4DA786EFF8147C4E72B9807785AFEE48BB",
+                  "Md5": "0CC175B9C0F1B6A831C399E269772661"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

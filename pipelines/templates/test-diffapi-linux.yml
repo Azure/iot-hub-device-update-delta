@@ -1,0 +1,34 @@
+# File: test-diffapi-linux.yml
+# This template implements testing the diff api on linux systems.
+parameters:
+- name: test_dependencies
+  type: string
+  default:
+- name: io_utility_gtest_binary
+  type: string
+  default:
+- name: diffs_gtest_binary
+  type: string
+  default:
+- name: test_data_root
+  type: string
+  default:
+- name: zstd_compress_file_binary
+  type: string
+  default:
+- name: qemu_command
+  type: string
+  default:
+
+steps:
+- bash: |
+    sudo apt-get install -y ${{ parameters.test_dependencies }}
+  displayName: 'Install Test Dependencies'
+
+- bash: |
+    ${{ parameters.qemu_command }} ${{ parameters.io_utility_gtest_binary }} --test_data_root ${{ parameters.test_data_root }}
+  displayName: Run IO Utility Tests
+
+- bash: |
+    ${{ parameters.qemu_command }} ${{ parameters.diffs_gtest_binary }} --test_data_root ${{ parameters.test_data_root }} --zstd_compress_file "${{ parameters.qemu_command }}${{ parameters.zstd_compress_file_binary }}"
+  displayName: Run Diff Tests

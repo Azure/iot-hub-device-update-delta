@@ -1,0 +1,187 @@
+﻿{
+  "Type": "cpio",
+  "Subtype": "ascii.old",
+  "Chunks": [
+    {
+      "Id": 0,
+      "Name": "Chunk.Header.Payload=rpm.rpm",
+      "Type": "Chunk",
+      "Offset": 0,
+      "Length": 84,
+      "Hashes": {
+        "Sha256": "8C210E02BB596599DFFC41AFA434D2D8772D65C4655538F5FEB73CD8228E7CE3",
+        "Md5": "E1818070446C112D9ED2F753735039D0"
+      }
+    },
+    {
+      "Id": 1,
+      "Name": "Chunk.Payload=rpm.rpm",
+      "Type": "Chunk",
+      "Offset": 84,
+      "Length": 8,
+      "Hashes": {
+        "Sha256": "32D323232537C70419920162E1F3DFD2C693A3985743AD84C74C25F7584E2134",
+        "Md5": "D919854F3921F6783AA7D5CD470616C2"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 2,
+                "Name": "rpm.rpm",
+                "Type": "Payload",
+                "Length": 8,
+                "Hashes": {
+                  "Sha256": "32D323232537C70419920162E1F3DFD2C693A3985743AD84C74C25F7584E2134",
+                  "Md5": "D919854F3921F6783AA7D5CD470616C2"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 3,
+      "Name": "Chunk.Header.Payload=img.img",
+      "Type": "Chunk",
+      "Offset": 92,
+      "Length": 84,
+      "Hashes": {
+        "Sha256": "8A3D204F87CC493CDACB3F3F73EE4DE573B9C9B67D061C86E92A1D28275903FA",
+        "Md5": "692D424700B49A25E6B3079BCD1B8558"
+      }
+    },
+    {
+      "Id": 4,
+      "Name": "Chunk.Payload=img.img",
+      "Type": "Chunk",
+      "Offset": 176,
+      "Length": 8,
+      "Hashes": {
+        "Sha256": "1383C3D0A6D4FE182CE5E4AB7E6FACDA775D85B67C987B3356F1395DF5527243",
+        "Md5": "3A773DCD4815048DFE5AD707B2376498"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 5,
+                "Name": "img.img",
+                "Type": "Payload",
+                "Length": 8,
+                "Hashes": {
+                  "Sha256": "1383C3D0A6D4FE182CE5E4AB7E6FACDA775D85B67C987B3356F1395DF5527243",
+                  "Md5": "3A773DCD4815048DFE5AD707B2376498"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 6,
+      "Name": "Chunk.Header.Payload=TRAILER!!!",
+      "Type": "Chunk",
+      "Offset": 184,
+      "Length": 87,
+      "Hashes": {
+        "Sha256": "D6F969BB270FDA58B87B2C9296FCDF0B5D50F1FF555B3568240658647F72EB86",
+        "Md5": "B4B7C3BD521F375C96A5FC605AD3635B"
+      }
+    },
+    {
+      "Id": 7,
+      "Name": "Chunk.Gap@271",
+      "Type": "Chunk",
+      "Offset": 271,
+      "Length": 241,
+      "Hashes": {
+        "Sha256": "F2D7DF9F7C7A829D151F2D26F67F11BB6B824FB5ED649C159DD6124C4B4DCE60",
+        "Md5": "F25638C3CCBA37AAD21DAF44D061DED1"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 241
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "Payload": [
+    {
+      "Id": 2,
+      "Name": "rpm.rpm",
+      "Type": "Payload",
+      "Length": 8,
+      "Hashes": {
+        "Sha256": "32D323232537C70419920162E1F3DFD2C693A3985743AD84C74C25F7584E2134",
+        "Md5": "D919854F3921F6783AA7D5CD470616C2"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 1,
+                "Name": "Chunk.Payload=rpm.rpm",
+                "Type": "Chunk",
+                "Offset": 84,
+                "Length": 8,
+                "Hashes": {
+                  "Sha256": "32D323232537C70419920162E1F3DFD2C693A3985743AD84C74C25F7584E2134",
+                  "Md5": "D919854F3921F6783AA7D5CD470616C2"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 5,
+      "Name": "img.img",
+      "Type": "Payload",
+      "Length": 8,
+      "Hashes": {
+        "Sha256": "1383C3D0A6D4FE182CE5E4AB7E6FACDA775D85B67C987B3356F1395DF5527243",
+        "Md5": "3A773DCD4815048DFE5AD707B2376498"
+      },
+      "Recipes": [
+        {
+          "Name": "Copy",
+          "Parameters": {
+            "Item": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 4,
+                "Name": "Chunk.Payload=img.img",
+                "Type": "Chunk",
+                "Offset": 176,
+                "Length": 8,
+                "Hashes": {
+                  "Sha256": "1383C3D0A6D4FE182CE5E4AB7E6FACDA775D85B67C987B3356F1395DF5527243",
+                  "Md5": "3A773DCD4815048DFE5AD707B2376498"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

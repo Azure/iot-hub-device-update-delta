@@ -1,0 +1,520 @@
+{
+  "Version": 0,
+  "TargetSize": 32420352,
+  "TargetHash": {
+    "Type": 32780,
+    "Value": "LVBEB9wN9Gowjis9ViO9/8o0rURIItOOPLlpIwPu9xo="
+  },
+  "SourceSize": 32311296,
+  "SourceHash": {
+    "Type": 32780,
+    "Value": "Ssg8umO445rhlwGPo92ia69BSHONSrofadH9MsGlnxk="
+  },
+  "Chunks": [
+    {
+      "Id": 0,
+      "Name": "Chunk.Header.Payload=a.file",
+      "Type": "Chunk",
+      "Offset": 0,
+      "Length": 34,
+      "Hashes": {
+        "Sha256": "6F59423B2213F7678645826E522C964C5740D5D67763812F97D1116A5866DD06",
+        "Md5": "EFE5B59E18917563493452EA5516A907"
+      },
+      "Recipes": [
+        {
+          "Name": "Remainder",
+          "Parameters": {}
+        }
+      ]
+    },
+    {
+      "Id": 1,
+      "Name": "Chunk.Payload=a.file",
+      "Type": "Chunk",
+      "Offset": 34,
+      "Length": 53248,
+      "Hashes": {
+        "Sha256": "FE35981A22E744FF673DCF927E04729DA1B512D6884F00F57B0FA9F0518F6577",
+        "Md5": "98179BBF5BEBD869CF4B070F8FFDB41E"
+      },
+      "Recipes": [
+        {
+          "Name": "CopySource",
+          "Parameters": {
+            "Offset": {
+              "Type": "Number",
+              "Number": 34
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 3,
+      "Name": "Chunk.Header.Payload=b.file",
+      "Type": "Chunk",
+      "Offset": 53282,
+      "Length": 34,
+      "Hashes": {
+        "Sha256": "B424A74FB0B92B2C6095AEF6BB7B67BC33580106306E320EBBD6371C017DBE16",
+        "Md5": "E1256BE2BAD7A132E10BBD0639BB4C5A"
+      },
+      "Recipes": [
+        {
+          "Name": "Remainder",
+          "Parameters": {}
+        }
+      ]
+    },
+    {
+      "Id": 4,
+      "Name": "Chunk.Payload=b.file",
+      "Type": "Chunk",
+      "Offset": 53316,
+      "Length": 4608,
+      "Hashes": {
+        "Sha256": "B0CA775717B1C5A1D08407705148DC51B2BCED5F2CE71134F483D47B94AE1F8F",
+        "Md5": "2A5CF1EF31EAD597769A2452F0FCB892"
+      },
+      "Recipes": [
+        {
+          "Name": "ApplyBsDiff",
+          "Parameters": {
+            "Delta": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 0,
+                "Name": "\\deltas\\bsdiff.5.5",
+                "Type": "Blob",
+                "Length": 285,
+                "DevicePath": "\\deltas\\bsdiff.5.5",
+                "Hashes": {
+                  "Sha256": "4ED9D8B74431A4EFA3724E57FF17AC8242C1D2DEDAD21037AFB7A407846C9B68"
+                },
+                "Recipes": [
+                  {
+                    "Name": "InlineAsset",
+                    "Parameters": {}
+                  }
+                ]
+              }
+            },
+            "Source": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 0,
+                "Name": "b.file",
+                "Type": "Payload",
+                "Length": 4608,
+                "Hashes": {
+                  "Sha256": "4FC38D0858B44AFC99BF82CAB8673453FFAD2A4D42518369B2726EDF00100713",
+                  "Md5": "C806C24BA4332AAD2F039F5F88C12A3D"
+                },
+                "Recipes": [
+                  {
+                    "Name": "CopySource",
+                    "Parameters": {
+                      "Offset": {
+                        "Type": "Number",
+                        "Number": 53316
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 6,
+      "Name": "Chunk.Header.Payload=c.file",
+      "Type": "Chunk",
+      "Offset": 57924,
+      "Length": 34,
+      "Hashes": {
+        "Sha256": "AC6B2302A213614794CA96213F018AD11D4150DA3DF6AC253D43FEA988EDCCC4",
+        "Md5": "DA014EBECD360A6A770D2CCCBE78565D"
+      },
+      "Recipes": [
+        {
+          "Name": "Remainder",
+          "Parameters": {}
+        }
+      ]
+    },
+    {
+      "Id": 7,
+      "Name": "Chunk.Payload=c.file",
+      "Type": "Chunk",
+      "Offset": 57958,
+      "Length": 4608,
+      "Hashes": {
+        "Sha256": "3FF7533CD8D69256B1416B1E0992F55E07593319334B0784A3C4A1C13A680980",
+        "Md5": "CCD497E452B1D0263D50C0BE24A46DED"
+      },
+      "Recipes": [
+        {
+          "Name": "Remainder",
+          "Parameters": {}
+        }
+      ]
+    },
+    {
+      "Id": 9,
+      "Name": "Chunk.Header.Payload=CPIO-Same.cpio",
+      "Type": "Chunk",
+      "Offset": 62566,
+      "Length": 42,
+      "Hashes": {
+        "Sha256": "6D63C24B02665CE87658B31BBFA73F88D632081A9C2AF8E8D2BDAC262F47CBFF",
+        "Md5": "AC681A41A1FA61DC8AD216473C337AB9"
+      },
+      "Recipes": [
+        {
+          "Name": "Remainder",
+          "Parameters": {}
+        }
+      ]
+    },
+    {
+      "Id": 10,
+      "Name": "Chunk.Payload=CPIO-Same.cpio",
+      "Type": "Chunk",
+      "Offset": 62608,
+      "Length": 6623232,
+      "Hashes": {
+        "Sha256": "504D7FE1A9AB2F0D991E80237E44DA9ADE8C4AF2B9BED52C1364FA0911ADFEAF",
+        "Md5": "192F2E8F902AF42C64ACC066B5C310B9"
+      },
+      "Recipes": [
+        {
+          "Name": "CopySource",
+          "Parameters": {
+            "Offset": {
+              "Type": "Number",
+              "Number": 57966
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 12,
+      "Name": "Chunk.Header.Payload=CPIO-Different.cpio",
+      "Type": "Chunk",
+      "Offset": 6685840,
+      "Length": 46,
+      "Hashes": {
+        "Sha256": "A2B14022F723F28934CCC2A0469AE4AC99F1EC07A7400F0E4382B5F5993FB3C2",
+        "Md5": "6AF42832D598623ED905FCAA4DC34F58"
+      },
+      "Recipes": [
+        {
+          "Name": "Remainder",
+          "Parameters": {}
+        }
+      ]
+    },
+    {
+      "Id": 13,
+      "Name": "Chunk.Payload=CPIO-Different.cpio",
+      "Type": "Chunk",
+      "Offset": 6685886,
+      "Length": 12343296,
+      "Hashes": {
+        "Sha256": "303EC77C4C2F88F17B5C07221BFBFB9D7B6719CF865BB7E8A6E44C9CEB3F70D1",
+        "Md5": "46ABD83937DCFD2B450DA79CF14D65F4"
+      },
+      "Recipes": [
+        {
+          "Name": "ApplyNestedDiff",
+          "Parameters": {
+            "Delta": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 0,
+                "Name": "\\deltas\\nested.11.14",
+                "Type": "Blob",
+                "Length": 816956,
+                "DevicePath": "\\deltas\\nested.11.14",
+                "Hashes": {
+                  "Sha256": "527981F14BEBA39E8AA4C128AA809F09FD0C07B10AFBD6DD2F91239202DA2D71"
+                },
+                "Recipes": [
+                  {
+                    "Name": "InlineAsset",
+                    "Parameters": {}
+                  }
+                ]
+              }
+            },
+            "Source": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 0,
+                "Name": "CPIO-Different.cpio",
+                "Type": "Payload",
+                "Length": 12247040,
+                "Hashes": {
+                  "Sha256": "172CCF10053DEE414A17ED71D126072ED099521291BF0CA484844BE22760D9BF",
+                  "Md5": "E20BD5F973C6610F43AE535A24781CE1"
+                },
+                "Recipes": [
+                  {
+                    "Name": "CopySource",
+                    "Parameters": {
+                      "Offset": {
+                        "Type": "Number",
+                        "Number": 6681244
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 15,
+      "Name": "Chunk.Header.Payload=CPIO-Small.cpio",
+      "Type": "Chunk",
+      "Offset": 19029182,
+      "Length": 42,
+      "Hashes": {
+        "Sha256": "BA63491D22816EF5CD3EE54FDD4D67A349E5BD97CCE884813A1D64DEA16896FB",
+        "Md5": "FD217D8476612679B4EBC85B0C58DB1C"
+      },
+      "Recipes": [
+        {
+          "Name": "Remainder",
+          "Parameters": {}
+        }
+      ]
+    },
+    {
+      "Id": 16,
+      "Name": "Chunk.Payload=CPIO-Small.cpio",
+      "Type": "Chunk",
+      "Offset": 19029224,
+      "Length": 58368,
+      "Hashes": {
+        "Sha256": "AAC2B79738DFF3DE03D572D8049147013021D7FF89AD126832B74D12472E0473",
+        "Md5": "EC6A5A54EE206328033D1173045D24C0"
+      },
+      "Recipes": [
+        {
+          "Name": "ApplyBsDiff",
+          "Parameters": {
+            "Delta": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 0,
+                "Name": "\\deltas\\bsdiff.14.17",
+                "Type": "Blob",
+                "Length": 315,
+                "DevicePath": "\\deltas\\bsdiff.14.17",
+                "Hashes": {
+                  "Sha256": "ECDD88F79BA4EA20F44876FC7623C939CA4C2242CD93975D2DD897CE0C97AB2D"
+                },
+                "Recipes": [
+                  {
+                    "Name": "InlineAsset",
+                    "Parameters": {}
+                  }
+                ]
+              }
+            },
+            "Source": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 0,
+                "Name": "CPIO-Small.cpio",
+                "Type": "Payload",
+                "Length": 58368,
+                "Hashes": {
+                  "Sha256": "D52ECB84143D13D868D1F44808C87CD00C383B17E23806CD633811F86B1B9F04",
+                  "Md5": "B92818DA2974072E82DC4E597F84884A"
+                },
+                "Recipes": [
+                  {
+                    "Name": "CopySource",
+                    "Parameters": {
+                      "Offset": {
+                        "Type": "Number",
+                        "Number": 18928326
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 18,
+      "Name": "Chunk.Header.Payload=CPIO-TargetOnly.cpio",
+      "Type": "Chunk",
+      "Offset": 19087592,
+      "Length": 48,
+      "Hashes": {
+        "Sha256": "196B28F1EF7FDBBAA240E554E886860FE3DA199565D550776DEF7ECB5A8A9700",
+        "Md5": "BA7F43647FD02DBA633AAA7594C89446"
+      },
+      "Recipes": [
+        {
+          "Name": "Remainder",
+          "Parameters": {}
+        }
+      ]
+    },
+    {
+      "Id": 19,
+      "Name": "Chunk.Payload=CPIO-TargetOnly.cpio",
+      "Type": "Chunk",
+      "Offset": 19087640,
+      "Length": 8192,
+      "Hashes": {
+        "Sha256": "BD08024968CB432541880AE94872A8BF8C0651285A136B87C5B80E6409F9BCAB",
+        "Md5": "A8F68378BF10FCF381CC3EB859F35C07"
+      },
+      "Recipes": [
+        {
+          "Name": "Remainder",
+          "Parameters": {}
+        }
+      ]
+    },
+    {
+      "Id": 21,
+      "Name": "Chunk.Header.Payload=CPIO-Complex.cpio",
+      "Type": "Chunk",
+      "Offset": 19095832,
+      "Length": 44,
+      "Hashes": {
+        "Sha256": "BC8215A463084B6FCC6A2362B8C7F99D5F6BCE7BED5F37618FCDA46D28E3B531",
+        "Md5": "02A4A74A3046E1320FA2405E28CC7087"
+      },
+      "Recipes": [
+        {
+          "Name": "Remainder",
+          "Parameters": {}
+        }
+      ]
+    },
+    {
+      "Id": 22,
+      "Name": "Chunk.Payload=CPIO-Complex.cpio",
+      "Type": "Chunk",
+      "Offset": 19095876,
+      "Length": 13324288,
+      "Hashes": {
+        "Sha256": "87DDFD38C4F102733042793B35337A55D12AB90C8BF888D76A8187FA8F6F8230",
+        "Md5": "A2058562310276A74D5D638C8E383A2D"
+      },
+      "Recipes": [
+        {
+          "Name": "ApplyNestedDiff",
+          "Parameters": {
+            "Delta": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 0,
+                "Name": "\\deltas\\nested.17.23",
+                "Type": "Blob",
+                "Length": 3238,
+                "DevicePath": "\\deltas\\nested.17.23",
+                "Hashes": {
+                  "Sha256": "31508A7495B9BFC6C8281C94AF841A285686515FB5F4F2C28B235AAFAAF0AD05"
+                },
+                "Recipes": [
+                  {
+                    "Name": "InlineAsset",
+                    "Parameters": {}
+                  }
+                ]
+              }
+            },
+            "Source": {
+              "Type": "ArchiveItem",
+              "Item": {
+                "Id": 0,
+                "Name": "CPIO-Complex.cpio",
+                "Type": "Payload",
+                "Length": 13324288,
+                "Hashes": {
+                  "Sha256": "29C21CDCB7CF4B322712ECEE9D9B65892B8F9A4F0B464AA1E725F60430897C92",
+                  "Md5": "877B52FF3861FDF0FE1C355D2AD42DC1"
+                },
+                "Recipes": [
+                  {
+                    "Name": "CopySource",
+                    "Parameters": {
+                      "Offset": {
+                        "Type": "Number",
+                        "Number": 18986738
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 24,
+      "Name": "Chunk.Header.Payload=TRAILER!!!",
+      "Type": "Chunk",
+      "Offset": 32420164,
+      "Length": 38,
+      "Hashes": {
+        "Sha256": "0964681AD34A193230538A09D00CDFB75B9AF8C86514449F5F1EF9552AF8AD63",
+        "Md5": "7D3B721B75725E308A76B5C882F64E13"
+      },
+      "Recipes": [
+        {
+          "Name": "CopySource",
+          "Parameters": {
+            "Offset": {
+              "Type": "Number",
+              "Number": 32311026
+            }
+          }
+        }
+      ]
+    },
+    {
+      "Id": 25,
+      "Name": "Chunk.Gap@32420202",
+      "Type": "Chunk",
+      "Offset": 32420202,
+      "Length": 150,
+      "Hashes": {
+        "Sha256": "1D83518B897B14E2943990EFF655838246CC0207A7C95A5F3DFCCC2E395F8BBF",
+        "Md5": "87A4924B0060D1E79C729F24CD134986"
+      },
+      "Recipes": [
+        {
+          "Name": "AllZero",
+          "Parameters": {
+            "Length": {
+              "Type": "Number",
+              "Number": 150
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "RemainderPath": "\\remainder.dat.deflate",
+  "RemainderUncompressedSize": 13124,
+  "RemainderCompressedSize": 2163
+}

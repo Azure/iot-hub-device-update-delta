@@ -1,0 +1,99 @@
+# File: diffapi-linux-template.yml
+# This template uses multiple other templates to build,
+# test and publish the content for the diffapi project.
+parameters:
+# Build Parameters
+- name: dependencies
+  type: string
+  default: g++ g++-9 autoconf autopoint ninja-build
+- name: vcpkg_dir
+  type: string
+  default: $(Agent.BuildDirectory)/vcpkg
+- name: vcpkg_triplet
+  type: string
+- name: diffapi_build_dir
+  type: string
+  default: $(Build.SourcesDirectory)/src/diffapi-build
+- name: cmake_c_compiler
+  type: string
+  default: /usr/bin/gcc-9
+- name: cmake_cxx_compiler
+  type: string
+  default: /usr/bin/g++-9
+# Test Parameters
+- name: test_dependencies
+  type: string
+  default:
+- name: io_utility_gtest_dir
+  type: string
+  default: $(Build.SourcesDirectory)/src/diffapi-build/io_utility/gtest
+- name: diffs_gtest_dir
+  type: string
+  default: $(Build.SourcesDirectory)/src/diffapi-build/diffs/gtest
+- name: qemu_command
+  type: string
+  default:
+- name: test_data_root
+  type: string
+  default: $(Build.SourcesDirectory)/data
+- name: zstd_compress_file
+  type: string
+  default: $(Build.SourcesDirectory)/src/diffapi-build/tools/zstd_compress_file/zstd_compress_file
+# Publish Parameters
+- name: applydiff_tool_dir
+  type: string
+  default: $(Build.SourcesDirectory)/src/diffapi-build/tools/applydiff
+- name: applydiff_tool_full_path
+  type: string
+  default: $(Build.SourcesDirectory)/src/diffapi-build/tools/applydiff/applydiff
+- name: dumpdiff_tool_dir
+  type: string
+  default: $(Build.SourcesDirectory)/src/diffapi-build/tools/dumpdiff
+- name: dumpdiff_tool_full_path
+  type: string
+  default: $(Build.SourcesDirectory)/src/diffapi-build/tools/dumpdiff/dumpdiff
+- name: dumpextfs_tool_full_path
+  type: string
+  default: $(Build.SourcesDirectory)/src/diffapi-build/tools/dumpextfs/dumpextfs
+- name: libadudiffapi_full_path
+  type: string
+  default: $(Build.SourcesDirectory)/src/diffapi-build/diffs/api/libadudiffapi.so
+- name: package_location_dir
+  type: string
+  default: $(Build.SourcesDirectory)/src/_packages
+
+steps:
+- template: build-native-linux.yml
+  parameters:
+    dependencies: ${{ parameters.dependencies }}
+    setup_vcpkg_script: $(Build.Repository.LocalPath)/build/setup_vcpkg.sh
+    vcpkg_dir: ${{ parameters.vcpkg_dir }}
+    vcpkg_ports: $(Build.Repository.LocalPath)/vcpkg/ports
+    vcpkg_triplet: ${{ parameters.vcpkg_triplet }}
+    source_location: $(Build.SourcesDirectory)/src
+    build_location: ${{ parameters.diffapi_build_dir }}
+    cmake_c_compiler: ${{ parameters.cmake_c_compiler }}
+    cmake_cxx_compiler: ${{ parameters.cmake_cxx_compiler }}
+    package_location_dir: ${{ parameters.package_location_dir }}
+
+- template: test-diffapi-linux.yml
+  parameters:
+    test_dependencies: ${{ parameters.test_dependencies }}
+    io_utility_gtest_binary: ${{ parameters.io_utility_gtest_dir }}/io_utility_gtest
+    diffs_gtest_binary: ${{ parameters.diffs_gtest_dir }}/diffs_gtest
+    test_data_root: ${{ parameters.test_data_root }}
+    zstd_compress_file_binary: ${{ parameters.zstd_compress_file }}
+    qemu_command: ${{ parameters.qemu_command }}
+
+- template: publish-diffapi-linux.yml
+  parameters:
+    applydiff_tool_full_path: ${{ parameters.applydiff_tool_full_path }}
+    dumpdiff_tool_full_path: ${{ parameters.dumpdiff_tool_full_path }}
+    dumpextfs_tool_full_path: ${{ parameters.dumpextfs_tool_full_path }}
+    zstd_compress_file_binary: ${{ parameters.zstd_compress_file }}
+    lib_publish_dir: $(Build.ArtifactStagingDirectory)/lib
+    libadudiffapi_full_path: ${{ parameters.libadudiffapi_full_path }}
+    package_location_dir: ${{ parameters.package_location_dir }}
+    package_publish_dir: $(Build.ArtifactStagingDirectory)/package
+    vcpkg_dir: ${{ parameters.vcpkg_dir }}
+    vcpkg_triplet: ${{ parameters.vcpkg_triplet }}

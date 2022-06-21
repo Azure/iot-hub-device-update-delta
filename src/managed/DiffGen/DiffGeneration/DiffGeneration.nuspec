@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>ADU-Diffs.DiffGeneration</id>
+    <version>$version$</version>
+    <title>ADUDiffGeneration</title>
+    <projectUrl>http://msdn.microsoft.com/OS.Fun</projectUrl>
+    <authors>Microsoft</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>This package contains necessary binaries to build ADU Diffs.</description>
+    <copyright>Microsoft</copyright>
+    <tags></tags>
+  </metadata>
+  <files>
+    <file src="adudiffapi.dll" target="lib/net5.0" />
+    <file src="adudiffapi.lib" target="lib/net5.0" />
+    <file src="adudiffapi.pdb" target="lib/net5.0" />
+    <file src="bsdiff.exe" target="lib/net5.0" />
+    <file src="bspatch.exe" target="lib/net5.0" />
+    <file src="dumpextfs.exe" target="lib/net5.0" />
+    <file src="zstd_compress_file.exe" target="lib/net5.0" />
+    <file src="zlib1.dll" target="lib/net5.0" />
+    <file src="zstd.dll" target="lib/net5.0" />
+    <file src="libadudiffapi.so" target="lib/net5.0" />
+    <file src="bsdiff" target="lib/net5.0" />
+    <file src="bspatch" target="lib/net5.0" />
+    <file src="dumpextfs" target="lib/net5.0" />
+    <file src="zstd_compress_file" target="lib/net5.0" />
+
+    <file src="LICENSE" target="lib/net5.0" />
+    <file src="LICENSE.bsdiff" target="lib/net5.0" />
+    <file src="LICENSE.bzip2" target="lib/net5.0" />
+    <file src="LICENSE.e2fsprogs" target="lib/net5.0" />
+    <file src="LICENSE.zlib" target="lib/net5.0" />
+    <file src="LICENSE.zstd" target="lib/net5.0" />
+    <file src="LICENSE.ms-gsl" target="lib/net5.0" />
+    <file src="LICENSE.libgcrypt" target="lib/net5.0" />
+    <file src="LICENSE.libgpg-error" target="lib/net5.0" />
+
+    <file src="ERRORS.md" target="." />
+  </files>
+</package>
