@@ -1,0 +1,117 @@
+trigger:
+  branches:
+    include:
+    - main
+
+stages:
+  # We require heterogenous environments for these jobs, so they
+  # are in a stage where we parallelize them and then publish
+  - stage: BuildNativeCode
+    jobs:
+    - job: BuildWindowsNativeCode_x64_windows_Release
+      displayName: 'Build Windows Native Code - x64-windows (Release)'
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: templates/build-native-x64-windows.yml
+          parameters:
+            configuration: 'Release'
+
+    - job: BuildWindowsNativeCode_x64_windows_Debug
+      displayName: 'Build Windows Native Code - x64-windows (Debug)'
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: templates/build-native-x64-windows.yml
+          parameters:
+            configuration: 'Debug'
+
+    - job: CrossCompile_dumpextfs_x64_windows
+      displayName: 'Cross-Compile dumpextfs.exe - x64-windows'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - template: templates/crosscompile-dumpextfs.yml
+
+    - job: BuildLinuxNativeCodeRelease_x64
+      displayName: 'Build Linux Native Code - x64-linux'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - template: templates/all-native-linux.yml
+          parameters:
+            vcpkg_triplet: x64-linux
+
+    - job: BuildLinuxNativeCodeRelease_arm64
+      displayName: 'Build Linux Native Code - arm64-linux'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - template: templates/all-native-linux.yml
+          parameters:
+            vcpkg_triplet: arm64-linux
+            dependencies: gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu g++-9-aarch64-linux-gnu
+            cmake_c_compiler: /usr/bin/aarch64-linux-gnu-gcc-9
+            cmake_cxx_compiler: /usr/bin/aarch64-linux-gnu-g++-9
+            test_dependencies: qemu-system-arm qemu-efi-aarch64 qemu-utils qemu-user
+            qemu_command: "qemu-aarch64 -L /usr/aarch64-linux-gnu "
+
+    - job: BuildLinuxNativeCodeRelease_arm
+      displayName: 'Build Linux Native Code - arm-linux'
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - template: templates/all-native-linux.yml
+          parameters:
+            vcpkg_triplet: arm-linux
+            dependencies: gcc make gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf g++-9-arm-linux-gnueabihf binutils-arm-linux-gnueabihf
+            cmake_c_compiler: /usr/bin/arm-linux-gnueabihf-gcc-9
+            cmake_cxx_compiler: /usr/bin/arm-linux-gnueabihf-g++-9
+            test_dependencies: qemu-system-arm qemu-utils qemu-user
+            qemu_command: "qemu-arm -L /usr/arm-linux-gnueabihf "
+
+  # Gather unsigned results and sign types that can be
+  # batched in separate jobs so we can do it in parallel
+  - stage: SignNativeCode
+    jobs:
+    - job: SignMicrosoftWin64Code
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: templates/sign-microsoft-x64-windows.yml
+    - job: Sign3rdPartyWin64Code
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: templates/sign-3rdParty-x64-windows.yml
+
+  # We need the signed binaries, so this needs to be a later stage.
+  # The work here is linear - one depends on the next (excepting tests),
+  # so doing it in a single job works well.
+  - stage: BuildSignPublishManagedCode
+    jobs:
+    - job: BuildManageCode
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: templates/build-diffgen.yml
+
+  - stage: EndToEndTests
+    jobs:
+    - job: EndToEndTestsWindows
+      pool:
+        vmImage: 'windows-latest'
+      steps:
+        - template: templates/end-to-end-tests.yml
+          parameters:
+            diffgentool_artifact_name: diffgen-tool.Release.x64-windows
+
+    - job: EndToEndTestsLinux
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+        - template: templates/end-to-end-tests.yml
+          parameters:
+            diffgentool_artifact_name: diffgen-tool.Release.x64-linux
+            install_dependencies_script: $(Build.SourcesDirectory)/build/install-diffgentool-x64-linux-deps.sh
+            post_download_artifact_script: $(Build.SourcesDirectory)/build/setup-diffgentool-x64-linux.sh

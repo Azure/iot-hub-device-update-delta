@@ -1,0 +1,1 @@
+./configure --disable-defrag --disable-resizer --disable-debugfs --disable-imager --disable-mmp --disable-tdb --disable-bmap-stats --disable-nls

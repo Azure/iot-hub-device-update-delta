@@ -1,0 +1,58 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>true</SelfContained>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <Platforms>AnyCPU;x64;x86</Platforms>
+    <ImportNuGetBuildTasksPackTargetsFromSdk>true</ImportNuGetBuildTasksPackTargetsFromSdk>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+    <IncludeContentInPack>true</IncludeContentInPack>
+    <EmbedManifest>true</EmbedManifest>
+    <IncludeBuiltProjectOutputGroup>true</IncludeBuiltProjectOutputGroup>
+    <IncludeContentFilesProjectOutputGroup>true</IncludeContentFilesProjectOutputGroup>
+    <IncludeSatelliteDllsProjectOutputGroup>true</IncludeSatelliteDllsProjectOutputGroup>
+    <IncludeSGenFilesOutputGroup>true</IncludeSGenFilesOutputGroup>
+    <RunPostBuildEvent>OnOutputUpdated</RunPostBuildEvent>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Condition="Exists('..\..\bin\ADUDiffGeneration.dll')" Include="ADUDiffGeneration">
+      <HintPath>..\..\bin\ADUDiffGeneration.dll</HintPath>
+    </Reference>
+
+    <Reference Condition="Exists('..\..\bin\TarArchives.dll')" Include="TarArchives">
+      <HintPath>..\..\bin\TarArchives.dll</HintPath>
+    </Reference>
+
+    <Reference Condition="Exists('..\..\bin\CpioArchives.dll')" Include="CpioArchives">
+      <HintPath>..\..\bin\CpioArchives.dll</HintPath>
+    </Reference>
+
+    <Reference Condition="Exists('..\..\bin\SWUpdateArchives.dll')" Include="SWUpdateArchives">
+      <HintPath>..\..\bin\SWUpdateArchives.dll</HintPath>
+    </Reference>
+
+    <Reference Condition="Exists('..\..\bin\ArchiveUtility.dll')" Include="ArchiveUtility">
+      <HintPath>..\..\bin\ArchiveUtility.dll</HintPath>
+    </Reference>
+    
+    <ProjectReference Condition="Exists('..\..\DiffGeneration\DiffGeneration.csproj')" Include="..\..\DiffGeneration\DiffGeneration.csproj" />
+    <ProjectReference Condition="Exists('..\..\ArchiveUtility\ArchiveUtility.csproj')" Include="..\..\ArchiveUtility\ArchiveUtility.csproj" />
+    <ProjectReference Condition="Exists('..\..\archives\CpioArchives\CpioArchives.csproj')" Include="..\..\archives\CpioArchives\CpioArchives.csproj" />
+    <ProjectReference Condition="Exists('..\..\archives\SWUpdateArchives\SWUpdateArchives.csproj')" Include="..\..\archives\SWUpdateArchives\SWUpdateArchives.csproj" />
+    <ProjectReference Condition="Exists('..\..\archives\TarArchives\TarArchives.csproj')" Include="..\..\archives\TarArchives\TarArchives.csproj" />  
+  </ItemGroup>
+
+  <Target Name="CopyFilesInSolution" AfterTargets="Compile" Condition="Exists('..\..\bsdiff-cross-platform\bsdiff\x64\Release\bsdiff.exe')">
+    <Copy SourceFiles="..\..\bsdiff-cross-platform\bsdiff\x64\Release\bsdiff.exe" DestinationFolder="$(OutDir)" />
+  </Target>
+  <Target Name="CopyFilesInDrop" AfterTargets="Compile" Condition="Exists('..\..\bin\bsdiff.exe')">
+    <Copy SourceFiles="..\..\bin\bsdiff.exe" DestinationFolder="$(OutDir)" />
+  </Target>
+
+</Project>

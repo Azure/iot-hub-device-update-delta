@@ -1,0 +1,19 @@
+# File: diffapi-ubuntu1804.yml
+# This pipeline builds the diffapi project using CMake in ubuntu 18.04
+trigger:
+  branches:
+    include:
+    - user/*
+  paths:
+    include:
+    - src
+    exclude:
+    - src/managed
+
+pool:
+  vmImage: ubuntu-18.04
+
+extends:
+  template: ../templates/all-native-linux.yml
+  parameters:
+    vcpkg_triplet: x64-linux

@@ -1,0 +1,1 @@
+./configure --build=x86_64-pc-linux-gnu --target=x86_64-w64-mingw32 --host=x86_64-w64-mingw32 --prefix=/usr/x86_64-w64-mingw32 --disable-defrag --disable-resizer --disable-debugfs --disable-imager --disable-mmp --disable-tdb --disable-bmap-stats --disable-nls CPPFLAGS="-DWIN32 -DHAVE_WINSOCK_H -I$PWD/include/mingw" BUILD_CC=gcc
