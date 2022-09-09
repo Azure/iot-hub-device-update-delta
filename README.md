@@ -4,7 +4,7 @@ at src/managed/DiffGen, while the code for Diff Application is at src/diffs.
 
 <h1>Diff Generation</h1>
 
-The Diff Generation code-base is written in C# in .NET 5.0, but leverages some native code.
+The Diff Generation code-base is written in C# in .NET 6.0, but leverages some native code.
 
 <h2>Components</h2>
 
@@ -12,13 +12,13 @@ The following represent the main components for Diff Generation:
 <ol>
     <li>ArchiveUtility
         <p>Source Code: src/managed/DiffGen/ArchiveUtility</p>
-        <p>This module is written in C# using .NET 5.0; it contains basic building blocks used for parsing and 
+        <p>This module is written in C# using .NET 6.0; it contains basic building blocks used for parsing and 
         describing archive files. The module includes a basic object model to describe Archives in terms of 
         Chunks, Payloads and Recipes and an ArchiveLoader which is an extensible mechanism to load Archive files.</p>
     </li>
     <li>DiffGeneration
         <p>Source Code: src/managed/DiffGen/DiffGeneration</p>
-        <p>This module is written in C# using .NET 5.0; it contains various methods to compare and transform items
+        <p>This module is written in C# using .NET 6.0; it contains various methods to compare and transform items
         in archives. The goal of this module is to create a diff between a source and target archive by leveraging
         the information from their object models and utilize 3rd party compression (zstd, zlib, bsdiff) in a targeted
         way. When the work has been done, the code will then using PINVOKEs to callin to the C-API exports provided
@@ -30,18 +30,18 @@ The following represent the main components for Diff Generation:
         are separate implementations of IArchive from the ArchiveUtility module. Each implementation allows for adding
         new archive types to ArchiveLoader, so we can extend the behavior.
         Example supported archive types: cpio, tar, SWUpdate, ext4
-        These modules are written in C# using .NET 5.0.</p>
+        These modules are written in C# using .NET 6.0.</p>
     </li>
     <li>demos
         <p>Source Code: src/managed/DiffGen/demos</p>
         <p>There are a few demos used for Diff Generation. These are used to test/demonstrate features.
-        These demos are written in C# using .NET 5.0.
+        These demos are written in C# using .NET 6.0.
         </p>
     </li>
     <li>tests
         <p>Source Code: src/managed/DiffGen/tests</p>
         <p>There are a few tests used to test unit test behaviors related to diff generation.
-        These tests are written in C# using .NET 5.0.</p>
+        These tests are written in C# using .NET 6.0.</p>
     </li>
     <li>DiffGenTool
         <p>Source Code: src/managed/DiffGen/tools/DiffGenTool</p>
@@ -124,7 +124,7 @@ The following represent the major components of Diff Application:
         uses mhash for Linux. We want to isolate any code that has to use #ifdefs from the rest of the code.</p>
     </li>
     <li>io_utility
-        <p>Source COde: src/io_utility</p>
+        <p>Source Code: src/io_utility</p>
         <p>This module is written in C++ using C++17.
         A module to support reading and writing from streams. The streams/objects here are not compatible with boost or C++ streams, but instead are specific to this implementation. Streaming to/from files is supported as well as streaming with various compression types (zstd, zlib, bsdiff).
         </p>
@@ -138,7 +138,7 @@ The following represent the major components of Diff Application:
 
 Building in Linux:
     To build the Diff Generation code in Linux, use the dotnet SDK:
-        sudo apt-get install -y dotnet-sdk-5.0
+        sudo apt-get install -y dotnet-sdk-6.0
         dotnet buildbuild/diff-generation.sln
     To clean the build output, use:
         dotnet clean build/diff-generation.sln
