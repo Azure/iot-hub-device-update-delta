@@ -8,7 +8,7 @@ variables:
   buildPlatform: 'x64'
   vcpkg_dir: $(Agent.BuildDirectory)/VCPKG
   zstd_compress_file_build_dir: $(Agent.BuildDirectory)/zstd_compress_file-build
-  python_test_dir: $(Build.SourcesDirectory)/src/tools/zstd_compression_tool/tests
+  python_test_dir: $(Build.SourcesDirectory)/src/scripts/recompress_swu/tests
   cmakeToolchainFile: $(vcpkg_dir)/scripts/buildsystems/vcpkg.cmake
   vcpkg_triplet: $(buildPlatform)-linux
 

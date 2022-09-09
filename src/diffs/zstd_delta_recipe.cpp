@@ -5,16 +5,29 @@
  * Licensed under the MIT License.
  */
 #include "zstd_delta_recipe.h"
+#include "archive_item.h"
 
 #include "zstd_decompression_reader.h"
 
-void diffs::zstd_delta_recipe::apply_delta(
-	apply_context &context, fs::path source, fs::path delta, fs::path target) const
+const size_t RECIPE_PARAMETER_DELTA  = 0;
+const size_t RECIPE_PARAMETER_SOURCE = 1;
+
+void diffs::zstd_delta_recipe::apply(apply_context &context) const
 {
-	io_utility::binary_file_reader basis_reader(source);
-	io_utility::binary_file_reader delta_reader(delta);
+	auto reader = make_reader(context);
+	context.write_target(reader.get());
+}
 
-	io_utility::zstd_decompression_reader decompression_reader(&delta_reader, m_blobdef.m_length, &basis_reader);
+std::unique_ptr<io_utility::reader> diffs::zstd_delta_recipe::make_reader(apply_context &context) const
+{
+	verify_parameter_count(2);
 
-	context.write_target(&decompression_reader);
+	auto basis_item   = m_parameters[RECIPE_PARAMETER_SOURCE].get_archive_item_value();
+	auto basis_reader = basis_item->make_reader(context);
+
+	auto delta_item           = m_parameters[RECIPE_PARAMETER_DELTA].get_archive_item_value();
+	auto decompression_reader = std::make_unique<io_utility::zstd_decompression_reader>(
+		std::move(delta_item->make_reader(context)), m_blobdef.m_length, basis_reader.get());
+
+	return decompression_reader;
 }

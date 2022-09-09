@@ -12,8 +12,8 @@
 
 void diffs::zstd_decompression_recipe::apply(apply_context &context) const
 {
-	std::string msg = "diffs::recipe_zstd_decompression::apply(): Apply not supported.";
-	throw error_utility::user_exception(error_utility::error_code::diff_recipe_zstd_decompression_not_supported, msg);
+	auto reader = make_reader(context);
+	context.write_target(reader.get());
 }
 
 std::unique_ptr<io_utility::reader> diffs::zstd_decompression_recipe::make_reader(apply_context &context) const

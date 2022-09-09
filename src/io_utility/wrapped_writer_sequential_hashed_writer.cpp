@@ -6,6 +6,7 @@
  */
 #include <variant>
 #include <functional>
+#include <iostream>
 
 #ifdef WIN32
 	#define EXECUTION_SUPPORTED

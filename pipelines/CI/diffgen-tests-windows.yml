@@ -49,7 +49,7 @@ stages:
           displayName: 'Use .NET Standard sdk'
           inputs:
             packageType: sdk
-            version: 5.x
+            version: 6.x
             installationPath: $(Agent.ToolsDirectory)/dotnet
 
         - task: NuGetToolInstaller@1
@@ -76,7 +76,7 @@ stages:
             artifactName: 'unsigned-dumpextfs-drop.Release.x64-windows'
             targetPath: $(nuget_files_dir)
 
-        - pwsh: copy $(nuget_files_dir)\* $(unittests_bin_dir)\$(configuration)\net5.0
+        - pwsh: copy $(nuget_files_dir)\* $(unittests_bin_dir)\$(configuration)\net6.0
           displayName: 'Copy Nuget Files to UnitTests'
 
         - task: VSTest@2
@@ -84,5 +84,5 @@ stages:
             platform: '$(platform)'
             configuration: '$(configuration)'
             testAssemblyVer2: |
-                $(unittests_bin_dir)\$(configuration)\net5.0\UnitTests.dll
-                $(archiveutilitytest_bin_dir)\$(configuration)\net5.0\ArchiveUtilityTest.dll
+                $(unittests_bin_dir)\$(configuration)\net6.0\UnitTests.dll
+                $(archiveutilitytest_bin_dir)\$(configuration)\net6.0\ArchiveUtilityTest.dll

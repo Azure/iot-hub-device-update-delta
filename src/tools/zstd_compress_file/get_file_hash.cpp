@@ -13,7 +13,7 @@
 
 std::vector<char> get_file_hash(fs::path path)
 {
-	io_utility::binary_file_reader reader(path);
+	io_utility::binary_file_reader reader(path.string());
 	io_utility::wrapped_reader_sequential_reader wrapped_reader(&reader);
 
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);

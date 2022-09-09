@@ -54,7 +54,13 @@ void diffs::archive_item::read(diff_reader_context &context, bool in_chunk_table
 
 	if (has_recipe)
 	{
-		m_recipe.reset(read_new_recipe(context));
+		uint32_t recipe_type = recipe::read_recipe_type(context);
+
+		auto recipe_host = context.get_recipe_host();
+
+		m_recipe = recipe_host->create_recipe(recipe_type, context.m_current_item_blobdef);
+
+		m_recipe->read(context);
 	}
 }
 
@@ -91,6 +97,9 @@ void diffs::archive_item::write(diff_writer_context &context, bool in_chunk_tabl
 		{
 			context.write(true);
 		}
+
+		recipe::write_recipe_type(context, *m_recipe.get());
+
 		m_recipe->write(context);
 	}
 }
@@ -127,11 +136,6 @@ uint64_t diffs::archive_item::get_inline_asset_byte_count() const
 		return 0;
 	}
 
-	if (m_recipe->get_type() == recipe_type::inline_asset)
-	{
-		return m_length;
-	}
-
 	return m_recipe->get_inline_asset_byte_count();
 }
 
@@ -145,13 +149,13 @@ void diffs::archive_item::prep_blob_cache(diffs::apply_context &context) const
 	m_recipe->prep_blob_cache(context);
 }
 
-diffs::recipe *diffs::archive_item::create_recipe(recipe_type type)
+diffs::recipe *diffs::archive_item::create_recipe(const recipe_host *recipe_host, const char *recipe_type_name)
 {
 	blob_definition blobdef;
 	blobdef.m_length = m_length;
 	blobdef.m_hashes.push_back(m_hash);
 
-	m_recipe.reset(create_new_recipe(type, blobdef));
+	m_recipe = recipe_host->create_recipe(recipe_type_name, blobdef);
 
 	return m_recipe.get();
 }

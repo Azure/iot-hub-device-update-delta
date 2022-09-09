@@ -10,14 +10,11 @@
 
 diffs::diff_resources_context::diff_resources_context(diff_resources_context *parent_context) :
 	m_inline_assets_reader(parent_context->m_inline_assets_reader),
-	m_remainder_reader(parent_context->m_remainder_reader), m_working_folder(parent_context->m_working_folder)
+	m_remainder_reader(parent_context->m_remainder_reader)
 {}
 
 diffs::diff_resources_context::diff_resources_context(
-	io_utility::unique_reader &&inline_assets_reader,
-	io_utility::unique_sequential_reader &&remainder_reader,
-	fs::path working_folder) :
-	m_working_folder(working_folder)
+	io_utility::unique_reader &&inline_assets_reader, io_utility::unique_sequential_reader &&remainder_reader)
 {
 	m_inline_assets_reader_storage = std::move(inline_assets_reader);
 	m_remainder_reader_storage     = std::move(remainder_reader);
@@ -32,9 +29,7 @@ std::unique_ptr<io_utility::reader> diffs::diff_resources_context::get_inline_as
 	return std::make_unique<io_utility::child_reader>(m_inline_assets_reader, offset, length);
 }
 
-diffs::diff_resources_context diffs::diff_resources_context::from_diff(
-	diff *diff, io_utility::reader *reader, fs::path working_folder)
+diffs::diff_resources_context diffs::diff_resources_context::from_diff(diff *diff, io_utility::reader *reader)
 {
-	return diff_resources_context{
-		diff->make_inline_assets_reader(reader), diff->make_remainder_reader(reader), working_folder};
+	return diff_resources_context{diff->make_inline_assets_reader(reader), diff->make_remainder_reader(reader)};
 }

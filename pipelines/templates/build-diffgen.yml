@@ -36,9 +36,6 @@ parameters:
 - name: ERRORS_md_file
   type: string
   default: $(Build.SourcesDirectory)/src/managed/DiffGen/DiffGeneration/ERRORS.md
-- name: nuget_LICENSE_file
-  type: string
-  default: $(Build.SourcesDirectory)/licenses/LICENSE.nuget
 - name: unittests_bin_dir
   type: string
   default: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\UnitTests\bin
@@ -48,13 +45,19 @@ parameters:
 - name: tests_samples_dir
   type: string
   default: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\samples
+- name: notice_txt_file
+  type: string
+  default: $(Build.SourcesDirectory)\notice\NOTICE.txt
+- name: license_file
+  type: string
+  default: $(Build.SourcesDirectory)\LICENSE
 
 steps:
 - task: UseDotNet@2
   displayName: 'Use .NET Standard sdk'
   inputs:
     packageType: sdk
-    version: 5.x
+    version: 6.x
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: NuGetToolInstaller@1
@@ -115,29 +118,24 @@ steps:
     artifactName: 'package-drop.Release.x64-linux'
     targetPath: ${{ parameters.nuget_files_dir }}
 
-- task: DownloadPipelineArtifact@2
-  displayName: 'Download 3rd Party Licenses'
-  inputs:
-    artifactName: 'licenses3rdParty-drop'
-    targetPath: ${{ parameters.nuget_files_dir }}
-
 - pwsh: |
     copy ${{ parameters.ERRORS_md_file }} ${{ parameters.nuget_files_dir }}
-    copy ${{ parameters.nuget_LICENSE_file }} ${{ parameters.nuget_files_dir }}\LICENSE
+    copy ${{ parameters.notice_txt_file }} ${{ parameters.nuget_files_dir }}
+    copy ${{ parameters.license_file }} ${{ parameters.nuget_files_dir }}
 
 - pwsh: dir ${{ parameters.nuget_files_dir }} -s
   displayName: 'Show Diffgen Nuget files'
 
-- pwsh: copy ${{ parameters.nuget_files_dir }}\* ${{ parameters.unittests_bin_dir }}\${{ parameters.configuration }}\net5.0
+- pwsh: copy ${{ parameters.nuget_files_dir }}\* ${{ parameters.unittests_bin_dir }}\${{ parameters.configuration }}\net6.0
   displayName: 'Copy Nuget Files to UnitTests'
 
-- pwsh: dir ${{ parameters.unittests_bin_dir }}\${{ parameters.configuration }}\net5.0 -s
+- pwsh: dir ${{ parameters.unittests_bin_dir }}\${{ parameters.configuration }}\net6.0 -s
   displayName: 'Show Unit Test files'
 
 - pwsh: dir ${{ parameters.tests_samples_dir }} -s
   displayName: 'Show sample files'
 
-- pwsh: dir ${{ parameters.archiveutilitytest_bin_dir }}\${{ parameters.configuration }}\net5.0 -s
+- pwsh: dir ${{ parameters.archiveutilitytest_bin_dir }}\${{ parameters.configuration }}\net6.0 -s
   displayName: 'Show archive utility test files'
 
 - task: VSTest@2
@@ -145,8 +143,8 @@ steps:
     platform: '${{ parameters.platform }}'
     configuration: '${{ parameters.configuration }}'
     testAssemblyVer2: |
-        ${{ parameters.unittests_bin_dir }}\${{ parameters.configuration }}\net5.0\UnitTests.dll
-        ${{ parameters.archiveutilitytest_bin_dir }}\${{ parameters.configuration }}\net5.0\ArchiveUtilityTest.dll
+        ${{ parameters.unittests_bin_dir }}\${{ parameters.configuration }}\net6.0\UnitTests.dll
+        ${{ parameters.archiveutilitytest_bin_dir }}\${{ parameters.configuration }}\net6.0\ArchiveUtilityTest.dll
 
 - task: NuGetCommand@2
   condition: ${{ parameters.build_nuget }}
@@ -208,15 +206,19 @@ steps:
     artifactType: 'pipeline'
     artifactName: 'nuget'
 
+- task: NuGetAuthenticate@0
+  inputs:
+    forceReinstallCredentialProvider: true
+
 - task: PowerShell@2
   displayName: 'Create Windows DiffGenTool drop'
   inputs:
     targetType: inline
     script: |
-      dotnet publish ${{ parameters.diffgen_tool_project }} --configuration ${{ parameters.configuration }} --framework net5.0 --runtime win-x64 --self-contained false
+      dotnet publish ${{ parameters.diffgen_tool_project }} --configuration ${{ parameters.configuration }} --framework net6.0 --runtime win-x64 --self-contained false
       ls $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\ -R
       mkdir $(Build.ArtifactStagingDirectory)\x64-windows
-      copy $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\${{ parameters.configuration }}\net5.0\win-x64\* $(Build.ArtifactStagingDirectory)\x64-windows
+      copy $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\${{ parameters.configuration }}\net6.0\win-x64\* $(Build.ArtifactStagingDirectory)\x64-windows
       copy ${{ parameters.nuget_files_dir }}\adudiffapi.dll $(Build.ArtifactStagingDirectory)\x64-windows
       copy ${{ parameters.nuget_files_dir }}\applydiff.exe $(Build.ArtifactStagingDirectory)\x64-windows
       copy ${{ parameters.nuget_files_dir }}\dumpdiff.exe $(Build.ArtifactStagingDirectory)\x64-windows
@@ -228,8 +230,8 @@ steps:
       copy ${{ parameters.nuget_files_dir }}\bz2.dll $(Build.ArtifactStagingDirectory)\x64-windows
       copy ${{ parameters.nuget_files_dir }}\zlib1.dll $(Build.ArtifactStagingDirectory)\x64-windows
       copy ${{ parameters.nuget_files_dir }}\zstd.dll $(Build.ArtifactStagingDirectory)\x64-windows
-      copy ${{ parameters.nuget_files_dir }}\LICENSE.* $(Build.ArtifactStagingDirectory)\x64-windows
-      copy $(Build.SourcesDirectory)\licenses\LICENSE.windows $(Build.ArtifactStagingDirectory)\x64-windows\LICENSE
+      copy ${{ parameters.notice_txt_file }} $(Build.ArtifactStagingDirectory)\x64-windows
+      copy ${{ parameters.license_file }} $(Build.ArtifactStagingDirectory)\x64-windows
 
 - task: PublishPipelineArtifact@1
   displayName: Publish x64-windows drop.
@@ -237,16 +239,20 @@ steps:
     targetPath: '$(Build.ArtifactStagingDirectory)\x64-windows'
     artifactType: 'pipeline'
     artifactName: 'diffgen-tool.Release.x64-windows'
+    
+- task: NuGetAuthenticate@0
+  inputs:
+    forceReinstallCredentialProvider: true
 
 - task: PowerShell@2
   displayName: 'Create Linux DiffGenTool drop'
   inputs:
     targetType: inline
     script: |
-      dotnet publish ${{ parameters.diffgen_tool_project }} --configuration ${{ parameters.configuration }} --framework net5.0 --runtime linux-x64 --self-contained false
+      dotnet publish ${{ parameters.diffgen_tool_project }} --configuration ${{ parameters.configuration }} --framework net6.0 --runtime linux-x64 --self-contained false
       ls $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\ -R
       mkdir $(Build.ArtifactStagingDirectory)\x64-linux
-      copy $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\${{ parameters.configuration }}\net5.0\linux-x64\* $(Build.ArtifactStagingDirectory)\x64-linux
+      copy $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\${{ parameters.configuration }}\net6.0\linux-x64\* $(Build.ArtifactStagingDirectory)\x64-linux
       copy ${{ parameters.nuget_files_dir }}\bsdiff $(Build.ArtifactStagingDirectory)\x64-linux
       copy ${{ parameters.nuget_files_dir }}\bspatch $(Build.ArtifactStagingDirectory)\x64-linux
       copy ${{ parameters.nuget_files_dir }}\zstd_compress_file $(Build.ArtifactStagingDirectory)\x64-linux
@@ -254,9 +260,9 @@ steps:
       copy ${{ parameters.nuget_files_dir }}\dumpdiff $(Build.ArtifactStagingDirectory)\x64-linux
       copy ${{ parameters.nuget_files_dir }}\dumpextfs $(Build.ArtifactStagingDirectory)\x64-linux
       copy ${{ parameters.nuget_files_dir }}\libadudiffapi.so $(Build.ArtifactStagingDirectory)\x64-linux
-      copy ${{ parameters.nuget_files_dir }}\LICENSE.* $(Build.ArtifactStagingDirectory)\x64-linux
+      copy ${{ parameters.notice_txt_file }} $(Build.ArtifactStagingDirectory)\x64-linux
+      copy ${{ parameters.license_file }} $(Build.ArtifactStagingDirectory)\x64-linux
       copy ${{ parameters.nuget_files_dir }}\*.deb $(Build.ArtifactStagingDirectory)\x64-linux
-      copy $(Build.SourcesDirectory)\licenses\LICENSE.linux $(Build.ArtifactStagingDirectory)\x64-linux\LICENSE
 
 - task: PublishPipelineArtifact@1
   displayName: Publish x64-linux drop.

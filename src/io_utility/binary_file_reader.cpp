@@ -11,7 +11,7 @@
 
 #include "adu_log.h"
 
-io_utility::binary_file_reader::binary_file_reader(fs::path path) :
+io_utility::binary_file_reader::binary_file_reader(const std::string &path) :
 	m_File(path, io_utility::file::mode::read, error_utility::error_code::io_binary_file_reader_failed_open)
 {}
 

@@ -32,7 +32,8 @@ variables:
   zstd_compress_file: $(zstd_compress_file_dir)\$(zstd_compress_file_binary)
   applydiff_tool_output_dir: $(diffapi_build_dir)\tools\applydiff\$(buildConfiguration)\
   dumpdiff_tool_output_dir: $(diffapi_build_dir)\tools\dumpdiff\$(buildConfiguration)\
-  third_party_license_folder: $(Build.SourcesDirectory)\licenses
+  notice_txt_file: $(Build.SourcesDirectory)\notice\NOTICE.txt
+  license_file: $(Build.SourcesDirectory)\LICENSE
   vcpkg_triplet: $(buildPlatform)-windows
   ms_gsl_dir: $(vcpkg_dir)\packages\ms-gsl-$(vcpkg_triplet)\share\Microsoft.GSL
   zstd_dir: $(vcpkg_dir)\packages\zstd_$(vcpkg_triplet)\share\zstd
@@ -106,18 +107,6 @@ steps:
     script: $(diff_gtest_dir)\diffs_gtest.exe --test_data_root $(test_data_root) --zstd_compress_file $(zstd_compress_file)
     
 - task: CmdLine@2
-  displayName: Make licenses folder
-  inputs:
-    script: |
-        mkdir -p $(Build.ArtifactStagingDirectory)\licenses
-        copy /y $(Build.Repository.LocalPath)\licenses\LICENSE.windows $(Build.ArtifactStagingDirectory)\licenses\LICENSE
-        copy /y $(vcpkg_dir)\packages\bsdiff_$(vcpkg_triplet)\share\bsdiff\copyright $(Build.ArtifactStagingDirectory)\licenses\LICENSE.bsdiff
-        copy /y $(vcpkg_dir)\packages\bzip2_$(vcpkg_triplet)\share\bzip2\copyright $(Build.ArtifactStagingDirectory)\licenses\LICENSE.bzip2
-        copy /y $(vcpkg_dir)\packages\ms-gsl_$(vcpkg_triplet)\share\ms-gsl\copyright $(Build.ArtifactStagingDirectory)\licenses\LICENSE.ms-gsl
-        copy /y $(vcpkg_dir)\packages\zlib_$(vcpkg_triplet)\share\zlib\copyright $(Build.ArtifactStagingDirectory)\licenses\LICENSE.zlib
-        copy /y $(vcpkg_dir)\packages\zstd_$(vcpkg_triplet)\share\zstd\LICENSE $(Build.ArtifactStagingDirectory)\licenses\LICENSE.zstd        
-
-- task: CmdLine@2
   displayName: 'Copy DiffApi Binaries'
   inputs:
     script: |
@@ -125,7 +114,8 @@ steps:
         copy /y $(diffapi_output_dir)\*.dll $(Build.ArtifactStagingDirectory)\DiffApi
         copy /y $(diffapi_output_dir)\*.pdb $(Build.ArtifactStagingDirectory)\DiffApi
         copy /y $(diffapi_output_dir)\*.lib $(Build.ArtifactStagingDirectory)\DiffApi
-        copy /y $(Build.ArtifactStagingDirectory)\licenses\* $(Build.ArtifactStagingDirectory)\DiffApi
+        copy /y $(notice_txt_file) $(Build.ArtifactStagingDirectory)\DiffApi
+        copy /y $(license_file) $(Build.ArtifactStagingDirectory)\DiffApi
 
 - task: PublishPipelineArtifact@1
   displayName: 'Publish diffapi'
@@ -142,7 +132,8 @@ steps:
         copy /y $(zstd_compress_file) $(Build.ArtifactStagingDirectory)\tools
         copy /y $(applydiff_tool_output_dir)\*.exe $(Build.ArtifactStagingDirectory)\tools
         copy /y $(dumpdiff_tool_output_dir)\*.exe $(Build.ArtifactStagingDirectory)\tools
-        copy /y $(Build.ArtifactStagingDirectory)\licenses\* $(Build.ArtifactStagingDirectory)\tools        
+        copy /y $(notice_txt_file) $(Build.ArtifactStagingDirectory)\tools
+        copy /y $(license_file) $(Build.ArtifactStagingDirectory)\tools
 
 - task: PublishPipelineArtifact@1
   displayName: 'Publish tools'

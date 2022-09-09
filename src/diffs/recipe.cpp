@@ -5,8 +5,8 @@
  * Licensed under the MIT License.
  */
 #include <functional>
+#include <limits>
 
-#include "recipe_type.h"
 #include "archive_item_type.h"
 
 #include "recipe.h"
@@ -17,17 +17,52 @@
 #include "apply_context.h"
 
 #include "hash_utility.h"
-#include "binary_file_readerwriter.h"
 #include "temp_file_backed_reader.h"
 #include "wrapped_readerwriter.h"
 
 #include "recipe_helpers.h"
 #include "number_helpers.h"
 
+void diffs::recipe::write_recipe_type(diff_writer_context &context, const recipe &recipe)
+{
+	auto recipe_host = context.get_recipe_host();
+
+	auto recipe_type_name   = recipe.get_recipe_type_name();
+	uint32_t recipe_type_id = recipe_host->get_recipe_type_id(recipe_type_name);
+
+	if (recipe_type_id >= std::numeric_limits<uint8_t>::max())
+	{
+		context.write(std::numeric_limits<uint8_t>::max());
+		context.write(recipe_type_id);
+	}
+	else
+	{
+		context.write(static_cast<uint8_t>(recipe_type_id));
+	}
+}
+
+uint32_t diffs::recipe::read_recipe_type(diff_reader_context &context)
+{
+	auto recipe_host = context.get_recipe_host();
+
+	uint8_t recipe_type_u8;
+
+	context.read(&recipe_type_u8);
+
+	if (recipe_type_u8 < std::numeric_limits<uint8_t>::max())
+	{
+		return static_cast<uint32_t>(recipe_type_u8);
+	}
+
+	uint32_t recipe_type;
+
+	context.read(&recipe_type);
+
+	return recipe_type;
+}
+
 void diffs::recipe::write(diff_writer_context &context)
 {
-	context.write(m_type);
-
 	auto parameter_count = convert_number<uint8_t>(
 		m_parameters.size(), error_utility::error_code::diff_recipe_parameter_count_too_large, "Too many parameters.");
 
@@ -36,6 +71,22 @@ void diffs::recipe::write(diff_writer_context &context)
 	for (size_t i = 0; i < m_parameters.size(); i++)
 	{
 		m_parameters[i].write(context);
+	}
+}
+
+void diffs::recipe::read(diff_reader_context &context) { read_parameters(context); }
+
+void diffs::recipe::read_parameters(diff_reader_context &context)
+{
+	uint8_t parameter_count;
+
+	context.read(&parameter_count);
+
+	for (uint8_t i = 0; i < parameter_count; i++)
+	{
+		recipe_parameter parameter;
+		parameter.read(context);
+		add_parameter(std::move(parameter));
 	}
 }
 
@@ -52,12 +103,6 @@ void diffs::recipe::write(diff_writer_context &context)
 
 uint64_t diffs::recipe::get_inline_asset_byte_count() const
 {
-	if (m_type == recipe_type::inline_asset)
-	{
-		uint64_t inline_asset_length = m_parameters[RECIPE_PARAMETER_LENGTH].get_number_value();
-		return inline_asset_length;
-	}
-
 	uint64_t total_bytes = 0;
 	for (const auto &param : m_parameters)
 	{
@@ -109,7 +154,7 @@ void diffs::recipe::verify_parameter_count(size_t count) const
 {
 	if (m_parameters.size() != count)
 	{
-		std::string msg = "Invalid parameter count for recipe type: " + std::to_string(static_cast<int>(m_type))
+		std::string msg = "Invalid parameter count for recipe type: " + get_recipe_type_name()
 		                + " Expected: " + std::to_string(count) + ", Found: " + std::to_string(m_parameters.size());
 		throw error_utility::user_exception(error_utility::error_code::diff_recipe_invalid_parameter_count, msg);
 	}

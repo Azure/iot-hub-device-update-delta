@@ -1,6 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-#example usage: .\collect_dependencies.ps1 $env:vcpkg_dir $env:repo_root\src\managed\DiffGen\tests\UnitTests\bin\debug\net5.0\
+#example usage: .\collect_dependencies.ps1 C:\code\vcpkg C:\code\adu2\src\managed\DiffGen\tests\UnitTests\bin\debug\net5.0\
 param(
     [Parameter()]
     [string]$vcpkg_root,

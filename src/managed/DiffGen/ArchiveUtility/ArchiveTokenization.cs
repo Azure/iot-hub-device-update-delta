@@ -307,7 +307,8 @@ namespace ArchiveUtility
                     new RecipeParameterJsonConverter(),
                     new ArchiveItemJsonConverter(),
                     new RecipeMethodJsonConverter()
-                }
+                },
+                MaxDepth = 128,
             };
 
             return options;

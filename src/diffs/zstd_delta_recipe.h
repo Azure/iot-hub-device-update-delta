@@ -6,14 +6,20 @@
  */
 #pragma once
 
-#include "delta_base_recipe.h"
+#include "recipe.h"
+#include "recipe_names.h"
 
 namespace diffs
 {
-class zstd_delta_recipe : public delta_base_recipe
+class zstd_delta_recipe : public diffs::recipe_base<diffs::zstd_delta_recipe>
 {
 	public:
-	zstd_delta_recipe(const blob_definition &blobdef) : delta_base_recipe(recipe_type::zstd_delta, blobdef) {}
-	virtual void apply_delta(apply_context &context, fs::path source, fs::path delta, fs::path target) const;
+	zstd_delta_recipe() : recipe_base_type() {}
+	zstd_delta_recipe(const blob_definition &blobdef) : recipe_base_type(blobdef) {}
+
+	virtual void apply(apply_context &context) const override;
+	virtual std::unique_ptr<io_utility::reader> make_reader(apply_context &context) const override;
+
+	virtual std::string get_recipe_type_name() const override { return zstd_delta_recipe_name; }
 };
 } // namespace diffs
