@@ -7,15 +7,19 @@
 #pragma once
 
 #include "recipe.h"
+#include "recipe_names.h"
 
 namespace diffs
 {
-class gz_decompression_recipe : public recipe
+class gz_decompression_recipe : public recipe_base<gz_decompression_recipe>
 {
 	public:
-	gz_decompression_recipe(const blob_definition &blobdef) : recipe(recipe_type::gz_decompression, blobdef) {}
-	virtual void apply(apply_context &context) const;
+	gz_decompression_recipe() : recipe_base_type() {}
+	gz_decompression_recipe(const blob_definition &blobdef) : recipe_base_type(blobdef) {}
 
-	virtual std::unique_ptr<io_utility::reader> make_reader(apply_context &context) const;
+	virtual void apply(apply_context &context) const override;
+	virtual io_utility::unique_reader make_reader(apply_context &context) const override;
+
+	virtual std::string get_recipe_type_name() const override { return gz_decompression_recipe_name; };
 };
 } // namespace diffs

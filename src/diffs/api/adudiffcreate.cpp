@@ -66,11 +66,11 @@ ADUAPI_LINKAGESPEC adu_create_archive_item CDECL adu_diff_create_add_chunk(
 }
 
 ADUAPI_LINKAGESPEC adu_create_recipe CDECL
-adu_diff_create_add_recipe(adu_create_handle handle, adu_create_archive_item item, adu_create_recipe_type type)
+adu_diff_create_add_recipe(adu_create_handle handle, adu_create_archive_item item, const char* recipe_type_name)
 {
 	auto session = reinterpret_cast<diffs::api::create_session *>(handle);
 
-	return session->create_recipe(item, type);
+	return session->create_recipe(item, recipe_type_name);
 }
 
 ADUAPI_LINKAGESPEC adu_create_archive_item CDECL adu_diff_create_add_recipe_parameter_archive_item(

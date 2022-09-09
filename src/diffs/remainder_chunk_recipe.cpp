@@ -7,6 +7,29 @@
 #include "remainder_chunk_recipe.h"
 
 #include "recipe_helpers.h"
+#include "diff_writer_context.h"
+#include "diff_reader_context.h"
+
+void diffs::remainder_chunk_recipe::write(diff_writer_context &context)
+{
+	uint8_t parameter_count = 0;
+	context.write(parameter_count);
+}
+
+void diffs::remainder_chunk_recipe::read(diff_reader_context &context)
+{
+	read_parameters(context);
+
+	auto offset = context.m_remainder_chunk_total;
+
+	recipe_parameter offset_parameter{offset};
+	add_parameter(std::move(offset_parameter));
+
+	context.m_remainder_chunk_total += context.m_current_item_blobdef.m_length;
+
+	recipe_parameter length_parameter{context.m_current_item_blobdef.m_length};
+	add_parameter(std::move(length_parameter));
+}
 
 void diffs::remainder_chunk_recipe::apply(apply_context &context) const
 {

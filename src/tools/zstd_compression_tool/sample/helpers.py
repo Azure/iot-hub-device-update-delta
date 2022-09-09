@@ -9,6 +9,7 @@ import os
 import shutil
 import subprocess
 import zstandard
+from subprocess import PIPE
 
 def create_folder(folder_path):
     os.makedirs(folder_path, exist_ok=True)
@@ -38,9 +39,14 @@ def write_to_file(path, data):
 def sign_file(signing_command, path):
     full_signing_command = f'{signing_command} {path}'
     folder = os.path.dirname(path)
-    result = subprocess.run(full_signing_command.split(' '), cwd=folder, capture_output=True)
+    result = subprocess.run(full_signing_command.split(' '), cwd=folder, stdout=PIPE, stderr=PIPE)
     if result.returncode != 0:
         raise Exception(f'Failed to sign file, ReturnCode={result.returncode}')
+
+    sig_file_path = path + ".sig"
+    if not os.path.exists(sig_file_path):
+        raise Exception(f'Sig file missing: {sig_file_path}')
+
 
 def decompress_file(file_path, decompressed_path, extension):
     if extension == '.gz':
@@ -62,7 +68,7 @@ def compress_file_with_zstd(zstd_compress_file, decompressed_path, target_folder
         compress_files_script = os.path.abspath(f'{__file__}/../../../../scripts/compress_files/compress_files.py')
 
     script_command = f'python3 {compress_files_script} {zstd_compress_file} {os.path.dirname(decompressed_path)} {os.path.basename(decompressed_path)}'.split(' ')
-    subprocess.run(script_command, capture_output=True)
+    subprocess.run(script_command, stdout=PIPE, stderr=PIPE)
 
     # Copy .zst and compression-details files to target folder
     compressed_path = f'{decompressed_path}.zst'
@@ -74,7 +80,7 @@ def compress_file_with_zstd(zstd_compress_file, decompressed_path, target_folder
 
 def extract_archive_files(archive_path, extract_folder):
     with open(archive_path, 'r') as archive:
-        subprocess.run(['cpio', '-iv'], stdin=archive, cwd=extract_folder, capture_output=True)
+        subprocess.run(['cpio', '-iv'], stdin=archive, cwd=extract_folder, stdout=PIPE, stderr=PIPE)
 
 def list_archive_files(archive_path, list_path):
     with open(archive_path, 'r') as archive:

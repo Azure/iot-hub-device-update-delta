@@ -40,7 +40,7 @@ steps:
   displayName: 'Use .NET Standard sdk'
   inputs:
     packageType: sdk
-    version: 5.x
+    version: 6.x
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: NuGetToolInstaller@1
@@ -62,15 +62,15 @@ steps:
     targetPath: ${{ parameters.diffgentool_files_dir }}
 
 - script: |
-    cp ${{ parameters.diffgentool_files_dir }}/* ${{ parameters.end_to_end_tests_bin_dir }}/${{ parameters.configuration }}/net5.0
-    ls ${{ parameters.end_to_end_tests_bin_dir }}/${{ parameters.configuration }}/net5.0
+    cp ${{ parameters.diffgentool_files_dir }}/* ${{ parameters.end_to_end_tests_bin_dir }}/${{ parameters.configuration }}/net6.0
+    ls ${{ parameters.end_to_end_tests_bin_dir }}/${{ parameters.configuration }}/net6.0
   displayName: Copy diffgentool files to end to end tests dir
 
 - task: CmdLine@2
   condition: ne('${{ parameters.post_download_artifact_script }}', '')
   inputs:
     script: |
-      pushd ${{ parameters.end_to_end_tests_bin_dir }}/${{ parameters.configuration }}/net5.0
+      pushd ${{ parameters.end_to_end_tests_bin_dir }}/${{ parameters.configuration }}/net6.0
       chmod +x ${{ parameters.post_download_artifact_script }}
       ${{ parameters.post_download_artifact_script }}
       popd

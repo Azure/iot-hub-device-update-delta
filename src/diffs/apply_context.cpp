@@ -25,8 +25,7 @@
 
 // used for new root context
 diffs::apply_context::apply_context(const root_context_parameters &params) :
-	diff_resources_context(
-		diff_resources_context::from_diff(params.m_diff, params.m_diff_reader, params.m_working_folder)),
+	diff_resources_context(diff_resources_context::from_diff(params.m_diff, params.m_diff_reader)),
 	source_context(std::make_unique<io_utility::binary_file_reader>(params.m_source_file)),
 	target_context(std::make_unique<io_utility::binary_file_readerwriter>(params.m_target_file), params.m_length),
 	m_blob_cache(params.m_blob_cache)
@@ -53,8 +52,7 @@ diffs::apply_context::apply_context(
 	io_utility::unique_reader &&inline_assets_reader,
 	io_utility::unique_sequential_reader &&remainder_reader,
 	uint64_t length) :
-	diff_resources_context(
-		std::move(inline_assets_reader), std::move(remainder_reader), parent_context->get_working_folder()),
+	diff_resources_context(std::move(inline_assets_reader), std::move(remainder_reader)),
 	source_context(std::move(source_reader)), target_context(target_context::nested_context(parent_context, length)),
 	m_blob_cache(parent_context->m_blob_cache)
 {}

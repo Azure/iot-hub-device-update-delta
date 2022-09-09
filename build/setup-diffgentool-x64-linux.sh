@@ -8,7 +8,6 @@ chmod +x bsdiff
 chmod +x bspatch
 chmod +x zstd_compress_file
 chmod +x recompress_tool.py
-chmod +x recompress_and_sign_tool.py
 chmod +x helper.py
 chmod +x DiffGenTool
 

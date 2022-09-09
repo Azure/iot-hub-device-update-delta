@@ -6,10 +6,7 @@
  */
 #pragma once
 
-#include <filesystem>
 #include <string>
-
-namespace fs = std::filesystem;
 
 #include "hash_utility.h"
 #include "hash.h"
@@ -37,9 +34,8 @@ class apply_context : public diff_resources_context, public source_context, publ
 	{
 		diffs::diff *m_diff{};
 		io_utility::reader *m_diff_reader;
-		fs::path m_source_file{};
-		fs::path m_target_file{};
-		fs::path m_working_folder{};
+		std::string m_source_file{};
+		std::string m_target_file{};
 		blob_cache *m_blob_cache{};
 		uint64_t m_length;
 	};

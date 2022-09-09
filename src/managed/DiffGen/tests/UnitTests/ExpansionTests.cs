@@ -51,11 +51,15 @@ namespace UnitTests
 
             Trace.TraceInformation($"Running directory: {runningDirectory}");
 
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            string dumpextfsTool = "dumpextfs";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                var dumpextfsPath = ProcessHelper.GetPathInRunningDirectory("dumpextfs");
-                Assert.IsTrue(File.Exists(dumpextfsPath));
+                dumpextfsTool = dumpextfsTool + ".exe";
             }
+
+            var dumpextfsPath = ProcessHelper.GetPathInRunningDirectory(dumpextfsTool);
+            Assert.IsTrue(File.Exists(dumpextfsPath));
 
             ArchiveTokenization tokens;
             using (var readStream = File.OpenRead(archivePath))

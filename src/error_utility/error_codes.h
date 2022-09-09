@@ -95,6 +95,7 @@ enum class error_code : uint16_t
 	diff_bspatch_cannot_open_target                         = 30901,
 	diff_zstd_apply_failure                                 = 31000,
 	diff_zstd_cannot_open_target                            = 31001,
+	diff_verify_source_size_mismatch                        = 31100,
 
 	api_could_not_delete_file        = 40000,
 	api_unexpected_hash_type         = 40001,

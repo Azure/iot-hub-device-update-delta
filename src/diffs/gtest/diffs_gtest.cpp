@@ -43,6 +43,9 @@ namespace fs = std::filesystem;
 #include "binary_file_writer.h"
 #include "wrapped_writer_sequential_hashed_writer.h"
 #include "stored_blob_reader.h"
+#include "binary_file_reader.h"
+
+#include "recipe_names.h"
 
 #include "gtest/gtest.h"
 using ::testing::EmptyTestEventListener;
@@ -148,7 +151,7 @@ static std::vector<char> get_hash(io_utility::reader *reader, uint64_t offset, u
 {
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 	std::vector<char> buffer;
-	buffer.resize(32 * 1024);
+	buffer.resize(static_cast<size_t>(32) * 1024);
 
 	auto remaining = length;
 
@@ -173,7 +176,7 @@ static std::vector<char> get_hash(fs::path path, uint64_t offset, uint64_t lengt
 {
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 
-	io_utility::binary_file_reader reader(path);
+	io_utility::binary_file_reader reader(path.string());
 
 	return get_hash(&reader, offset, length);
 }
@@ -190,7 +193,7 @@ static std::vector<std::vector<char>> get_hashes(fs::path path)
 	std::vector<std::vector<char>> hashes;
 
 	auto file_size      = fs::file_size(path);
-	const size_t length = 1024 * 1024;
+	const size_t length = static_cast<size_t>(1024 * 1024);
 
 	for (size_t offset = 0; offset < file_size; offset += length)
 	{
@@ -204,8 +207,6 @@ static std::vector<std::vector<char>> get_hashes(fs::path path)
 static void create_file(fs::path file, std::vector<char> &data)
 {
 	std::ofstream file_stream(file, std::ios::binary | std::ios::out);
-
-	ASSERT_TRUE(file_stream.is_open());
 
 	file_stream.write(data.data(), data.size());
 }
@@ -228,7 +229,7 @@ bool FilesAreEqual(fs::path path1, fs::path path2)
 	std::vector<char> read_buffer1;
 	std::vector<char> read_buffer2;
 
-	const size_t read_block_size = 32 * 1024;
+	const size_t read_block_size = static_cast<size_t>(32 * 1024);
 	read_buffer1.reserve(read_block_size);
 	read_buffer2.reserve(read_block_size);
 
@@ -258,6 +259,8 @@ bool FilesAreEqual(fs::path path1, fs::path path2)
 
 TEST(recipe_copy_source, basic)
 {
+	diffs::recipe_host recipe_host;
+
 	/*
 	  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24
 	  [  ]  [     A     ]
@@ -296,15 +299,14 @@ TEST(recipe_copy_source, basic)
 
 		diffs::diff diff;
 
-		io_utility::binary_file_readerwriter diff_reader(working_folder / "empty.diff");
+		io_utility::binary_file_readerwriter diff_reader((working_folder / "empty.diff").string());
 
 		diffs::apply_context::root_context_parameters params;
 		params.m_diff           = &diff;
 		params.m_diff_reader    = &diff_reader;
-		params.m_source_file    = source_path;
-		params.m_target_file    = target_path;
+		params.m_source_file    = source_path.string();
+		params.m_target_file    = target_path.string();
 		params.m_blob_cache     = &blob_cache;
-		params.m_working_folder = working_folder;
 
 		diffs::apply_context context = diffs::apply_context::root_context(params);
 
@@ -318,7 +320,7 @@ TEST(recipe_copy_source, basic)
 			target_a_hash.data(),
 			target_a_hash.size()};
 
-		auto copy_source_recipe = copy_source_chunk.create_recipe(diffs::recipe_type::copy_source);
+		auto copy_source_recipe = copy_source_chunk.create_recipe(&recipe_host, diffs::copy_source_recipe_name);
 		copy_source_recipe->add_number_parameter(source_a_offset);
 		copy_source_recipe->add_number_parameter(source_a_length);
 
@@ -335,6 +337,8 @@ TEST(recipe_copy_source, basic)
 
 TEST(recipe_copy_source, with_recipe_copy)
 {
+	diffs::recipe_host recipe_host;
+
 	/*
 	  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24
 	  [  ]  [     A     ]
@@ -377,15 +381,14 @@ TEST(recipe_copy_source, with_recipe_copy)
 
 		diffs::diff diff;
 
-		io_utility::binary_file_readerwriter diff_reader(base_test_working / "empty.diff");
+		io_utility::binary_file_readerwriter diff_reader((base_test_working / "empty.diff").string());
 
 		diffs::apply_context::root_context_parameters params;
 		params.m_diff           = &diff;
 		params.m_diff_reader    = &diff_reader;
-		params.m_source_file    = source_path;
-		params.m_target_file    = target_path;
+		params.m_source_file    = source_path.string();
+		params.m_target_file    = target_path.string();
 		params.m_blob_cache     = &blob_cache;
-		params.m_working_folder = working_folder;
 
 		diffs::apply_context context = diffs::apply_context::root_context(params);
 
@@ -399,7 +402,8 @@ TEST(recipe_copy_source, with_recipe_copy)
 			target_a_hash.data(),
 			target_a_hash.size()};
 
-		auto copy_source_recipe = copy_source_chunk.create_recipe(diffs::recipe_type::copy_source);
+		auto copy_source_recipe =
+			copy_source_chunk.create_recipe(&recipe_host, diffs::copy_source_recipe_name);
 		copy_source_recipe->add_number_parameter(source_a_offset);
 		copy_source_recipe->add_number_parameter(source_a_length);
 
@@ -413,7 +417,7 @@ TEST(recipe_copy_source, with_recipe_copy)
 			target_b_hash.data(),
 			target_b_hash.size()};
 
-		auto copy_recipe = copy_chunk.create_recipe(diffs::recipe_type::copy);
+		auto copy_recipe = copy_chunk.create_recipe(&recipe_host, diffs::copy_recipe_name);
 
 		(void)copy_recipe->add_archive_item_parameter(
 			diffs::archive_item_type::chunk,
@@ -441,6 +445,8 @@ TEST(recipe_copy_source, with_recipe_copy)
 
 TEST(recipe_copy, bad_hash)
 {
+	diffs::recipe_host recipe_host;
+
 	/*
   0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24
   [  ]  [     A     ]
@@ -485,15 +491,14 @@ TEST(recipe_copy, bad_hash)
 
 	diffs::diff diff;
 
-	io_utility::binary_file_readerwriter diff_reader(base_test_working / "empty.diff");
+	io_utility::binary_file_readerwriter diff_reader((base_test_working / "empty.diff").string());
 
 	diffs::apply_context::root_context_parameters params;
 	params.m_diff           = &diff;
 	params.m_diff_reader    = &diff_reader;
-	params.m_source_file    = source_path;
-	params.m_target_file    = target_path;
+	params.m_source_file    = source_path.string();
+	params.m_target_file    = target_path.string();
 	params.m_blob_cache     = &blob_cache;
-	params.m_working_folder = working_folder;
 
 	diffs::apply_context context = diffs::apply_context::root_context(params);
 
@@ -507,7 +512,8 @@ TEST(recipe_copy, bad_hash)
 		target_a_hash.data(),
 		target_a_hash.size()};
 
-	auto copy_source_recipe = copy_source_chunk.create_recipe(diffs::recipe_type::copy_source);
+	auto copy_source_recipe =
+		copy_source_chunk.create_recipe(&recipe_host, diffs::copy_source_recipe_name);
 	copy_source_recipe->add_number_parameter(source_a_offset);
 	copy_source_recipe->add_number_parameter(source_a_length);
 
@@ -519,7 +525,7 @@ TEST(recipe_copy, bad_hash)
 		target_b_hash.data(),
 		target_b_hash.size()};
 
-	auto bad_copy_recipe = bad_copy_chunk.create_recipe(diffs::recipe_type::copy);
+	auto bad_copy_recipe = bad_copy_chunk.create_recipe(&recipe_host, diffs::copy_recipe_name);
 
 	(void)bad_copy_recipe->add_archive_item_parameter(
 		diffs::archive_item_type::chunk,
@@ -539,6 +545,7 @@ TEST(recipe_copy, bad_hash)
 	catch (error_utility::user_exception &e)
 	{
 		ASSERT_EQ(error_utility::error_code::diff_verify_hash_failure, e.get_error());
+        printf("Exception Message: %s\n", e.get_message());
 		caughtException = true;
 	}
 	ASSERT_TRUE(caughtException);
@@ -546,6 +553,7 @@ TEST(recipe_copy, bad_hash)
 
 TEST(recipe_region, with_copy_source)
 {
+	diffs::recipe_host recipe_host;
 	/*
 	  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24
 	  [       A               ]
@@ -578,7 +586,7 @@ TEST(recipe_region, with_copy_source)
 		target_a_hash.data(),
 		target_a_hash.size()};
 
-	auto region_recipe = target_a_chunk.create_recipe(diffs::recipe_type::region);
+	auto region_recipe = target_a_chunk.create_recipe(&recipe_host, diffs::region_recipe_name);
 
 	auto source_a_hash = get_hash(&source_data[source_a_offset], source_a_length);
 
@@ -591,7 +599,7 @@ TEST(recipe_region, with_copy_source)
 		source_a_hash.size());
 	auto region_blob = region_blob_param->get_archive_item_value();
 
-	auto copy_source_recipe = region_blob->create_recipe(diffs::recipe_type::copy_source);
+	auto copy_source_recipe = region_blob->create_recipe(&recipe_host, diffs::copy_source_recipe_name);
 	copy_source_recipe->add_number_parameter(source_a_offset);
 	copy_source_recipe->add_number_parameter(source_a_length);
 
@@ -619,15 +627,14 @@ TEST(recipe_region, with_copy_source)
 		fs::remove_all(temp_path);
 		fs::create_directories(temp_path);
 
-		io_utility::binary_file_readerwriter diff_reader(temp_path / "empty.diff");
+		io_utility::binary_file_readerwriter diff_reader((temp_path / "empty.diff").string());
 
 		diffs::apply_context::root_context_parameters params;
 		params.m_diff           = &diff;
 		params.m_diff_reader    = &diff_reader;
-		params.m_source_file    = source_path;
-		params.m_target_file    = target_path;
+		params.m_source_file    = source_path.string();
+		params.m_target_file    = target_path.string();
 		params.m_blob_cache     = &blob_cache;
-		params.m_working_folder = working_folder;
 
 		diffs::apply_context context = diffs::apply_context::root_context(params);
 
@@ -642,14 +649,14 @@ TEST(recipe_region, with_copy_source)
 	ASSERT_EQ(0, memcmp(target_a_data, &target_data[target_a_offset], target_a_length));
 }
 
-void add_copy_source_param(diffs::recipe *recipe, const char *source_data, uint64_t offset, uint64_t length)
+void add_copy_source_param(diffs::recipe_host* recipe_host, diffs::recipe *recipe, const char *source_data, uint64_t offset, uint64_t length)
 {
 	auto hash = get_hash(&source_data[offset], length);
 
 	auto concat_param3 = recipe->add_archive_item_parameter(
 		diffs::archive_item_type::blob, offset, length, diffs::hash_type::Sha256, hash.data(), hash.size());
 	auto concat_blob3 = concat_param3->get_archive_item_value();
-	auto copy_recipe3 = concat_blob3->create_recipe(diffs::recipe_type::copy_source);
+	auto copy_recipe3 = concat_blob3->create_recipe(recipe_host, diffs::copy_source_recipe_name);
 	copy_recipe3->add_number_parameter(offset);
 	copy_recipe3->add_number_parameter(length);
 }
@@ -699,16 +706,16 @@ static void modify_target(std::vector<char> &data, size_t size, size_t mod1, siz
 
 static void write_data_to_file(fs::path path, std::string_view data)
 {
-	io_utility::binary_file_writer writer(path);
+	io_utility::binary_file_writer writer(path.string());
 
 	writer.write(0, data);
 }
 
 static void write_diff(diffs::diff *diff, fs::path diff_path, fs::path inline_assets_path, fs::path remainder_path)
 {
-	io_utility::binary_file_writer diff_writer(diff_path);
-	io_utility::binary_file_reader inline_assets_reader(inline_assets_path);
-	io_utility::binary_file_reader remainder_reader(remainder_path);
+	io_utility::binary_file_writer diff_writer(diff_path.string());
+	io_utility::binary_file_reader inline_assets_reader(inline_assets_path.string());
+	io_utility::binary_file_reader remainder_reader(remainder_path.string());
 
 	diffs::diff_writer_context writer_context{&diff_writer, &inline_assets_reader, &remainder_reader};
 	diff->write(writer_context);
@@ -718,7 +725,7 @@ using pfn_add_to_diff = void (*)(diffs::diff *diff, void *data);
 
 struct recipe_delta_context
 {
-	diffs::recipe_type type;
+	const char* recipe_type_name;
 
 	fs::path source_path;
 	fs::path target_path;
@@ -728,6 +735,7 @@ struct recipe_delta_context
 static void add_delta_to_diff(diffs::diff *diff, void *data)
 {
 	recipe_delta_context *context = reinterpret_cast<recipe_delta_context *>(data);
+	diffs::recipe_host recipe_host;
 
 	auto target_size = fs::file_size(context->target_path);
 
@@ -736,15 +744,18 @@ static void add_delta_to_diff(diffs::diff *diff, void *data)
 	auto target_chunk =
 		diff->add_chunk(0, target_size, diffs::hash_type::Sha256, target_hash.data(), target_hash.size());
 
-	auto recipe = target_chunk->create_recipe(context->type);
-
+	auto recipe = target_chunk->create_recipe(&recipe_host, context->recipe_type_name);
+		
 	auto delta_size = fs::file_size(context->delta_path);
 	auto delta_hash = get_hash(context->delta_path);
 
 	auto delta_param = recipe->add_archive_item_parameter(
 		diffs::archive_item_type::blob, 0, delta_size, diffs::hash_type::Sha256, delta_hash.data(), delta_hash.size());
 	auto delta_blob = delta_param->get_archive_item_value();
-	delta_blob->create_recipe(diffs::recipe_type::inline_asset);
+
+	auto inline_asset_recipe = delta_blob->create_recipe(&recipe_host, diffs::inline_asset_recipe_name);
+	inline_asset_recipe->add_number_parameter(0u);
+	inline_asset_recipe->add_number_parameter(delta_size);
 
 	auto source_size = fs::file_size(context->source_path);
 	auto source_hash = get_hash(context->source_path);
@@ -757,7 +768,7 @@ static void add_delta_to_diff(diffs::diff *diff, void *data)
 		source_hash.data(),
 		source_hash.size());
 	auto source_blob        = source_param->get_archive_item_value();
-	auto copy_source_recipe = source_blob->create_recipe(diffs::recipe_type::copy_source);
+	auto copy_source_recipe = source_blob->create_recipe(&recipe_host, diffs::copy_source_recipe_name);
 	copy_source_recipe->add_number_parameter(0); // offset
 }
 
@@ -793,7 +804,7 @@ void create_diff(
 
 void apply_diff(fs::path source_path, fs::path diff_path, fs::path target_path, fs::path working_folder)
 {
-	io_utility::binary_file_reader diff_reader(diff_path);
+	io_utility::binary_file_reader diff_reader(diff_path.string());
 	diffs::diff diff_from_file(&diff_reader);
 
 	diffs::blob_cache blob_cache;
@@ -802,10 +813,9 @@ void apply_diff(fs::path source_path, fs::path diff_path, fs::path target_path, 
 	params.m_diff = &diff_from_file;
 
 	params.m_diff_reader    = &diff_reader;
-	params.m_source_file    = source_path;
-	params.m_target_file    = target_path;
+	params.m_source_file    = source_path.string();
+	params.m_target_file    = target_path.string();
 	params.m_blob_cache     = &blob_cache;
-	params.m_working_folder = working_folder;
 
 	diffs::apply_context apply_context = diffs::apply_context::root_context(params);
 
@@ -884,14 +894,17 @@ static void add_inline_asset_to_diff(diffs::diff *diff, std::vector<char> &file_
 	auto target_chunk =
 		diff->add_chunk(0, file_data.size(), diffs::hash_type::Sha256, file_hash.data(), file_hash.size());
 
-	auto recipe = target_chunk->create_recipe(diffs::recipe_type::inline_asset);
+	auto recipe = target_chunk->create_recipe(diff, diffs::inline_asset_recipe_name);
+
+	recipe->add_number_parameter(0u);
+	recipe->add_number_parameter(static_cast<uint64_t>(file_data.size()));
 }
 
 static void add_inline_asset_to_diff(diffs::diff *diff, void *data)
 {
 	inline_asset_context *context = reinterpret_cast<inline_asset_context *>(data);
 
-	io_utility::binary_file_reader reader(context->target_path);
+	io_utility::binary_file_reader reader(context->target_path.string());
 
 	std::vector<char> target_data;
 	target_data.resize(reader.size());
@@ -939,7 +952,7 @@ TEST(recipe_inline_asset, basic)
 
 	auto diff_path          = base_test_working / "diff";
 	auto remainder_path     = base_test_working / "remainder";
-	auto inline_assets_path = context.target_path;
+	auto& inline_assets_path = context.target_path;
 
 	std::fstream remainder_stream(remainder_path, std::ios::binary | std::ios::out);
 	remainder_stream.close();
@@ -976,7 +989,7 @@ static void add_remainder_chunk_to_diff(diffs::diff *diff, void *data)
 	auto target_chunk = diff->add_chunk(
 		0, fs::file_size(context->remainder_path), diffs::hash_type::Sha256, target_hash.data(), target_hash.size());
 
-	auto recipe = target_chunk->create_recipe(diffs::recipe_type::remainder_chunk);
+	auto recipe = target_chunk->create_recipe(diff, diffs::remainder_chunk_recipe_name);
 }
 
 TEST(recipe_remainder_chunk, basic)
@@ -1044,7 +1057,7 @@ class archive_item_definition
 
 	static void populate_from_file(fs::path file_path, std::vector<char> &data, std::vector<char> &hash)
 	{
-		io_utility::binary_file_reader reader(file_path);
+		io_utility::binary_file_reader reader(file_path.string());
 		data.resize(reader.size());
 		reader.read(0, gsl::span<char>{data.data(), data.size()});
 		hash = calculate_hash(data);
@@ -1107,7 +1120,7 @@ class copy_source_definition : public archive_item_definition
 	virtual void add_to_diff(diffs::diff *diff)
 	{
 		auto *chunk = diff->add_chunk(m_length, diffs::hash_type::Sha256, m_hash.data(), m_hash.size());
-		auto recipe = chunk->create_recipe(diffs::recipe_type::copy_source);
+		auto recipe = chunk->create_recipe(diff, diffs::copy_source_recipe_name);
 		recipe->add_number_parameter(m_source_offset);
 	}
 
@@ -1133,7 +1146,7 @@ class remainder_chunk_definition : public archive_item_definition
 	{
 		m_data.resize(size);
 
-		io_utility::binary_file_reader reader(remainder_path);
+		io_utility::binary_file_reader reader(remainder_path.string());
 
 		reader.read(remainder_offset, gsl::span{m_data.data(), size});
 
@@ -1143,7 +1156,7 @@ class remainder_chunk_definition : public archive_item_definition
 	virtual void add_to_diff(diffs::diff *diff)
 	{
 		auto *chunk = diff->add_chunk(m_length, diffs::hash_type::Sha256, m_hash.data(), m_hash.size());
-		auto recipe = chunk->create_recipe(diffs::recipe_type::remainder_chunk);
+		auto recipe = chunk->create_recipe(diff, diffs::remainder_chunk_recipe_name);
 	}
 
 	uint64_t source_offset{};
@@ -1162,7 +1175,10 @@ class inline_asset_definition : public archive_item_definition
 	virtual void add_to_diff(diffs::diff *diff)
 	{
 		auto *chunk = diff->add_chunk(m_length, diffs::hash_type::Sha256, m_hash.data(), m_hash.size());
-		auto recipe = chunk->create_recipe(diffs::recipe_type::inline_asset);
+		auto recipe = chunk->create_recipe(diff, diffs::inline_asset_recipe_name);
+
+		recipe->add_number_parameter(0u);
+		recipe->add_number_parameter(static_cast<uint64_t>(m_length));
 	}
 
 	virtual void write_inline_asset(std::vector<char> &inline_asset_data) const
@@ -1196,7 +1212,7 @@ class nested_diff_definition : public archive_item_definition
 	virtual void add_to_diff(diffs::diff *diff)
 	{
 		auto *chunk = diff->add_chunk(m_length, diffs::hash_type::Sha256, m_hash.data(), m_hash.size());
-		auto recipe = chunk->create_recipe(diffs::recipe_type::nested_diff);
+		auto recipe = chunk->create_recipe(diff, diffs::nested_diff_recipe_name);
 
 		auto delta_param = recipe->add_archive_item_parameter(
 			diffs::archive_item_type::blob,
@@ -1207,7 +1223,9 @@ class nested_diff_definition : public archive_item_definition
 			m_inline_asset_hash.size());
 		auto delta_blob = delta_param->get_archive_item_value();
 
-		auto inline_asset_param = delta_blob->create_recipe(diffs::recipe_type::inline_asset);
+		auto inline_asset_recipe = delta_blob->create_recipe(diff, diffs::inline_asset_recipe_name);
+		inline_asset_recipe->add_number_parameter(0);
+		inline_asset_recipe->add_number_parameter(m_inline_asset_data.size());
 
 		auto source_param = recipe->add_archive_item_parameter(
 			diffs::archive_item_type::blob,
@@ -1218,7 +1236,7 @@ class nested_diff_definition : public archive_item_definition
 			m_source_hash.size());
 		auto source_blob = source_param->get_archive_item_value();
 
-		auto copy_source_recipe = source_blob->create_recipe(diffs::recipe_type::copy_source);
+		auto copy_source_recipe = source_blob->create_recipe(diff, diffs::copy_source_recipe_name);
 		copy_source_recipe->add_number_parameter(m_source_offset);
 	}
 
@@ -1273,12 +1291,12 @@ class make_diff_context
 		std::vector<char> source_data;
 		std::vector<char> target_data;
 		std::vector<char> inline_asset_data;
-		for (const auto &item : m_items)
+		for (const auto& item : m_items)
 		{
 			item->write_source_data(source_data);
 			item->check_source_data(source_data);
 
-			auto data = item->get_data();
+			auto& data = item->get_data();
 			target_data.insert(target_data.end(), data.begin(), data.end());
 
 			item->write_inline_asset(inline_asset_data);
@@ -1365,7 +1383,7 @@ void write_data(blob_position pos, fs::path remainder_path, io_utility::sequenti
 	std::vector<char> data;
 	data.resize(pos.length);
 
-	io_utility::binary_file_reader reader(remainder_path);
+	io_utility::binary_file_reader reader(remainder_path.string());
 
 	reader.read(pos.offset, gsl::span{data.data(), static_cast<size_t>(pos.length)});
 
@@ -1374,7 +1392,7 @@ void write_data(blob_position pos, fs::path remainder_path, io_utility::sequenti
 
 void write_file(fs::path file, io_utility::sequential_writer *writer)
 {
-	io_utility::binary_file_reader reader(file);
+	io_utility::binary_file_reader reader(file.string());
 
 	std::vector<char> data;
 	data.resize(reader.size());
@@ -1606,12 +1624,12 @@ TEST(recipe_zstd_delta, basic)
 
 	auto diff_path          = base_test_working / "diff";
 	auto remainder_path     = base_test_working / "remainder";
-	auto inline_assets_path = context.delta_path;
+	auto& inline_assets_path = context.delta_path;
 
 	std::fstream remainder_stream(remainder_path, std::ios::binary | std::ios::out);
 	remainder_stream.close();
 
-	context.type = diffs::recipe_type::zstd_delta;
+	context.recipe_type_name = diffs::zstd_delta_recipe_name;
 	create_diff(
 		context.source_path,
 		context.target_path,
@@ -1631,6 +1649,8 @@ TEST(recipe_zstd_delta, basic)
 
 TEST(recipe_concatenation, six_parts)
 {
+	diffs::recipe_host recipe_host;
+
 	/*
 	   0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24
 	         [     A     ]                [      B      ][C ] [    D        ]
@@ -1676,14 +1696,14 @@ TEST(recipe_concatenation, six_parts)
 		target_a_hash.data(),
 		target_a_hash.size()};
 
-	auto concat_recipe = target_a_chunk.create_recipe(diffs::recipe_type::concatenation);
+	auto concat_recipe = target_a_chunk.create_recipe(&recipe_host, diffs::concatenation_recipe_name);
 
-	add_copy_source_param(concat_recipe, source_data, source_a_offset, source_a_length);
-	add_copy_source_param(concat_recipe, source_data, source_a_offset, source_a_length);
-	add_copy_source_param(concat_recipe, source_data, source_b_offset, source_b_length);
-	add_copy_source_param(concat_recipe, source_data, source_c_offset, source_c_length);
-	add_copy_source_param(concat_recipe, source_data, source_c_offset, source_c_length);
-	add_copy_source_param(concat_recipe, source_data, source_d_offset, source_d_length);
+	add_copy_source_param(&recipe_host, concat_recipe, source_data, source_a_offset, source_a_length);
+	add_copy_source_param(&recipe_host, concat_recipe, source_data, source_a_offset, source_a_length);
+	add_copy_source_param(&recipe_host, concat_recipe, source_data, source_b_offset, source_b_length);
+	add_copy_source_param(&recipe_host, concat_recipe, source_data, source_c_offset, source_c_length);
+	add_copy_source_param(&recipe_host, concat_recipe, source_data, source_c_offset, source_c_length);
+	add_copy_source_param(&recipe_host, concat_recipe, source_data, source_d_offset, source_d_length);
 
 	fs::path source_path;
 	fs::path target_path;
@@ -1707,15 +1727,14 @@ TEST(recipe_concatenation, six_parts)
 		fs::remove_all(base_test_working);
 		fs::create_directories(base_test_working);
 
-		io_utility::binary_file_readerwriter diff_reader(base_test_working / "empty.diff");
+		io_utility::binary_file_readerwriter diff_reader((base_test_working / "empty.diff").string());
 
 		diffs::apply_context::root_context_parameters params;
 		params.m_diff           = &diff;
 		params.m_diff_reader    = &diff_reader;
-		params.m_source_file    = source_path;
-		params.m_target_file    = target_path;
+		params.m_source_file    = source_path.string();
+		params.m_target_file    = target_path.string();
 		params.m_blob_cache     = &blob_cache;
-		params.m_working_folder = working_folder;
 
 		diffs::apply_context context = diffs::apply_context::root_context(params);
 
@@ -1776,7 +1795,7 @@ TEST(zstd_compression_writer, basic)
 	const fs::path compressed_path = get_data_file(c_source_boot_file_compressed);
 	auto uncompressed_path         = temp_path / "boot.ext4";
 	uncompress_file(compressed_path, uncompressed_path);
-	auto test_file = uncompressed_path;
+	auto& test_file = uncompressed_path;
 
 	auto test_file_compressed         = temp_path / "boot.ext4.zst";
 	auto test_file_compressed_applied = temp_path / "boot.ext4.zst.applied";
@@ -1784,7 +1803,7 @@ TEST(zstd_compression_writer, basic)
 	{
 		//                std::ofstream compressed_file_stream(test_file_compressed, std::ios::binary |
 		//                std::ios::out);
-		io_utility::binary_file_writer raw_writer(test_file_compressed);
+		io_utility::binary_file_writer raw_writer(test_file_compressed.string());
 		io_utility::wrapped_writer_sequential_hashed_writer hashed_writer(&raw_writer, &hasher);
 
 		size_t test_file_size = fs::file_size(test_file);
@@ -1838,7 +1857,7 @@ bool FileAndReaderHaveIdenticalContent(fs::path path, io_utility::reader *reader
 	std::vector<char> read_buffer1;
 	std::vector<char> read_buffer2;
 
-	const size_t read_block_size = 32 * 1024;
+	const size_t read_block_size = static_cast<size_t>(32 * 1024);
 	read_buffer1.reserve(read_block_size);
 	read_buffer2.reserve(read_block_size);
 
@@ -1871,8 +1890,8 @@ TEST(binary_file_writer, basic)
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 
 	std::string test_name = "BinaryFileReader";
-	std::unique_ptr<io_utility::binary_file_reader> reader =
-		std::make_unique<io_utility::binary_file_reader>(test_file_path);
+	auto reader =
+		std::make_unique<io_utility::binary_file_reader>(test_file_path.string());
 
 	ASSERT_TRUE(FileAndReaderHaveIdenticalContent(test_file_path, reader.get(), 3000, 50000));
 	ASSERT_TRUE(FileAndReaderHaveIdenticalContent(test_file_path, reader.get(), 300, 500));
@@ -1882,6 +1901,8 @@ TEST(binary_file_writer, basic)
 
 TEST(recipe_copy_source, make_reader)
 {
+	diffs::recipe_host recipe_host;
+
 	const char source_data[] = {0, 0, 0, 1, 2, 3, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
 
 	const char target_data[] = {0, 0, 0, 1, 2, 3, 4, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20};
@@ -1903,7 +1924,8 @@ TEST(recipe_copy_source, make_reader)
 		target_a_hash.data(),
 		target_a_hash.size()};
 
-	auto copy_source_recipe = copy_source_chunk.create_recipe(diffs::recipe_type::copy_source);
+	auto copy_source_recipe =
+		copy_source_chunk.create_recipe(&recipe_host, diffs::copy_source_recipe_name);
 	copy_source_recipe->add_number_parameter(source_a_offset);
 	copy_source_recipe->add_number_parameter(source_a_length);
 
@@ -1928,15 +1950,14 @@ TEST(recipe_copy_source, make_reader)
 	fs::remove_all(temp_path);
 	fs::create_directories(temp_path);
 
-	io_utility::binary_file_readerwriter diff_reader(temp_path / "empty.diff");
+	io_utility::binary_file_readerwriter diff_reader((temp_path / "empty.diff").string());
 
 	diffs::apply_context::root_context_parameters params;
 	params.m_diff           = &diff;
 	params.m_diff_reader    = &diff_reader;
-	params.m_source_file    = source_path;
-	params.m_target_file    = target_path;
+	params.m_source_file    = source_path.string();
+	params.m_target_file    = target_path.string();
 	params.m_blob_cache     = &blob_cache;
-	params.m_working_folder = working_folder;
 
 	diffs::apply_context context = diffs::apply_context::root_context(params);
 
@@ -1966,6 +1987,8 @@ TEST(recipe_copy_source, make_reader)
 
 TEST(recipe_zstd_compression, of_copy_source)
 {
+	diffs::recipe_host recipe_host;
+
 	auto temp_path = fs::temp_directory_path() / "Recipe_ZstdCompression_OfCopySource";
 	printf("Deleting and recreating %s\n", temp_path.string().c_str());
 	fs::remove_all(temp_path);
@@ -1974,7 +1997,7 @@ TEST(recipe_zstd_compression, of_copy_source)
 	const fs::path compressed_path = get_data_file(c_source_boot_file_compressed);
 	auto uncompressed_path         = temp_path / "boot.ext4";
 	uncompress_file(compressed_path, uncompressed_path);
-	auto test_file = uncompressed_path;
+	auto& test_file = uncompressed_path;
 
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 
@@ -2029,7 +2052,7 @@ TEST(recipe_zstd_compression, of_copy_source)
 		compressed_hash.data(),
 		compressed_hash.size()};
 
-	auto compress_recipe = compressed_chunk.create_recipe(diffs::recipe_type::zstd_compression);
+	auto compress_recipe = compressed_chunk.create_recipe(&recipe_host, diffs::zstd_compression_recipe_name);
 	auto param           = compress_recipe->add_archive_item_parameter(
         diffs::archive_item_type::blob,
         0,
@@ -2039,7 +2062,7 @@ TEST(recipe_zstd_compression, of_copy_source)
         uncompressed_hash.size());
 
 	auto uncompressed_blob  = param->get_archive_item_value();
-	auto copy_source_recipe = uncompressed_blob->create_recipe(diffs::recipe_type::copy_source);
+	auto copy_source_recipe = uncompressed_blob->create_recipe(&recipe_host, diffs::copy_source_recipe_name);
 	copy_source_recipe->add_number_parameter(0u); // offset
 	copy_source_recipe->add_number_parameter(uncompressed_file_size);
 
@@ -2058,15 +2081,14 @@ TEST(recipe_zstd_compression, of_copy_source)
 
 	diffs::diff diff;
 
-	io_utility::binary_file_readerwriter diff_reader(temp_path / "empty.diff");
+	io_utility::binary_file_readerwriter diff_reader((temp_path / "empty.diff").string());
 
 	diffs::apply_context::root_context_parameters params;
 	params.m_diff           = &diff;
 	params.m_diff_reader    = &diff_reader;
-	params.m_source_file    = uncompressed_path;
-	params.m_target_file    = target_path;
+	params.m_source_file    = uncompressed_path.string();
+	params.m_target_file    = target_path.string();
 	params.m_blob_cache     = &blob_cache;
-	params.m_working_folder = working_folder;
 
 	{
 		diffs::apply_context context = diffs::apply_context::root_context(params);
@@ -2079,6 +2101,8 @@ TEST(recipe_zstd_compression, of_copy_source)
 
 TEST(recipe_zstd_decompression, of_copy_source)
 {
+	diffs::recipe_host recipe_host;
+
 	auto temp_path = fs::temp_directory_path() / "Recipe_ZstdDecompression_OfCopySource";
 
 	const fs::path compressed_path = get_data_file(c_source_boot_file_compressed);
@@ -2115,7 +2139,7 @@ TEST(recipe_zstd_decompression, of_copy_source)
 		uncompressed_hash.data(),
 		uncompressed_hash.size()};
 
-	auto decompress_recipe = decompressed_chunk.create_recipe(diffs::recipe_type::zstd_decompression);
+	auto decompress_recipe = decompressed_chunk.create_recipe(&recipe_host, diffs::zstd_decompression_recipe_name);
 	auto param             = decompress_recipe->add_archive_item_parameter(
         diffs::archive_item_type::blob,
         0,
@@ -2125,7 +2149,7 @@ TEST(recipe_zstd_decompression, of_copy_source)
         compressed_hash.size());
 
 	auto compressed_blob    = param->get_archive_item_value();
-	auto copy_source_recipe = compressed_blob->create_recipe(diffs::recipe_type::copy_source);
+	auto copy_source_recipe = compressed_blob->create_recipe(&recipe_host, diffs::copy_source_recipe_name);
 	copy_source_recipe->add_number_parameter(0u); // offset
 	copy_source_recipe->add_number_parameter(compressed_file_size);
 
@@ -2140,15 +2164,14 @@ TEST(recipe_zstd_decompression, of_copy_source)
 
 	diffs::diff diff;
 
-	io_utility::binary_file_readerwriter diff_reader(temp_path / "empty.diff");
+	io_utility::binary_file_readerwriter diff_reader((temp_path / "empty.diff").string());
 
 	diffs::apply_context::root_context_parameters params;
 	params.m_diff           = &diff;
 	params.m_diff_reader    = &diff_reader;
-	params.m_source_file    = compressed_path;
-	params.m_target_file    = target_path;
+	params.m_source_file    = compressed_path.string();
+	params.m_target_file    = target_path.string();
 	params.m_blob_cache     = &blob_cache;
-	params.m_working_folder = working_folder;
 
 	diffs::apply_context context = diffs::apply_context::root_context(params);
 
@@ -2186,7 +2209,7 @@ TEST(zstd_decompression_reader, basic)
 
 	auto compressed_size = fs::file_size(compressed_path);
 
-	auto archive_reader = std::make_unique<io_utility::binary_file_reader>(archive_path);
+	auto archive_reader = std::make_unique<io_utility::binary_file_reader>(archive_path.string());
 	auto child_reader   = std::make_unique<io_utility::child_reader>(archive_reader.get(), 4024, compressed_size);
 	auto zstd_reader =
 		std::make_unique<io_utility::zstd_decompression_reader>(child_reader.get(), fs::file_size(uncompressed_path));
@@ -2232,8 +2255,8 @@ TEST(blob_cache, test)
 
 	diffs::blob_cache cache;
 
-	std::unique_ptr<io_utility::binary_file_reader> reader =
-		std::make_unique<io_utility::binary_file_reader>(test_file_path);
+	auto reader =
+		std::make_unique<io_utility::binary_file_reader>(test_file_path.string());
 
 	for (auto &entry : blob_locations)
 	{
@@ -2316,8 +2339,8 @@ TEST(blob_cache, spin_lock)
 
 	diffs::blob_cache cache;
 
-	std::unique_ptr<io_utility::binary_file_reader> file_reader =
-		std::make_unique<io_utility::binary_file_reader>(test_file_path);
+	auto file_reader =
+		std::make_unique<io_utility::binary_file_reader>(test_file_path.string());
 	sleepy_child_reader raw_reader(file_reader.get());
 
 	for (auto &entry : blob_locations)
@@ -2401,8 +2424,8 @@ TEST(blob_cache, wait)
 
 	diffs::blob_cache cache;
 
-	std::unique_ptr<io_utility::binary_file_reader> file_reader =
-		std::make_unique<io_utility::binary_file_reader>(test_file_path);
+	auto file_reader =
+		std::make_unique<io_utility::binary_file_reader>(test_file_path.string());
 	sleepy_child_reader raw_reader(file_reader.get());
 
 	for (auto &entry : blob_locations)
@@ -2477,7 +2500,7 @@ TEST(blob_cache, decompressed_data_wait)
 
 	auto uncompressed_path = temp_path / "boot.ext4";
 	uncompress_file(compressed_path, uncompressed_path);
-	auto test_file = uncompressed_path;
+	auto& test_file = uncompressed_path;
 
 	std::vector<blob_location_and_actual_hashes> blob_locations{
 		{0, 8654848},
@@ -2499,7 +2522,7 @@ TEST(blob_cache, decompressed_data_wait)
 
 	diffs::blob_cache cache;
 
-	io_utility::binary_file_reader file_reader(compressed_path);
+	io_utility::binary_file_reader file_reader(compressed_path.string());
 	io_utility::zstd_decompression_reader decompression_reader(&file_reader, fs::file_size(uncompressed_path));
 	sleepy_child_reader raw_reader(&decompression_reader);
 

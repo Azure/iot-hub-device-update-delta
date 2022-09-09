@@ -21,11 +21,11 @@
 
 #include "user_exception.h"
 
-namespace fs = std::filesystem;
-
 void diffs::diff::read(diff_reader_context &context)
 {
-	char magic[4];
+	context.set_recipe_host(this);
+
+	char magic[4]{};
 	context.read(gsl::span<char>{magic, 4});
 
 	if (0 != memcmp(magic, DIFF_MAGIC_VALUE, sizeof(magic)))
@@ -65,9 +65,10 @@ void diffs::diff::read(diff_reader_context &context)
 	for (uint64_t i = 0; i < chunk_count; i++)
 	{
 		m_chunks.emplace_back(offset);
-		m_chunks.back().read(context, true);
+		auto &new_chunk = m_chunks.back();
+		new_chunk.read(context, true);
 
-		m_inline_assets_size += m_chunks.back().get_inline_asset_byte_count();
+		m_inline_assets_size += new_chunk.get_inline_asset_byte_count();
 
 		offset += m_chunks.back().get_length();
 		context.m_chunk_table_total = offset;
@@ -116,6 +117,8 @@ void diffs::diff::set_remainder_sizes(uint64_t uncompressed, uint64_t compressed
 
 void diffs::diff::write(diffs::diff_writer_context &context)
 {
+	context.set_recipe_host(this);
+
 	context.write_raw(std::string_view{DIFF_MAGIC_VALUE, 4});
 	context.write_raw(DIFF_VERSION);
 
@@ -193,6 +196,27 @@ void populate_from_reader(diffs::blob_cache *cache, io_utility::reader *reader)
 	cache->clear_blob_locations_for_reader(reader);
 }
 
+diffs::diff::verify_source_result diffs::diff::verify_source(io_utility::reader &reader) const
+{
+	if (reader.size() != m_source_size)
+	{
+		std::string msg = "diffs::diff::verify_source(): Source size mismatch. Actual " + std::to_string(reader.size())
+		                + " Expected: " + std::to_string(m_source_size);
+		throw error_utility::user_exception(error_utility::error_code::diff_verify_source_size_mismatch, msg);
+	}
+
+	if (reader.get_read_style() != io_utility::reader::read_style::random_access)
+	{
+		return verify_source_result::uncertain;
+	}
+
+	hash actual_hash{m_source_hash.m_hash_type, reader};
+
+	hash::verify_hashes_match(actual_hash, m_source_hash);
+
+	return verify_source_result::identical;
+}
+
 void diffs::diff::apply(diffs::apply_context &context)
 {
 	for (size_t i = 0; i < m_chunks.size(); i++)
@@ -266,29 +290,4 @@ io_utility::unique_reader diffs::diff::make_reader(apply_context &context) const
 	thread.join();
 
 	return std::make_unique<io_utility::chained_reader>(std::move(readers));
-}
-
-const std::vector<diffs::archive_item> &diffs::diff::get_chunks() const { return m_chunks; }
-
-diffs::archive_item *diffs::diff::add_chunk(
-	uint64_t length, hash_type hash_type, const char *hash_value, uint64_t hash_value_length)
-{
-	uint64_t offset{};
-	if (m_chunks.size() != 0)
-	{
-		auto &last_chunk = m_chunks.back();
-
-		offset = last_chunk.get_offset() + last_chunk.get_length();
-	}
-
-	return add_chunk(offset, length, hash_type, hash_value, hash_value_length);
-}
-
-diffs::archive_item *diffs::diff::add_chunk(
-	uint64_t offset, uint64_t length, hash_type hash_type, const char *hash_value, uint64_t hash_value_length)
-{
-	m_chunks.emplace_back(archive_item{
-		offset, length, archive_item_type::chunk, hash_type, hash_value, static_cast<size_t>(hash_value_length)});
-
-	return &m_chunks.back();
 }

@@ -10,10 +10,38 @@
 #include "user_exception.h"
 
 #include "hash.h"
+
 #include "hash_utility.h"
 
 #include "diff_reader_context.h"
 #include "diff_writer_context.h"
+
+diffs::hash::hash(hash_type hash_type, io_utility::reader &reader) : m_hash_type(hash_type)
+{
+	auto algorithm = hash_type_to_algorithm(hash_type);
+	hash_utility::hasher hasher{hash_utility::algorithm::SHA256};
+
+	auto remaining = reader.size();
+	uint64_t offset{};
+
+	const size_t MAX_READ_CHUNK = static_cast<size_t>(64 * 1024);
+	std::vector<char> read_buffer;
+
+	while (remaining)
+	{
+		auto to_read = std::min<size_t>(MAX_READ_CHUNK, remaining);
+		read_buffer.reserve(to_read);
+
+		reader.read(offset, gsl::span<char>{read_buffer.data(), to_read});
+
+		hasher.hash_data(std::string_view{read_buffer.data(), to_read});
+
+		offset += to_read;
+		remaining -= to_read;
+	}
+
+	m_hash_data = hasher.get_hash_binary();
+}
 
 void diffs::hash::read(diffs::diff_reader_context &context)
 {

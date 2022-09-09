@@ -6,7 +6,7 @@
  */
 #include "binary_file_readerwriter.h"
 
-io_utility::binary_file_readerwriter::binary_file_readerwriter(fs::path path) :
+io_utility::binary_file_readerwriter::binary_file_readerwriter(const std::string &path) :
 	m_File(path, io_utility::file::mode::read_write, error_utility::error_code::io_binary_file_readerwriter_failed_open)
 {}
 

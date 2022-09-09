@@ -14,7 +14,7 @@ namespace io_utility
 class binary_file_reader : public reader
 {
 	public:
-	binary_file_reader(fs::path path);
+	binary_file_reader(const std::string &path);
 
 	virtual size_t read_some(uint64_t offset, gsl::span<char> buffer);
 	virtual uint64_t size();

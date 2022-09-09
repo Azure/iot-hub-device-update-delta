@@ -14,7 +14,7 @@ namespace io_utility
 class binary_file_writer : public writer
 {
 	public:
-	binary_file_writer(fs::path path);
+	binary_file_writer(const std::string &path);
 
 	virtual void flush();
 	virtual void write(uint64_t offset, std::string_view buffer);

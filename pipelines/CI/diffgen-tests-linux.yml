@@ -14,7 +14,7 @@ variables:
 - name: configuration
   value: 'Release'
 - name: unittests_bin_dir
-  value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/UnitTests/bin/$(platform)/$(configuration)/net5.0
+  value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/UnitTests/bin/$(platform)/$(configuration)/net6.0
 - name: unittests_project
   value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/UnitTests/UnitTests.csproj
 - name: archiveutilitytest_project
@@ -45,7 +45,7 @@ stages:
           displayName: 'Use .NET Standard sdk'
           inputs:
             packageType: sdk
-            version: 5.x
+            version: 6.x
             installationPath: $(Agent.ToolsDirectory)/dotnet
 
         - task: NuGetToolInstaller@1
@@ -53,6 +53,10 @@ stages:
         - task: NuGetCommand@2
           inputs:
             restoreSolution: '$(solution)'
+
+        - task: NuGetAuthenticate@0
+          inputs:
+            forceReinstallCredentialProvider: true
 
         - task: DotNetCoreCLI@2
           inputs:
