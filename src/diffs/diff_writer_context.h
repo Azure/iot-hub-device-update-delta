@@ -6,10 +6,14 @@
  */
 #pragma once
 
+#include <map>
+
 #include "reader.h"
 #include "writer.h"
 
 #include "wrapped_writer_sequential_writer.h"
+
+#include "recipe_host.h"
 
 namespace diffs
 {
@@ -45,7 +49,13 @@ class diff_writer_context
 
 	uint64_t get_inline_asset_byte_count() { return m_inline_asset_reader->size(); }
 
+	void set_recipe_host(recipe_host *recipe_host) { m_recipe_host = recipe_host; }
+	recipe_host *get_recipe_host() const { return m_recipe_host; }
+
 	private:
+	recipe_host *m_recipe_host{};
+
+	std::map<std::string, uint32_t> m_recipe_type_index_map;
 	io_utility::writer *m_diff_writer{};
 	io_utility::wrapped_writer_sequential_writer m_diff_sequential_writer;
 	io_utility::reader *m_inline_asset_reader{};

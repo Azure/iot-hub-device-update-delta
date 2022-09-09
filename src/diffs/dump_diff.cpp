@@ -15,7 +15,7 @@
 
 void dump_diff(const diffs::diff &diff, const std::string &indent, io_utility::reader &reader, std::ostream &ostream);
 
-void diffs::dump_diff(fs::path diff_path, std::ostream &ostream)
+void diffs::dump_diff(const std::string &diff_path, std::ostream &ostream)
 {
 	io_utility::binary_file_reader reader(diff_path);
 	diffs::diff diff(&reader);
@@ -80,7 +80,7 @@ void hash_and_dump(io_utility::reader &reader, std::ostream &ostream)
 	auto size      = reader.size();
 	auto remaining = size;
 
-	const size_t max_read_buffer_size = 32 * 1024;
+	const size_t max_read_buffer_size = static_cast<size_t>(32) * 1024;
 	auto buffer_size                  = std::min<size_t>(max_read_buffer_size, size);
 
 	std::vector<char> read_buffer;
@@ -138,7 +138,7 @@ void dump_archive_item(
 {
 	auto offset = item.get_offset();
 	auto length = item.get_length();
-	auto hash   = item.get_hash();
+	auto &hash  = item.get_hash();
 
 	ostream << indent << "Chunk. Offset: " << offset << " Length: " << length << " Hash: " << hash.get_string()
 			<< std::endl;
@@ -166,10 +166,11 @@ void dump_recipe(
 	const std::string &indent,
 	std::ostream &ostream)
 {
-	auto type              = recipe.get_type();
 	const auto &parameters = recipe.get_parameters();
 
-	ostream << indent << "Recipe. Method: " << get_recipe_type_string(type) << " ParameterCount: " << parameters.size()
+	std::string recipe_type_name = recipe.get_recipe_type_name();
+
+	ostream << indent << "Recipe. Method: " << recipe.get_recipe_type_name() << " ParameterCount: " << parameters.size()
 			<< std::endl;
 
 	if (parameters.size() == 0)
@@ -185,7 +186,7 @@ void dump_recipe(
 		dump_recipe_parameter(param, i, diff, reader, indent_next, ostream);
 	}
 
-	if (type == diffs::recipe_type::nested_diff)
+	if (recipe_type_name.compare("nested_diff") == 0)
 	{
 		auto delta_item = parameters[diffs::RECIPE_PARAMETER_DELTA].get_archive_item_value();
 
@@ -196,7 +197,9 @@ void dump_recipe(
 
 		auto delta_recipe = delta_item->get_recipe();
 
-		if (delta_recipe->get_type() != diffs::recipe_type::inline_asset)
+		std::string delta_recipe_type_name = delta_recipe->get_recipe_type_name();
+
+		if (delta_recipe_type_name.compare("inline_asset") != 0)
 		{
 			throw error_utility::user_exception(
 				error_utility::error_code::diff_dump_nested_delta_item_not_inline_asset);

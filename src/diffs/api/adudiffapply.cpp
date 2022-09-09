@@ -5,7 +5,6 @@
  * Licensed under the MIT License.
  */
 #include <memory>
-#include <filesystem>
 
 #include "adudiffapply.h"
 #include "apply_session.h"

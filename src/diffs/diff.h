@@ -9,28 +9,25 @@
 #include <cstdint>
 #include <vector>
 #include <string>
-#include <filesystem>
 #include <gsl/span>
 
-#include "archive_item.h"
 #include "hash.h"
+
+#include "archive.h"
 
 #include "apply_context.h"
 #include "diff_reader_context.h"
 #include "diff_writer_context.h"
 
-#include "binary_file_reader.h"
-
-namespace fs = std::filesystem;
-
 namespace diffs
 {
 class archive_item;
-class diff
+class diff : public archive
 {
 	public:
-	diff() = default;
-	diff(io_utility::reader *reader)
+	diff() : archive(){};
+
+	diff(io_utility::reader *reader) : archive()
 	{
 		diff_reader_context context{reader};
 		read(context);
@@ -38,6 +35,14 @@ class diff
 
 	void read(diff_reader_context &context);
 	void write(diff_writer_context &context);
+
+	enum class verify_source_result
+	{
+		uncertain,
+		identical,
+	};
+
+	verify_source_result verify_source(io_utility::reader &reader) const;
 
 	// void dump(diff_viewer_context &context, std::ostream &ostream);
 
@@ -60,11 +65,6 @@ class diff
 		memcpy(m_source_hash.m_hash_data.data(), hash_value, hash_value_length);
 	}
 
-	archive_item *add_chunk(uint64_t length, hash_type hash_type, const char *hash_value, uint64_t hash_value_length);
-
-	archive_item *add_chunk(
-		uint64_t offset, uint64_t length, hash_type hash_type, const char *hash_value, uint64_t hash_value_length);
-
 	std::unique_ptr<io_utility::reader> make_inline_assets_reader(io_utility::reader *reader) const;
 	std::unique_ptr<io_utility::sequential_reader> make_remainder_reader(io_utility::reader *reader) const;
 
@@ -73,8 +73,6 @@ class diff
 	hash get_target_hash() const { return m_target_hash; }
 	uint64_t get_source_size() const { return m_source_size; }
 	hash get_source_hash() const { return m_source_hash; }
-
-	const std::vector<diffs::archive_item> &get_chunks() const;
 
 	uint64_t get_inline_assets_offset() const { return m_inline_assets_offset; }
 	uint64_t get_inline_assets_size() const { return m_inline_assets_size; }
@@ -87,7 +85,8 @@ class diff
 
 	private:
 	const char *DIFF_MAGIC_VALUE = "PAMZ";
-	const uint64_t DIFF_VERSION  = 0;
+
+	const uint64_t DIFF_VERSION = 0;
 
 	uint64_t m_version{DIFF_VERSION};
 	uint64_t m_target_size{};
@@ -95,8 +94,6 @@ class diff
 
 	uint64_t m_source_size{};
 	hash m_source_hash;
-
-	std::vector<archive_item> m_chunks;
 
 	uint64_t m_inline_assets_offset{};
 	uint64_t m_inline_assets_size{};

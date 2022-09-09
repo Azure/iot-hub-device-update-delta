@@ -8,16 +8,16 @@ variables:
   solution: 'build/diff-generation.sln'
   buildPlatform: 'x64'
   buildConfiguration: 'Release'
-  diffgen_build_output: $(Build.SourcesDirectory)/src/managed/DiffGen/DiffGeneration/bin/$(buildConfiguration)/net5.0
+  diffgen_build_output: $(Build.SourcesDirectory)/src/managed/DiffGen/DiffGeneration/bin/$(buildConfiguration)/net6.0
   ERRORS_md_file: $(Build.SourcesDirectory)/src/managed/DiffGen/DiffGeneration/ERRORS.md
   diffgen_nuget_files_dir: $(Pipeline.Workspace)/diffgen-nuget-files
   major_version: '1'
   minor_version: '0'
   patch_version: '1'
   unittests_dir: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/UnitTests
-  unittests_output_dir: $(unittests_dir)/bin/$(buildConfiguration)/net5.0
+  unittests_output_dir: $(unittests_dir)/bin/$(buildConfiguration)/net6.0
   archiveutilitytest_dir: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/ArchiveUtilityTest
-  archiveutilitytest_output_dir: $(archiveutilitytest_dir)/bin/$(buildConfiguration)/net5.0
+  archiveutilitytest_output_dir: $(archiveutilitytest_dir)/bin/$(buildConfiguration)/net6.0
   tests_samples_dir: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/samples
   packagesToPack: 'src/managed/DiffGen/DiffGeneration/DiffGeneration_linux.nuspec'
 

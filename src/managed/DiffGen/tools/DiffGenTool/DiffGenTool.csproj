@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PublishSingleFile>true</PublishSingleFile>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -20,7 +20,7 @@
     <IncludeReferencedProjects>true</IncludeReferencedProjects>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="..\..\..\..\tools\zstd_compression_tool\sample\*.py">
+    <Content Include="..\..\..\..\scripts\recompress_swu\src\*.py">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="..\..\..\..\scripts\compress_files\compress_files.py">

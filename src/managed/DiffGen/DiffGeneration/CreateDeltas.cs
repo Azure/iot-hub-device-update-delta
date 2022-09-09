@@ -258,7 +258,6 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
 
                     if (!TryDelta(sourceChunk, targetChunk, false, ChunkDeltaBuilders, out ArchiveItem deltaChunk))
                     {
-                        Logger.LogInformation("Failed to create chunk delta for {0}", diffChunk.Name);
                         continue;
                     }
 

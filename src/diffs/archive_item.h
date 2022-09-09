@@ -13,6 +13,7 @@
 #include "blob_cache.h"
 
 #include "recipe.h"
+#include "recipe_host.h"
 
 #include "apply_context.h"
 
@@ -63,7 +64,15 @@ class archive_item
 
 	const hash &get_hash() const { return m_hash; }
 
-	recipe *create_recipe(recipe_type type);
+	const blob_definition get_blobdef() const
+	{
+		blob_definition blobdef{};
+		blobdef.m_hashes.emplace_back(m_hash);
+		blobdef.m_length = m_length;
+		return blobdef;
+	}
+
+	recipe *create_recipe(const recipe_host *recipe_host, const char *recipe_type_name);
 
 	private:
 	uint64_t m_offset{};

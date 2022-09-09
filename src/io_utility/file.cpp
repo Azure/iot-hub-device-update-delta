@@ -8,7 +8,8 @@
 
 #include "user_exception.h"
 
-io_utility::file::file(fs::path file, io_utility::file::mode mode, error_utility::error_code error) : m_path(file)
+io_utility::file::file(const std::string &file, io_utility::file::mode mode, error_utility::error_code error) :
+	m_path(file)
 {
 	m_fp_storage = make_uniqueFILE(file, mode, error);
 	m_fp         = m_fp_storage.get();
@@ -40,22 +41,22 @@ static const char *get_mode_string(io_utility::file::mode mode)
 }
 
 io_utility::file::unique_FILE io_utility::file::make_uniqueFILE(
-	fs::path file, io_utility::file::mode mode, error_utility::error_code error_code)
+	const std::string &file, io_utility::file::mode mode, error_utility::error_code error_code)
 {
 	FILE *fp;
 #ifdef WIN32
-	auto result = fopen_s(&fp, file.string().c_str(), get_mode_string(mode));
+	auto result = fopen_s(&fp, file.c_str(), get_mode_string(mode));
 	if (result)
 	{
 		std::string msg = "Result: " + std::to_string(result);
 		throw error_utility::user_exception(error_code, msg);
 	}
 #else
-	fp = fopen(file.string().c_str(), get_mode_string(mode));
+	fp = fopen(file.c_str(), get_mode_string(mode));
 #endif
 	if (fp == nullptr)
 	{
-		std::string msg = "Failed to open " + file.string() + ". Error: " + std::to_string(errno);
+		std::string msg = "Failed to open " + file + ". Error: " + std::to_string(errno);
 		throw error_utility::user_exception(error_code, msg);
 	}
 

@@ -8,10 +8,8 @@
 
 #include "diff.h"
 
-diffs::diff_viewer_context::diff_viewer_context(
-	diffs::diff *diff, io_utility::reader *diff_reader, fs::path working_folder) :
-	m_diff_reader(diff_reader),
-	m_working_folder(working_folder)
+diffs::diff_viewer_context::diff_viewer_context(diffs::diff *diff, io_utility::reader *diff_reader) :
+	m_diff_reader(diff_reader)
 {
 	m_inline_assets_reader_storage = diff->make_inline_assets_reader(diff_reader);
 	m_remainder_reader_storage     = diff->make_remainder_reader(diff_reader);
@@ -21,8 +19,7 @@ diffs::diff_viewer_context::diff_viewer_context(
 }
 
 diffs::diff_viewer_context::diff_viewer_context(diff_viewer_context *parent_context) :
-	m_diff_reader(parent_context->m_diff_reader), m_working_folder(parent_context->m_working_folder),
-	m_inline_assets_reader(parent_context->m_inline_assets_reader),
+	m_diff_reader(parent_context->m_diff_reader), m_inline_assets_reader(parent_context->m_inline_assets_reader),
 	m_remainder_reader(parent_context->m_remainder_reader)
 {}
 

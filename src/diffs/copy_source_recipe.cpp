@@ -7,6 +7,24 @@
 #include "copy_source_recipe.h"
 
 #include "recipe_helpers.h"
+#include "diff_reader_context.h"
+#include "diff_writer_context.h"
+
+void diffs::copy_source_recipe::write(diff_writer_context &context)
+{
+	uint8_t parameter_count = 1;
+	context.write(parameter_count);
+
+	m_parameters[0].write(context);
+}
+
+void diffs::copy_source_recipe::read(diff_reader_context &context)
+{
+	read_parameters(context);
+
+	recipe_parameter length_parameter{context.m_current_item_blobdef.m_length};
+	add_parameter(std::move(length_parameter));
+}
 
 void diffs::copy_source_recipe::apply(apply_context &context) const
 {

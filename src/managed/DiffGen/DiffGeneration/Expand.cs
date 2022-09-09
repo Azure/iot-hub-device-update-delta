@@ -151,7 +151,7 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
                     if (!hashOfArchive.Equals(oldHashOfArchive))
                     {
                         var message = $"Archive working folder {folder} was previously used with an archive of "
-                            + "hash {oldHashOfArchive}, but new archive, {ArchivePath}, has a hash of {hashOfArchive}";
+                            + $"hash {oldHashOfArchive}, but new archive, {ArchivePath}, has a hash of {hashOfArchive}";
                         Logger.LogError(message);
                         throw new DiffBuilderException(message, PackageFailureType);
                     }

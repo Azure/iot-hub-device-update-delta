@@ -19,23 +19,23 @@ variables:
   solution: 'build/diff-generation.sln'
   buildPlatform: 'x64'
   buildConfiguration: 'Release'
-  diffgen_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\DiffGeneration\bin\$(buildConfiguration)\net5.0
+  diffgen_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\DiffGeneration\bin\$(buildConfiguration)\net6.0
   diffgen_tool_csproj:  $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\DiffGenTool.csproj
-  diffgen_tool_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\$(buildConfiguration)\net5.0
+  diffgen_tool_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\$(buildConfiguration)\net6.0
   diffgen_tool_win64_output: $(diffgen_tool_build_output)\win-x64
   diffgen_tool_linux64_output: $(diffgen_tool_build_output)\linux-x64
-  archiveutility_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\ArchiveUtility\bin\$(buildConfiguration)\net5.0
-  cpioarchive_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\archives\CpioArchives\bin\$(buildConfiguration)\net5.0
-  ext4archive_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\archives\Ext4Archives\bin\$(buildConfiguration)\net5.0
-  swupdatearchive_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\archives\SWUpdateArchives\bin\$(buildConfiguration)\net5.0
-  tararchive_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\archives\TarArchives\bin\$(buildConfiguration)\net5.0
+  archiveutility_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\ArchiveUtility\bin\$(buildConfiguration)\net6.0
+  cpioarchive_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\archives\CpioArchives\bin\$(buildConfiguration)\net6.0
+  ext4archive_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\archives\Ext4Archives\bin\$(buildConfiguration)\net6.0
+  swupdatearchive_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\archives\SWUpdateArchives\bin\$(buildConfiguration)\net6.0
+  tararchive_build_output: $(Build.SourcesDirectory)\src\managed\DiffGen\archives\TarArchives\bin\$(buildConfiguration)\net6.0
   ERRORS_md_file: $(Build.SourcesDirectory)\src\managed\DiffGen\DiffGeneration\ERRORS.md
   diffgen_nuget_files_dir: $(Pipeline.Workspace)\diffgen-nuget-files
   major_version: '1'
   minor_version: '0'
   patch_version: '1'
-  unittests_dir: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\UnitTests\bin\$(buildConfiguration)\net5.0
-  archiveutilitytest_dir: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\ArchiveUtilityTest\bin\$(buildConfiguration)\net5.0
+  unittests_dir: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\UnitTests\bin\$(buildConfiguration)\net6.0
+  archiveutilitytest_dir: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\ArchiveUtilityTest\bin\$(buildConfiguration)\net6.0
   tests_samples_dir: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\samples
 
 steps:
@@ -67,7 +67,7 @@ steps:
   displayName: 'Use .NET Standard sdk'
   inputs:
     packageType: sdk
-    version: 5.x
+    version: 6.x
     installationPath: $(Agent.ToolsDirectory)/dotnet
 
 - task: NuGetToolInstaller@1
@@ -319,7 +319,7 @@ steps:
   displayName: 'Create Windows DiffGenTool drop'
   inputs:
     script: |
-      dotnet publish $(diffgen_tool_csproj) --configuration $(buildConfiguration) --framework net5.0 --runtime win-x64 --self-contained false
+      dotnet publish $(diffgen_tool_csproj) --configuration $(buildConfiguration) --framework net6.0 --runtime win-x64 --self-contained false
       mkdir $(Build.ArtifactStagingDirectory)\win-x64
       copy $(diffgen_tool_win64_output)\* $(Build.ArtifactStagingDirectory)\win-x64
       copy $(diffgen_nuget_files_dir)\bsdiff.exe $(Build.ArtifactStagingDirectory)\win-x64
@@ -332,7 +332,8 @@ steps:
       copy $(diffgen_nuget_files_dir)\adudiffapi.dll $(Build.ArtifactStagingDirectory)\win-x64
       copy $(diffgen_nuget_files_dir)\zstd.dll $(Build.ArtifactStagingDirectory)\win-x64
       copy $(diffgen_nuget_files_dir)\zlib1.dll $(Build.ArtifactStagingDirectory)\win-x64
-      copy $(diffgen_nuget_files_dir)\LICENSE.* $(Build.ArtifactStagingDirectory)\win-x64
+      copy $(diffgen_nuget_files_dir)\NOTICE.txt $(Build.ArtifactStagingDirectory)\win-x64
+      copy $(diffgen_nuget_files_dir)\LICENSE $(Build.ArtifactStagingDirectory)\win-x64
 
 - task: PublishPipelineArtifact@1
   inputs:
@@ -344,7 +345,7 @@ steps:
   displayName: 'Create Linux DiffGenTool drop'
   inputs:
     script: |
-      dotnet publish $(diffgen_tool_csproj) --configuration $(buildConfiguration) --framework net5.0 --runtime linux-x64 --self-contained false
+      dotnet publish $(diffgen_tool_csproj) --configuration $(buildConfiguration) --framework net6.0 --runtime linux-x64 --self-contained false
       mkdir $(Build.ArtifactStagingDirectory)\linux-x64
       copy $(diffgen_tool_linux64_output)\* $(Build.ArtifactStagingDirectory)\linux-x64
       copy $(diffgen_nuget_files_dir)\bsdiff $(Build.ArtifactStagingDirectory)\linux-x64
@@ -354,7 +355,8 @@ steps:
       copy $(diffgen_nuget_files_dir)\applydiff $(Build.ArtifactStagingDirectory)\linux-x64
       copy $(diffgen_nuget_files_dir)\dumpdiff $(Build.ArtifactStagingDirectory)\linux-x64      
       copy $(diffgen_nuget_files_dir)\libadudiffapi.so $(Build.ArtifactStagingDirectory)\linux-x64
-      copy $(diffgen_nuget_files_dir)\LICENSE.* $(Build.ArtifactStagingDirectory)\linux-x64
+      copy $(diffgen_nuget_files_dir)\NOTICE.txt $(Build.ArtifactStagingDirectory)\linux-x64
+      copy $(diffgen_nuget_files_dir)\LICENSE $(Build.ArtifactStagingDirectory)\linux-x64      
 
 - task: PublishPipelineArtifact@1
   inputs:

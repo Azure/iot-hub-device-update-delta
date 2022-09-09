@@ -4,8 +4,6 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-#include <filesystem>
-
 #include "create_session.h"
 
 #include "diff.h"
@@ -20,13 +18,13 @@
 
 #include "adudiffcreate.h"
 
-CDECL diffs::api::create_session::create_session() { diff = new diffs::diff(); }
+CDECL diffs::api::create_session::create_session() { m_diff = new diffs::diff(); }
 
-CDECL diffs::api::create_session::~create_session() { delete diff; }
+CDECL diffs::api::create_session::~create_session() { delete m_diff; }
 
 void CDECL diffs::api::create_session::set_remainder_sizes(uint64_t uncompressed, uint64_t compressed)
 {
-	diff->set_remainder_sizes(uncompressed, compressed);
+	m_diff->set_remainder_sizes(uncompressed, compressed);
 }
 
 diffs::hash_type CDECL adu_create_hash_type_to_hash_type(adu_create_hash_type type)
@@ -45,23 +43,23 @@ diffs::hash_type CDECL adu_create_hash_type_to_hash_type(adu_create_hash_type ty
 void CDECL diffs::api::create_session::set_target_size_and_hash(
 	uint64_t size, adu_create_hash_type hash_type, const char *hash_value, size_t hash_value_length)
 {
-	diff->set_target_size(size);
+	m_diff->set_target_size(size);
 
 	auto real_hash_type = adu_create_hash_type_to_hash_type(hash_type);
 
-	diff->set_target_hash(real_hash_type, hash_value, hash_value_length);
+	m_diff->set_target_hash(real_hash_type, hash_value, hash_value_length);
 }
 
 void CDECL diffs::api::create_session::set_source_size_and_hash(
 	uint64_t size, adu_create_hash_type hash_type, const char *hash_value, size_t hash_value_length)
 {
-	diff->set_source_size(size);
+	m_diff->set_source_size(size);
 
 	auto real_hash_type = adu_create_hash_type_to_hash_type(hash_type);
 
 	if (size)
 	{
-		diff->set_source_hash(real_hash_type, hash_value, hash_value_length);
+		m_diff->set_source_hash(real_hash_type, hash_value, hash_value_length);
 	}
 }
 
@@ -87,55 +85,15 @@ adu_create_archive_item CDECL diffs::api::create_session::add_chunk(
 	auto real_hash_type = adu_create_hash_type_to_hash_type(hash_type);
 
 	return static_cast<adu_create_archive_item>(
-		diff->add_chunk(offset, length, real_hash_type, hash_value, hash_value_length));
-}
-
-diffs::recipe_type CDECL adu_create_recipe_type_to_recipe_type(adu_create_recipe_type type)
-{
-	switch (type)
-	{
-	case adu_create_recipe_type::adu_create_recipe_type_copy:
-		return diffs::recipe_type::copy;
-	case adu_create_recipe_type::adu_create_recipe_type_region:
-		return diffs::recipe_type::region;
-	case adu_create_recipe_type::adu_create_recipe_type_concatenation:
-		return diffs::recipe_type::concatenation;
-	case adu_create_recipe_type::adu_create_recipe_type_apply_bsdiff:
-		return diffs::recipe_type::bsdiff_delta;
-	case adu_create_recipe_type::adu_create_recipe_type_apply_nested:
-		return diffs::recipe_type::nested_diff;
-	case adu_create_recipe_type::adu_create_recipe_type_remainder_chunk:
-		return diffs::recipe_type::remainder_chunk;
-	case adu_create_recipe_type::adu_create_recipe_type_inline_asset:
-		return diffs::recipe_type::inline_asset;
-	case adu_create_recipe_type::adu_create_recipe_type_copy_source:
-		return diffs::recipe_type::copy_source;
-	case adu_create_recipe_type::adu_create_recipe_type_apply_zstd_delta:
-		return diffs::recipe_type::zstd_delta;
-	case adu_create_recipe_type::adu_create_recipe_type_inline_asset_copy:
-		return diffs::recipe_type::inline_asset_copy;
-	case adu_create_recipe_type::adu_create_recipe_type_zstd_compression:
-		return diffs::recipe_type::zstd_compression;
-	case adu_create_recipe_type::adu_create_recipe_type_zstd_decompression:
-		return diffs::recipe_type::zstd_decompression;
-	case adu_create_recipe_type::adu_create_recipe_type_all_zero:
-		return diffs::recipe_type::all_zero;
-	case adu_create_recipe_type::adu_create_recipe_type_gz_decompression:
-		return diffs::recipe_type::gz_decompression;
-	}
-
-	std::string msg = "Unexpected recipe type: " + std::to_string(static_cast<int>(type));
-	throw error_utility::user_exception(error_utility::error_code::api_unexpected_recipe_type, msg);
+		m_diff->add_chunk(offset, length, real_hash_type, hash_value, hash_value_length));
 }
 
 adu_create_recipe CDECL
-diffs::api::create_session::create_recipe(adu_create_archive_item item, adu_create_recipe_type type)
+diffs::api::create_session::create_recipe(adu_create_archive_item item, const char* recipe_type_name)
 {
 	auto archive_item = reinterpret_cast<diffs::archive_item *>(item);
 
-	auto real_type = adu_create_recipe_type_to_recipe_type(type);
-
-	return static_cast<adu_create_recipe>(archive_item->create_recipe(real_type));
+	return static_cast<adu_create_recipe>(archive_item->create_recipe(m_diff, recipe_type_name));
 }
 
 adu_create_archive_item CDECL diffs::api::create_session::add_recipe_parameter_archive_item(
@@ -170,9 +128,9 @@ int CDECL diffs::api::create_session::add_recipe_parameter_number(adu_create_rec
 void CDECL diffs::api::create_session::write(const char *path)
 {
 	io_utility::binary_file_writer diff_writer(path);
-	io_utility::binary_file_reader inline_asset_reader(inline_asset_path);
-	io_utility::binary_file_reader remainder_reader(remainder_path);
+	io_utility::binary_file_reader inline_asset_reader(m_inline_asset_path);
+	io_utility::binary_file_reader remainder_reader(m_remainder_path);
 
 	diff_writer_context context{&diff_writer, &inline_asset_reader, &remainder_reader};
-	diff->write(context);
+	m_diff->write(context);
 }

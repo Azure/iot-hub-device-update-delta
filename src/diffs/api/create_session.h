@@ -8,7 +8,6 @@
 
 #include <string>
 #include <vector>
-#include <filesystem>
 
 #include "adudiffcreate.h"
 
@@ -19,8 +18,6 @@
 		#define CDECL
 	#endif
 #endif
-
-namespace fs = std::filesystem;
 
 namespace diffs
 {
@@ -45,7 +42,7 @@ class create_session
 		adu_create_hash_type hash_type,
 		const char *hash_value,
 		size_t hash_value_length);
-	adu_create_recipe CDECL create_recipe(adu_create_archive_item item, adu_create_recipe_type type);
+	adu_create_recipe CDECL create_recipe(adu_create_archive_item item, const char* recipe_type_name);
 	int CDECL add_recipe_parameter_number(adu_create_recipe recipe_handle, uint64_t number);
 	adu_create_archive_item CDECL add_recipe_parameter_archive_item(
 		adu_create_recipe recipe_handle,
@@ -56,15 +53,15 @@ class create_session
 		const char *hash_value,
 		size_t hash_value_length);
 
-	void CDECL set_inline_asset_path(const char *path) { inline_asset_path = path; }
-	void CDECL set_remainder_path(const char *path) { remainder_path = path; }
+	void CDECL set_inline_asset_path(const char *path) { m_inline_asset_path = path; }
+	void CDECL set_remainder_path(const char *path) { m_remainder_path = path; }
 	void CDECL write(const char *path);
 
 	private:
-	diffs::diff *diff{};
+	diffs::diff *m_diff{};
 
-	fs::path inline_asset_path;
-	fs::path remainder_path;
+	std::string m_inline_asset_path;
+	std::string m_remainder_path;
 };
 } // namespace api
 } // namespace diffs

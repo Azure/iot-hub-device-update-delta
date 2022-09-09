@@ -7,12 +7,9 @@
 #pragma once
 
 #include "gsl/span"
-#include <filesystem>
 #include <memory>
 
 #include "user_exception.h"
-
-namespace fs = std::filesystem;
 
 namespace io_utility
 {
