@@ -8,7 +8,7 @@
 
 #include "user_exception.h"
 
-io_utility::binary_file_writer::binary_file_writer(fs::path path) :
+io_utility::binary_file_writer::binary_file_writer(const std::string &path) :
 	m_File(path, io_utility::file::mode::write, error_utility::error_code::io_binary_file_writer_failed_open)
 {}
 

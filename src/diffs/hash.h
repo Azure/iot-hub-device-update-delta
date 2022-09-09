@@ -11,6 +11,8 @@
 #include <string>
 
 #include "user_exception.h"
+#include "hash_utility.h"
+#include "reader.h"
 
 namespace diffs
 {
@@ -27,6 +29,12 @@ class diff_writer_context;
 // TODO: Sync up with hash_utility better and make this into a class
 struct hash
 {
+	hash() = default;
+
+	hash(hash_type type, const std::vector<char> data) : m_hash_type(type), m_hash_data(data) {}
+
+	hash(hash_type hash_type, io_utility::reader &reader);
+
 	static void verify_hashes_match(const hash &actual, const hash &expected)
 	{
 		verify_hashes_match(
@@ -65,6 +73,22 @@ struct hash
 			std::string msg = "diffs::hash::get_byte_count_for_hash_type(): Unexpected hash type: "
 			                + std::to_string(static_cast<int>(hash_type));
 			throw error_utility::user_exception(error_utility::error_code::diff_bad_hash_type, msg);
+		}
+	}
+
+	static hash_utility::algorithm hash_type_to_algorithm(hash_type hash_type)
+	{
+		switch (hash_type)
+		{
+		case hash_type::Md5:
+			return hash_utility::algorithm::MD5;
+		case hash_type::Sha256:
+			return hash_utility::algorithm::SHA256;
+		default: {
+			std::string msg = "diffs::hash::hash_type_to_algorithm(): Unexpected hash type: "
+			                + std::to_string(static_cast<int>(hash_type));
+			throw error_utility::user_exception(error_utility::error_code::diff_bad_hash_type, msg);
+		}
 		}
 	}
 

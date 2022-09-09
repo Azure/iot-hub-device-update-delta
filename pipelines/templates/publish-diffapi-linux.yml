@@ -4,9 +4,6 @@ parameters:
 - name: tools_publish_dir
   type: string
   default: $(Build.ArtifactStagingDirectory)/tools
-- name: licenses_publish_dir
-  type: string
-  default: $(Build.ArtifactStagingDirectory)/licenses
 - name: vcpkg_dir
   type: string
 - name: vcpkg_triplet
@@ -43,20 +40,6 @@ steps:
   displayName: 'Copy tools to staging directory.'
 
 - bash: |
-    mkdir -p ${{ parameters.licenses_publish_dir }}
-    cp ${{ parameters.vcpkg_dir }}/packages/e2fsprogs_${{ parameters.vcpkg_triplet }}/share/e2fsprogs/copyright ${{ parameters.licenses_publish_dir }}/LICENSE.e2fsprogs
-    cp ${{ parameters.vcpkg_dir }}/packages/bsdiff_${{ parameters.vcpkg_triplet }}/share/bsdiff/copyright ${{ parameters.licenses_publish_dir }}/LICENSE.bsdiff
-    cp ${{ parameters.vcpkg_dir }}/packages/zlib_${{ parameters.vcpkg_triplet }}/share/zlib/copyright ${{ parameters.licenses_publish_dir }}/LICENSE.zlib
-    cp ${{ parameters.vcpkg_dir }}/packages/zstd_${{ parameters.vcpkg_triplet }}/share/zstd/LICENSE ${{ parameters.licenses_publish_dir }}/LICENSE.zstd
-    cp ${{ parameters.vcpkg_dir }}/packages/bzip2_${{ parameters.vcpkg_triplet }}/share/bzip2/copyright ${{ parameters.licenses_publish_dir }}/LICENSE.bzip2
-    cp ${{ parameters.vcpkg_dir }}/packages/ms-gsl_${{ parameters.vcpkg_triplet }}/share/ms-gsl/copyright ${{ parameters.licenses_publish_dir }}/LICENSE.ms-gsl
-    cp ${{ parameters.vcpkg_dir }}/packages/libgcrypt_${{ parameters.vcpkg_triplet }}/share/libgcrypt/copyright ${{ parameters.licenses_publish_dir }}/LICENSE.libgcrypt
-    cp ${{ parameters.vcpkg_dir }}/packages/libgpg-error_${{ parameters.vcpkg_triplet }}/share/libgpg-error/copyright ${{ parameters.licenses_publish_dir }}/LICENSE.libgpg-error
-    
-    ls ${{ parameters.licenses_publish_dir }}
-  displayName: 'Copy licenses to staging directory.'
-
-- bash: |
     mkdir -p ${{ parameters.lib_publish_dir }}
     cp ${{ parameters.libadudiffapi_full_path }} ${{ parameters.lib_publish_dir }}
   displayName: 'Copy libs to staging directory.'
@@ -86,11 +69,3 @@ steps:
     artifactType: 'pipeline'
     artifactName: 'package-drop.${{ parameters.configuration }}.${{ parameters.vcpkg_triplet }}'
   displayName: 'Publish package artifact'
-
-- task: PublishPipelineArtifact@1
-  inputs:
-    targetPath: '${{ parameters.licenses_publish_dir }}'
-    artifactType: 'pipeline'
-    artifactName: 'licenses3rdParty-drop'
-  displayName: 'Publish 3rd Party licenses artifact'
-

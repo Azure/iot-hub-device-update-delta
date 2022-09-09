@@ -57,9 +57,19 @@ stages:
           parameters:
             diffgentool_artifact_name: diffgen-tool.Release.x64-windows
 
-    - job: EndToEndTestsLinux
+    - job: EndToEndTestsUbuntuLatest
       pool:
         vmImage: 'ubuntu-latest'
+      steps:
+        - template: ../templates/end-to-end-tests.yml
+          parameters:
+            diffgentool_artifact_name: diffgen-tool.Release.x64-linux
+            install_dependencies_script: $(Build.SourcesDirectory)/build/install-diffgentool-x64-linux-deps.sh
+            post_download_artifact_script: $(Build.SourcesDirectory)/build/setup-diffgentool-x64-linux.sh
+
+    - job: EndToEndTestsUbuntu1804
+      pool:
+        vmImage: 'ubuntu-18.04'
       steps:
         - template: ../templates/end-to-end-tests.yml
           parameters:

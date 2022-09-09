@@ -14,13 +14,7 @@ steps:
   inputs:
     ConnectedServiceName: 'ADU Diffs ESRP CodeSigning'
     FolderPath: '$(Build.ArtifactStagingDirectory)/signing'
-    Pattern: |
-      bsdiff.dll
-      bsdiff.exe
-      bspatch.exe
-      bz2.dll
-      zlib1.dll
-      zstd.dll
+    Pattern: bsdiff.dll,bsdiff.exe,bspatch.exe,bz2.dll,zlib1.dll,zstd.dll
     signConfigType: 'inlineSignParams'
     inlineOperation: |
       [
@@ -56,6 +50,12 @@ steps:
     SessionTimeout: '60'
     MaxConcurrency: '50'
     MaxRetryAttempts: '5'
+    
+- task: PowerShell@2
+  displayName: Dump signing folder contents
+  inputs:
+    targetType: inline
+    script: ls $(Build.ArtifactStagingDirectory)/signing -Recurse    
 
 - task: PowerShell@2
   displayName: 'Create 3rd Party x64-windows binaries folder'

@@ -9,6 +9,7 @@ namespace ArchiveUtility
     using System;
     using System.IO;
     using System.Runtime.InteropServices;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Microsoft.Extensions.Logging;
@@ -51,26 +52,6 @@ namespace ArchiveUtility
             }
         }
 
-        internal class NativeMethods
-        {
-
-            [DllImport("libc", EntryPoint = "gettid")]
-            public static extern uint gettid();
-
-            [DllImport("kernel32.dll")]
-            public static extern uint GetCurrentThreadId();
-
-            public static uint GetCurrentThreadIdWrapper()
-            {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-                {
-                    return gettid();
-                }
-
-                return GetCurrentThreadId();
-            }
-        }
-
         public string LogPath { get; private set; }
         private Writer writer;
         public DiffLogger(string path)
@@ -91,7 +72,7 @@ namespace ArchiveUtility
                 return;
             }
 
-            writer.WriteLine($"[{this.LogLevelText(logLevel)}] ThreadId{NativeMethods.GetCurrentThreadIdWrapper()} {formatter(state, exception)}");
+            writer.WriteLine($"[{this.LogLevelText(logLevel)}] ThreadId{Thread.CurrentThread.ManagedThreadId} {formatter(state, exception)}");
         }
     }
 }

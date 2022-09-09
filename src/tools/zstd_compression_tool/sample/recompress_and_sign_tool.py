@@ -11,14 +11,15 @@ from working_folder_manager import WorkingFolderManager
 def execute(input_archive_path, output_archive_path, zstd_compress_file_path, signing_command):
     working_folder_manager = WorkingFolderManager(tempfile.gettempdir())
 
+    print('Getting order of files from input archive')
+    helpers.list_archive_files(input_archive_path, working_folder_manager.list_file)
+
+    print('Creating new content')
     strings_to_replace = create_new_content(working_folder_manager, input_archive_path, output_archive_path, zstd_compress_file_path)
 
     print('Signing new sw-description file')
     new_sw_description_path = helpers.get_sw_description_path(working_folder_manager.subfolder_new)
     helpers.sign_file(signing_command, new_sw_description_path)
-
-    print('Getting order of files from input archive')
-    helpers.list_archive_files(input_archive_path, working_folder_manager.list_file)
 
     print('Creating output archive')
     helpers.create_archive(output_archive_path, working_folder_manager, strings_to_replace=strings_to_replace, have_sig_file=True)

@@ -33,7 +33,7 @@ void compress_file(fs::path uncompressed_path, std::vector<char> *dictionary, fs
 		throw std::exception();
 	}
 
-	io_utility::binary_file_writer file_writer(compressed_path);
+	io_utility::binary_file_writer file_writer(compressed_path.string());
 	io_utility::wrapped_writer_sequential_writer wrapper(&file_writer);
 
 	auto uncompressed_file_size = fs::file_size(uncompressed_path);
@@ -46,7 +46,7 @@ void compress_file(fs::path uncompressed_path, std::vector<char> *dictionary, fs
 		writer.set_dictionary(dictionary);
 	}
 
-	io_utility::binary_file_reader reader(uncompressed_path);
+	io_utility::binary_file_reader reader(uncompressed_path.string());
 
 	writer.write(&reader);
 }
@@ -150,7 +150,7 @@ void decompress_file(fs::path compressed_path, std::vector<char> *dictionary, fs
 		throw std::exception();
 	}
 
-	io_utility::binary_file_writer file_writer(uncompressed_path);
+	io_utility::binary_file_writer file_writer(uncompressed_path.string());
 	io_utility::wrapped_writer_sequential_writer wrapper(&file_writer);
 	auto compressed_file_size = fs::file_size(compressed_path);
 
@@ -162,7 +162,7 @@ void decompress_file(fs::path compressed_path, std::vector<char> *dictionary, fs
 		writer.set_dictionary(dictionary);
 	}
 
-	io_utility::binary_file_reader reader(compressed_path);
+	io_utility::binary_file_reader reader(compressed_path.string());
 
 	std::cout << "Decompressing " << compressed_path.string() << " to " << uncompressed_path.string() << std::endl;
 

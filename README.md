@@ -1,4 +1,4 @@
-This repo contains code for generating and applying Azure Device Udpate Diffs.
+This repo contains code for generating and applying Azure Device Update Diffs.
 There are two main code-bases here. The code for Diff Generation and is located 
 at src/managed/DiffGen, while the code for Diff Application is at src/diffs.
 

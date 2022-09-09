@@ -1,4 +1,5 @@
 add_library(diffs STATIC 
+    archive.cpp
 	all_zero_recipe.cpp
 	apply_context.cpp
 	archive_item.cpp
@@ -7,8 +8,8 @@ add_library(diffs STATIC
 	concatenation_recipe.cpp
 	copy_recipe.cpp
 	copy_source_recipe.cpp
-	delta_base_recipe.cpp
 	diff.cpp
+	diff_reader_context.cpp
 	diff_resources_context.cpp
 	diff_viewer_context.cpp
 	diff_writer_context.cpp
@@ -18,7 +19,7 @@ add_library(diffs STATIC
 	inline_asset_recipe.cpp 
 	nested_diff_recipe.cpp 
 	recipe.cpp 
-	recipe_helpers.cpp 
+    recipe_host.cpp
 	recipe_parameter.cpp 
 	region_recipe.cpp 
 	remainder_chunk_recipe.cpp 

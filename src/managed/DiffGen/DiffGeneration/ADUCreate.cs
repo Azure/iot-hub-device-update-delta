@@ -31,24 +31,6 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
             sha256 = 1,
         };
 
-        public enum RecipeType
-        {
-            copy = 0,
-            region = 1,
-            concatenation = 2,
-            apply_bsdiff = 3,
-            apply_nested = 4,
-            remainder_chunk = 5,
-            inline_asset = 6,
-            copy_source = 7,
-            apply_zstd_delta = 8,
-            inline_asset_copy = 9,
-            zstd_compression = 10,
-            zstd_decompression = 11,
-            all_zero = 12,
-            gz_decompression = 113,
-        };
-
         public const string ADUDIFFAPI_DLL_WINDOWS = "adudiffapi.dll";
 
         public static List<string> ADUDIFFAPI_DEPENDENCIES => new()
@@ -77,7 +59,7 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
         [DllImport(ADUDIFFAPI_DLL, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr adu_diff_create_add_chunk(IntPtr handle, [MarshalAs(UnmanagedType.U8)]  UInt64 offset, [MarshalAs(UnmanagedType.U8)] UInt64 length, HashType hash_type, byte[] hash_value, IntPtr hash_value_length);
         [DllImport(ADUDIFFAPI_DLL, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
-        public static extern IntPtr adu_diff_create_add_recipe(IntPtr handle, IntPtr item_handle, RecipeType type);
+        public static extern IntPtr adu_diff_create_add_recipe(IntPtr handle, IntPtr item_handle, string recipe_type_name);
         [DllImport(ADUDIFFAPI_DLL, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
         public static extern IntPtr adu_diff_create_add_recipe_parameter_archive_item(
             IntPtr handle, IntPtr recipe_handle,
@@ -210,18 +192,40 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
                 ArchiveItemHandle = archiveItemHandle;
             }
 
-            public Recipe AddRecipe(RecipeType type)
+            public Recipe AddRecipe(string recipeTypeName)
             {
-                var recipeHandle = adu_diff_create_add_recipe(SessionHandle, ArchiveItemHandle, type);
+                var recipeHandle = adu_diff_create_add_recipe(SessionHandle, ArchiveItemHandle, recipeTypeName);
 
                 return new Recipe(SessionHandle, recipeHandle);
             }
 
+            private static string GetNativeRecipeTypeName(RecipeType recipeType)
+            {
+                switch (recipeType)
+                {
+                    case RecipeType.Copy: return "copy_recipe";
+                    case RecipeType.Region: return "region_recipe";
+                    case RecipeType.Concatenation: return "concatenation_recipe";
+                    case RecipeType.ApplyBsDiff: return "bsdiff_recipe";
+                    case RecipeType.ApplyNestedDiff: return "nested_diff_recipe";
+                    case RecipeType.Remainder: return "remainder_chunk_recipe";
+                    case RecipeType.InlineAsset: return "inline_asset_recipe";
+                    case RecipeType.CopySource: return "copy_source_recipe";
+                    case RecipeType.ApplyZstdDelta: return "zstd_delta_recipe";
+                    case RecipeType.ZstdCompression: return "zstd_compression_recipe";
+                    case RecipeType.ZstdDecompression: return "zstd_decompression_recipe";
+                    case RecipeType.AllZero: return "all_zero_recipe";
+                    case RecipeType.GzDecompression: return "gz_decompression_recipe";
+                    default:
+                        throw new Exception($"Unexpected RecipeType: {recipeType}.");
+                }
+            }
+
             public void AddRecipe(ArchiveUtility.Recipe recipe)
             {
-                var recipeType = (RecipeType)recipe.Type;
+                var recipeTypeName = GetNativeRecipeTypeName(recipe.Type);
 
-                var recipeHandle = AddRecipe(recipeType);
+                var recipeHandle = AddRecipe(recipeTypeName);
                 var parameters = recipe.GetParameters();
 
                 foreach (var parameter in parameters)

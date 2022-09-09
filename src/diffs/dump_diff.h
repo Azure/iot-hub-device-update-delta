@@ -7,11 +7,8 @@
 #pragma once
 
 #include <iostream>
-#include <filesystem>
-
-namespace fs = std::filesystem;
 
 namespace diffs
 {
-void dump_diff(fs::path diff_path, std::ostream &ostream);
+void dump_diff(const std::string &diff_path, std::ostream &ostream);
 }

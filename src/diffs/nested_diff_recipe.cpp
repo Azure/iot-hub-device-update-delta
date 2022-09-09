@@ -6,10 +6,30 @@
  */
 #include "nested_diff_recipe.h"
 
-#include "diff_reader_context.h"
 #include "recipe_helpers.h"
 #include "diff.h"
 #include "diff_reader.h"
+#include "diff_writer_context.h"
+#include "diff_reader_context.h"
+
+void diffs::nested_diff_recipe::write(diff_writer_context &context)
+{
+	uint8_t parameter_count = 2u;
+	context.write(parameter_count);
+
+	m_parameters[RECIPE_PARAMETER_DELTA].write(context);
+	m_parameters[RECIPE_PARAMETER_SOURCE].write(context);
+}
+
+void diffs::nested_diff_recipe::read(diff_reader_context &context)
+{
+	read_parameters(context);
+
+	auto offset = context.m_chunk_table_total;
+
+	recipe_parameter offset_parameter{offset};
+	add_parameter(std::move(offset_parameter));
+}
 
 void diffs::nested_diff_recipe::apply(apply_context &context) const
 {

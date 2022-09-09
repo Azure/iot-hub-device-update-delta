@@ -21,6 +21,8 @@
 #include <fstream>
 #include <filesystem>
 
+namespace fs = std::filesystem;
+
 #include "gtest/gtest.h"
 using ::testing::EmptyTestEventListener;
 using ::testing::InitGoogleTest;
@@ -96,7 +98,7 @@ TEST(binary_file_reader, open_and_verify)
 	auto source_file_compressed = get_data_file(c_source_boot_file_compressed);
 
 	auto file_size = fs::file_size(source_file_compressed);
-	io_utility::binary_file_reader reader(source_file_compressed);
+	io_utility::binary_file_reader reader(source_file_compressed.string());
 	compare_reader_and_file(reader, source_file_compressed, 0, file_size);
 	ASSERT_EQ(file_size, reader.size());
 }
@@ -132,7 +134,7 @@ TEST(binary_file_readerwriter, missing_directory)
 	// verify we can't open the file without the directory containing it existing
 	try
 	{
-		io_utility::binary_file_readerwriter reader(test_file_relative);
+		io_utility::binary_file_readerwriter reader(test_file_relative.string());
 	}
 	catch (error_utility::user_exception &e)
 	{
@@ -154,7 +156,7 @@ TEST(binary_file_readerwriter, open_twice)
 
 	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\boot.zst";
 
-	io_utility::binary_file_readerwriter reader(test_file_relative);
+	io_utility::binary_file_readerwriter reader(test_file_relative.string());
 
 	bool caught_any_exception = false;
 	auto error                = error_utility::error_code::none;
@@ -162,7 +164,7 @@ TEST(binary_file_readerwriter, open_twice)
 	// verify we can't open another file at the same time
 	try
 	{
-		io_utility::binary_file_readerwriter reader(test_file_relative);
+		io_utility::binary_file_readerwriter reader(test_file_relative.string());
 	}
 	catch (error_utility::user_exception &e)
 	{
@@ -256,7 +258,7 @@ TEST(binary_file_readerwriter, write_file_and_verify)
 
 	fs::path test_file_absolute = test_file_relative.lexically_normal();
 
-	io_utility::binary_file_readerwriter readerwriter(test_file_absolute);
+	io_utility::binary_file_readerwriter readerwriter(test_file_absolute.string());
 
 	ASSERT_EQ(0ull, readerwriter.size());
 
@@ -305,7 +307,7 @@ TEST(binary_file_writer, missing_directory)
 	// verify we can't open the file without the directory containing it existing
 	try
 	{
-		io_utility::binary_file_writer writer(test_file_relative);
+		io_utility::binary_file_writer writer(test_file_relative.string());
 	}
 	catch (error_utility::user_exception &e)
 	{
@@ -326,7 +328,7 @@ TEST(binary_file_writer, open_twice)
 
 	fs::create_directory(test_temp_path);
 
-	io_utility::binary_file_writer writer(test_file_relative);
+	io_utility::binary_file_writer writer(test_file_relative.string());
 
 	bool caught_any_exception = false;
 	auto error                = error_utility::error_code::none;
@@ -334,7 +336,7 @@ TEST(binary_file_writer, open_twice)
 	// verify we can't open another file at the same time
 	try
 	{
-		io_utility::binary_file_writer writer2(test_file_relative);
+		io_utility::binary_file_writer writer2(test_file_relative.string());
 	}
 	catch (error_utility::user_exception &e)
 	{
@@ -355,7 +357,7 @@ TEST(binary_file_writer, write_file_and_verify)
 
 	fs::path test_file_relative = test_temp_path / "a/b/c/../../../boot.zst";
 	fs::path test_file_absolute = test_file_relative.lexically_normal();
-	io_utility::binary_file_writer writer(test_file_absolute);
+	io_utility::binary_file_writer writer(test_file_absolute.string());
 	auto source_file_compressed = get_data_file(c_source_boot_file_compressed);
 	write_file_to_writer(source_file_compressed, writer);
 	writer.flush();
@@ -367,7 +369,7 @@ TEST(child_reader, using_binary_file_reader)
 	auto source_file_compressed = get_data_file(c_source_boot_file_compressed);
 
 	auto file_size = fs::file_size(source_file_compressed);
-	io_utility::binary_file_reader file_reader(source_file_compressed);
+	io_utility::binary_file_reader file_reader(source_file_compressed.string());
 	compare_reader_and_file(file_reader, source_file_compressed, 0, file_size);
 
 	io_utility::child_reader child_reader_whole(&file_reader);
@@ -469,7 +471,7 @@ std::vector<char> get_hash(fs::path path, uint64_t offset, uint64_t length)
 {
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 
-	io_utility::binary_file_reader reader(path);
+	io_utility::binary_file_reader reader(path.string());
 
 	return get_hash(&reader, offset, static_cast<size_t>(length));
 }
@@ -486,7 +488,7 @@ TEST(writer_wrapper_sequential_hashed_writer, binary_file_writer)
 
 	auto test_file = test_temp_path / "target";
 
-	io_utility::binary_file_writer binary_writer(test_file);
+	io_utility::binary_file_writer binary_writer(test_file.string());
 
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 	io_utility::wrapped_writer_sequential_hashed_writer hashed_writer(&binary_writer, &hasher);
@@ -515,7 +517,7 @@ TEST(child_hashed_writer, wrapped_writer_sequential_hashed_writer)
 
 	auto test_file = test_temp_path / "target";
 
-	io_utility::binary_file_writer binary_writer(test_file);
+	io_utility::binary_file_writer binary_writer(test_file.string());
 
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 	io_utility::wrapped_writer_sequential_hashed_writer hashed_writer(&binary_writer, &hasher);

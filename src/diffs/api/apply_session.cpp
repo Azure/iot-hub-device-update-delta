@@ -4,27 +4,12 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-#include <filesystem>
-
 #include "apply_session.h"
 
 #include "user_exception.h"
+#include "binary_file_reader.h"
 
 #include "diff.h"
-
-namespace fs = std::filesystem;
-
-static void ensure_fresh_file(fs::path path)
-{
-	if (fs::exists(path))
-	{
-		if (!fs::remove(path))
-		{
-			std::string msg = "Couldn't delete: " + path.string();
-			throw error_utility::user_exception(error_utility::error_code::api_could_not_delete_file, msg);
-		}
-	}
-}
 
 int diffs::api::apply_session::apply(const char *source_path, const char *diff_path, const char *target_path)
 {
@@ -34,9 +19,7 @@ int diffs::api::apply_session::apply(const char *source_path, const char *diff_p
 	{
 		io_utility::binary_file_reader diff_reader(diff_path);
 		diffs::diff diff(&diff_reader);
-		ensure_fresh_file(target_path);
 
-		auto working_folder = fs::temp_directory_path() / "diff_apply";
 		diffs::blob_cache blob_cache;
 
 		apply_context::root_context_parameters params;
@@ -45,9 +28,16 @@ int diffs::api::apply_session::apply(const char *source_path, const char *diff_p
 		params.m_source_file    = source_path;
 		params.m_target_file    = target_path;
 		params.m_blob_cache     = &blob_cache;
-		params.m_working_folder = working_folder;
 
 		diffs::apply_context context = diffs::apply_context::root_context(params);
+
+		auto reader = context.get_source_reader();
+
+		if (reader != nullptr) 
+		{
+			diff.verify_source(*reader);
+		}
+
 		diff.apply(context);
 	}
 	catch (std::exception &e)

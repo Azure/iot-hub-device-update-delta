@@ -44,32 +44,6 @@ typedef enum
 } adu_create_hash_type;
 #endif
 
-#ifdef __cplusplus
-enum class adu_create_recipe_type
-#else
-typedef enum
-#endif
-{
-	adu_create_recipe_type_copy               = 0,
-	adu_create_recipe_type_region             = 1,
-	adu_create_recipe_type_concatenation      = 2,
-	adu_create_recipe_type_apply_bsdiff       = 3,
-	adu_create_recipe_type_apply_nested       = 4,
-	adu_create_recipe_type_remainder_chunk    = 5,
-	adu_create_recipe_type_inline_asset       = 6,
-	adu_create_recipe_type_copy_source        = 7,
-	adu_create_recipe_type_apply_zstd_delta   = 8,
-	adu_create_recipe_type_inline_asset_copy  = 9,
-	adu_create_recipe_type_zstd_compression   = 10,
-	adu_create_recipe_type_zstd_decompression = 11,
-	adu_create_recipe_type_all_zero           = 12,
-	adu_create_recipe_type_gz_decompression   = 13,
-#ifdef __cplusplus
-};
-#else
-} adu_create_recipe_type;
-#endif
-
 ADUAPI_LINKAGESPEC adu_create_handle CDECL adu_diff_create_create_session();
 ADUAPI_LINKAGESPEC void CDECL adu_diff_create_close_session(adu_create_handle handle);
 ADUAPI_LINKAGESPEC void CDECL
@@ -94,7 +68,7 @@ ADUAPI_LINKAGESPEC adu_create_archive_item CDECL adu_diff_create_add_chunk(
 	const char *hash_value,
 	size_t hash_value_length);
 ADUAPI_LINKAGESPEC adu_create_recipe CDECL
-adu_diff_create_add_recipe(adu_create_handle handle, adu_create_archive_item item_handle, adu_create_recipe_type type);
+adu_diff_create_add_recipe(adu_create_handle handle, adu_create_archive_item item_handle, const char* recipe_type_name);
 ADUAPI_LINKAGESPEC adu_create_archive_item CDECL adu_diff_create_add_recipe_parameter_archive_item(
 	adu_create_handle handle,
 	adu_create_recipe recipe_handle,
