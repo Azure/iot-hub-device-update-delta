@@ -39,6 +39,10 @@ port_root="$repo_root/vcpkg/ports"
 echo "Configuring VCPKG at $vcpkg_root using ports at $port_root for triplet $triplet"
 
 test -d $vcpkg_root || git clone https://github.com/microsoft/vcpkg $vcpkg_root
+pushd $vcpkg_root
+git pull origin 727bdba9a3765a181cb6be9cb1f6aa01f2c2b5df
+git checkout FETCH_HEAD
+popd
 
 $vcpkg_root/bootstrap-vcpkg.sh
 
