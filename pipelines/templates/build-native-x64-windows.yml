@@ -38,13 +38,18 @@ parameters:
 
 steps:
   - task: PowerShell@2
+    displayName: 'Setup Vcpkg Script'
     inputs:
       filePath: '${{ parameters.setupVcpkgScript }}'
       arguments: '${{ parameters.vcpkgRoot }} $(Build.SourcesDirectory)'
+    env:
+      VCPKG_ROOT: ${{ parameters.vcpkgRoot }}
 
   - task: CMake@1
     inputs:
       cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(Agent.BuildDirectory)/build -DCMAKE_TOOLCHAIN_FILE=${{ parameters.vcpkgRoot }}/scripts/buildsystems/vcpkg.cmake
+    env:
+      VCPKG_ROOT: ${{ parameters.vcpkgRoot }}
 
   - task: VSBuild@1
     inputs:
@@ -52,6 +57,8 @@ steps:
       msbuildArgs: '-p:DebugSymbols=true'
       platform: '${{ parameters.platform }}'
       configuration: '${{ parameters.configuration }}'
+    env:
+      VCPKG_ROOT: ${{ parameters.vcpkgRoot }}
 
   - task: CmdLine@2
     displayName: 'Show built files'
