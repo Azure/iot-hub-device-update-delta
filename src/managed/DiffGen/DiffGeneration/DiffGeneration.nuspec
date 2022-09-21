@@ -9,27 +9,30 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>This package contains necessary binaries to build ADU Diffs.</description>
     <copyright>Microsoft</copyright>
+    <license type="expression">MIT</license>
     <tags></tags>
   </metadata>
   <files>
-    <file src="adudiffapi.dll" target="lib/net5.0" />
-    <file src="adudiffapi.lib" target="lib/net5.0" />
-    <file src="adudiffapi.pdb" target="lib/net5.0" />
-    <file src="bsdiff.exe" target="lib/net5.0" />
-    <file src="bspatch.exe" target="lib/net5.0" />
-    <file src="dumpextfs.exe" target="lib/net5.0" />
-    <file src="zstd_compress_file.exe" target="lib/net5.0" />
-    <file src="zlib1.dll" target="lib/net5.0" />
-    <file src="zstd.dll" target="lib/net5.0" />
-    <file src="libadudiffapi.so" target="lib/net5.0" />
-    <file src="bsdiff" target="lib/net5.0" />
-    <file src="bspatch" target="lib/net5.0" />
-    <file src="dumpextfs" target="lib/net5.0" />
-    <file src="zstd_compress_file" target="lib/net5.0" />
+    <file src="adudiffapi.dll" target="lib/net6.0" />
+    <file src="adudiffapi.lib" target="lib/net6.0" />
+    <file src="adudiffapi.pdb" target="lib/net6.0" />
+    <file src="bsdiff.exe" target="lib/net6.0" />
+    <file src="bspatch.exe" target="lib/net6.0" />
+    <file src="dumpextfs.exe" target="lib/net6.0" />
+    <file src="zstd_compress_file.exe" target="lib/net6.0" />
+    <file src="zlib1.dll" target="lib/net6.0" />
+    <file src="zstd.dll" target="lib/net6.0" />
+    <file src="libadudiffapi.so" target="lib/net6.0" />
+    <file src="bsdiff" target="lib/net6.0" />
+    <file src="bspatch" target="lib/net6.0" />
+    <file src="dumpextfs" target="lib/net6.0" />
+    <file src="zstd_compress_file" target="lib/net6.0" />
 
-    <file src="NOTICE.txt" target="lib/net5.0" />
-    <file src="LICENSE" target="lib/net5.0" />
+    <file src="NOTICE.txt" target="lib/net6.0" />
+    <file src="LICENSE" target="lib/net6.0" />
 
     <file src="ERRORS.md" target="." />
+    
+    <file src="bin\**\*.*" target="bin" />
   </files>
 </package>
