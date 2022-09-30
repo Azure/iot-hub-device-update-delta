@@ -21,6 +21,7 @@ variables:
   value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/ArchiveUtilityTest/ArchiveUtilityTest.csproj
 - name: nuget_files_dir
   value: $(Build.ArtifactStagingDirectory)/nuget_files
+- template: ../templates/version-variables.yml
 
 stages:
   - stage: BuildNativeCode
@@ -85,7 +86,7 @@ stages:
             chmod +x $(unittests_bin_dir)/bspatch
             chmod +x $(unittests_bin_dir)/zstd_compress_file
           displayName: 'Copy Nuget Files to UnitTests'
-          
+
         - task: DotNetCoreCLI@2
           inputs:
             command: 'test'

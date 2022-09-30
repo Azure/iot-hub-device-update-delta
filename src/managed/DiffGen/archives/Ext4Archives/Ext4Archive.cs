@@ -75,18 +75,12 @@ namespace Ext4Archives
         {
             hasTriedProcessing = true;
 
-            string tempArchivePath = Path.GetTempFileName();
             string tempJsonPath = Path.GetTempFileName();
 
             try
             {
-                //copy archive into temp file for dumpextfs.exe to read from
-                //TODO: provide the original archive file path directly
-                Context.Stream.Seek(0, SeekOrigin.Begin);
-                using (var writeStream = File.OpenWrite(tempArchivePath))
-                {
-                    Context.Stream.CopyTo(writeStream);
-                }
+                using var fileFromStream = new FileFromStream(Context.Stream, Context.WorkingFolder);
+                var archivePath = fileFromStream.Name;
 
                 using (Process process = new())
                 {
@@ -94,7 +88,7 @@ namespace Ext4Archives
                     process.StartInfo.CreateNoWindow = true;
                     process.StartInfo.RedirectStandardOutput = true;
                     process.StartInfo.FileName = ProcessHelper.GetPathInRunningDirectory(DUMPEXTFS_EXE_PATH);
-                    process.StartInfo.Arguments = $"\"{tempArchivePath}\" \"{tempJsonPath}\"";
+                    process.StartInfo.Arguments = $"\"{archivePath}\" \"{tempJsonPath}\"";
 
                     process.StartAndReport();
                     process.WaitForExit(FIVE_MINUTES_IN_MILLISECONDS, Context.CancellationToken);
@@ -122,7 +116,6 @@ namespace Ext4Archives
             }
             finally
             {
-                Cleanup(tempArchivePath);
                 Cleanup(tempJsonPath);
             }
         }

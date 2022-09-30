@@ -29,15 +29,21 @@ steps:
     chmod +x $(Build.Repository.LocalPath)/build/setup_vcpkg.sh
     $(Build.Repository.LocalPath)/build/setup_vcpkg.sh $(vcpkg_dir) $(Build.Repository.LocalPath)/vcpkg/ports $(vcpkg_triplet)
   displayName: 'Setup VCPKG'
+  env:
+    VCPKG_ROOT: $(vcpkg_dir)
 
 - task: CMake@1
   inputs:
     cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(zstd_compress_file_build_dir) -DCMAKE_TOOLCHAIN_FILE=$(cmakeToolchainFile)
+  env:
+    VCPKG_ROOT: $(vcpkg_dir)
 
 - bash: |
     cd $(zstd_compress_file_build_dir)
     make
   displayName: 'Make zstd_compress_file'
+  env:
+    VCPKG_ROOT: $(vcpkg_dir)
 
 - bash: |
     ls -R $(zstd_compress_file_build_dir)
