@@ -109,7 +109,7 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
                 }
 
                 Logger.LogInformation($"Loading Archive into tokens. JsonPath: {jsonPath}");
-                ArchiveLoaderContext archiveLoaderContext = new(stream)
+                ArchiveLoaderContext archiveLoaderContext = new(stream, WorkingFolder)
                 {
                     Logger = Logger,
                     CancellationToken = CancellationToken

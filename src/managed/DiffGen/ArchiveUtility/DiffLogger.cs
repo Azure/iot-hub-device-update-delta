@@ -14,7 +14,7 @@ namespace ArchiveUtility
 
     using Microsoft.Extensions.Logging;
 
-    public class DiffLogger : ILogger
+    public class DiffLogger : ILogger, IDisposable
     {
         class Writer
         {
@@ -50,6 +50,11 @@ namespace ArchiveUtility
 
                 task.Start();
             }
+
+            public void Close()
+            {
+                writer.Close();
+            }
         }
 
         public string LogPath { get; private set; }
@@ -73,6 +78,11 @@ namespace ArchiveUtility
             }
 
             writer.WriteLine($"[{this.LogLevelText(logLevel)}] ThreadId{Thread.CurrentThread.ManagedThreadId} {formatter(state, exception)}");
+        }
+
+        public void Dispose()
+        {
+            writer.Close();
         }
     }
 }
