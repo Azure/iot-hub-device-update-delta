@@ -35,6 +35,8 @@ parameters:
 - name: ioUtilityGtestDir
   type: string
   default: $(Agent.BuildDirectory)/build/io_utility/gtest/
+- name: version_suffix
+  type: string
 
 steps:
   - task: PowerShell@2
@@ -47,7 +49,7 @@ steps:
 
   - task: CMake@1
     inputs:
-      cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(Agent.BuildDirectory)/build -DCMAKE_TOOLCHAIN_FILE=${{ parameters.vcpkgRoot }}/scripts/buildsystems/vcpkg.cmake
+      cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(Agent.BuildDirectory)/build -DCMAKE_TOOLCHAIN_FILE=${{ parameters.vcpkgRoot }}/scripts/buildsystems/vcpkg.cmake -DVER_ADUDIFFAPI_VERSION:STRING=$(semver_version_commas) -DVER_ADUDIFFAPI_VERSION_STRING:STRING=$(informational_version)${{ parameters.version_suffix }}
     env:
       VCPKG_ROOT: ${{ parameters.vcpkgRoot }}
 

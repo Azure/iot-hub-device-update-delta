@@ -116,7 +116,7 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
                     return missingBinaries.ToArray();
                 }
                 else
-                { 
+                {
                     requiredBinaries.Add(ADUCreate.ADUDIFFAPI_DLL_WINDOWS);
                     requiredBinaries.AddRange(ADUCreate.ADUDIFFAPI_DEPENDENCIES);
                     return requiredBinaries.Where(b => IsBinaryMissing(b)).ToArray();
@@ -218,9 +218,11 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
 
             string logPath = Path.Combine(parameters.LogFolder, "DiffBuilder.log");
 
+            using var logger = new DiffLogger(logPath);
+
             DiffBuilder builder = new(parameters.CancellationToken)
             {
-                Logger = new DiffLogger(logPath),
+                Logger = logger,
                 SourceFile = parameters.SourceFile,
                 TargetFile = parameters.TargetFile,
                 OutputFile = parameters.OutputFile,
@@ -365,7 +367,7 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
         void CreateDeltas()
         {
             var worker = new CreateDeltas(CancellationToken)
-            { 
+            {
                 Logger = Logger,
                 LogFolder = LogFolder,
                 WorkingFolder = WorkingFolder,
@@ -546,16 +548,16 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
         /// <summary>
         /// The general idea here is to build a new diff with all of the chunks from the target
         /// archive to represent the structure. The new diff should have no recipes from the original
-        /// target, because the goal here is to create the diff without having access to the 
+        /// target, because the goal here is to create the diff without having access to the
         /// target payload - the original recipes for chunks in the target will all refer to
-        /// payload entries in the target, which will not be on a machine when we try to 
+        /// payload entries in the target, which will not be on a machine when we try to
         /// hydrate using a diff.
         /// Instead, we look at the source archive in several different ways to try to figure out
         /// how to reconstruct the target chunks and add recipes as we find them.
         /// We will use direct copies of chunks as well as transforming data with deltas to do this.
         /// Lastly, for any chunks where we can't determine a recipe we will throw them into the
         /// "remainder". The remainder is a large blob contained in the diff that will be used to
-        /// generate any file that we can't find any other means to regenerate. The blob itself 
+        /// generate any file that we can't find any other means to regenerate. The blob itself
         /// is compressed using zlib to minimize the size impact.
         /// </summary>
         protected void ExecuteTasks()

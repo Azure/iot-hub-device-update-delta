@@ -64,7 +64,7 @@ namespace UnitTests
             ArchiveTokenization tokens;
             using (var readStream = File.OpenRead(archivePath))
             {
-                if (!ArchiveLoader.TryLoadArchive(readStream, out tokens))
+                if (!ArchiveLoader.TryLoadArchive(readStream, Path.GetTempPath(), out tokens))
                 {
                     Assert.Fail();
                 }

@@ -3,6 +3,9 @@ trigger:
     include:
     - main
 
+variables:
+- template: templates/version-variables.yml
+
 stages:
   # We require heterogenous environments for these jobs, so they
   # are in a stage where we parallelize them and then publish
@@ -16,6 +19,7 @@ stages:
         - template: templates/build-native-x64-windows.yml
           parameters:
             configuration: 'Release'
+            version_suffix: '-Release'
 
     - job: BuildWindowsNativeCode_x64_windows_Debug
       displayName: 'Build Windows Native Code - x64-windows (Debug)'
@@ -25,6 +29,7 @@ stages:
         - template: templates/build-native-x64-windows.yml
           parameters:
             configuration: 'Debug'
+            version_suffix: '-Debug'
 
     - job: CrossCompile_dumpextfs_x64_windows
       displayName: 'Cross-Compile dumpextfs.exe - x64-windows'

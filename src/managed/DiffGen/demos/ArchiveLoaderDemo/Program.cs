@@ -22,12 +22,12 @@ namespace CpioHandler
 
             using (var readStream = File.OpenRead(path))
             {
-                if (!ArchiveLoader.TryLoadArchive(readStream, out tokens, "cpio"))
+                if (!ArchiveLoader.TryLoadArchive(readStream, Path.GetTempPath(), out tokens, "cpio"))
                 {
                     Console.WriteLine("{0} is not a cpio archive.", path);
                 }
 
-                if (!ArchiveLoader.TryLoadArchive(readStream, out tokens))
+                if (!ArchiveLoader.TryLoadArchive(readStream, Path.GetTempPath(), out tokens))
                 {
                     Console.WriteLine("{0} is not a supported archive.", path);
                     return;

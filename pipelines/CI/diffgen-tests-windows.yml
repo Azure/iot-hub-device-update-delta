@@ -19,6 +19,7 @@ variables:
   value: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\ArchiveUtilityTest\bin
 - name: nuget_files_dir
   value: $(Build.ArtifactStagingDirectory)/nuget_files
+- template: ../templates/version-variables.yml
 
 stages:
   - stage: BuildNativeCode
@@ -31,6 +32,7 @@ stages:
         - template: /pipelines/templates/build-native-x64-windows.yml
           parameters:
             configuration: 'Release'
+            version_suffix: '-CI'
     - job: CrossCompile_dumpextfs_x64_windows
       displayName: 'Cross-Compile dumpextfs.exe - x64-windows'
       pool:
