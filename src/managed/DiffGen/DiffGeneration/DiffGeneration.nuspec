@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package >
   <metadata>
-    <id>ADU-Diffs.DiffGeneration</id>
+    <id>Microsoft.Azure.ADUDiffs.DiffGeneration</id>
     <version>$version$</version>
     <title>ADUDiffGeneration</title>
-    <projectUrl>http://msdn.microsoft.com/OS.Fun</projectUrl>
+    <projectUrl>https://azure.microsoft.com/en-us/services/iot-hub/</projectUrl>
     <authors>Microsoft</authors>
-    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>This package contains necessary binaries to build ADU Diffs.</description>
-    <copyright>Microsoft</copyright>
+    <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <license type="expression">MIT</license>
     <tags></tags>
   </metadata>

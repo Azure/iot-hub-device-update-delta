@@ -35,7 +35,7 @@ namespace Microsoft.AzureDeviceUpdate.Diffs
             using (var stream = File.OpenRead(target))
             {
                 // TODO replace with something more cheap instead of loading entire archive
-                isArchive = ArchiveLoader.TryLoadArchive(stream, out ArchiveTokenization tokens);
+                isArchive = ArchiveLoader.TryLoadArchive(stream, WorkingFolder, out ArchiveTokenization tokens);
             }
 
             // Run DiffBuilder recursively if the target payload can be loaded by ArchiveLoader

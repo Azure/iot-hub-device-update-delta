@@ -16,13 +16,15 @@ namespace ArchiveUtility
     public class ArchiveLoaderContext
     {
         public Stream Stream;
+        public string WorkingFolder;
         public Dictionary<Type, ArchiveTokenization> TokenCache = new();
         public ILogger Logger;
         public CancellationToken CancellationToken = CancellationToken.None;
 
-        public ArchiveLoaderContext(Stream stream)
+        public ArchiveLoaderContext(Stream stream, string workingFolder)
         {
             Stream = stream;
+            WorkingFolder = workingFolder;
         }
     }
 
@@ -48,9 +50,9 @@ namespace ArchiveUtility
         }
         private static SortedDictionary<int, SortedDictionary<string, Type>> ArchiveTypesByPriority = new();
 
-        public static void LoadArchive(Stream stream, out ArchiveTokenization tokens, params string[] typesToTry)
+        public static void LoadArchive(Stream stream, string workingFolder, out ArchiveTokenization tokens, params string[] typesToTry)
         {
-            LoadArchive(new ArchiveLoaderContext(stream), out tokens, typesToTry);
+            LoadArchive(new ArchiveLoaderContext(stream, workingFolder), out tokens, typesToTry);
         }
 
         public static void LoadArchive(ArchiveLoaderContext context, out ArchiveTokenization tokens, params string[] typesToTry)
@@ -110,9 +112,9 @@ namespace ArchiveUtility
             throw new FormatException($"Couldn't load any format from stream.");
         }
 
-        public static bool TryLoadArchive(Stream stream, out ArchiveTokenization tokens, params string[] typesToTry)
+        public static bool TryLoadArchive(Stream stream, string workingFolder, out ArchiveTokenization tokens, params string[] typesToTry)
         {
-            return TryLoadArchive(new ArchiveLoaderContext(stream), out tokens, typesToTry);
+            return TryLoadArchive(new ArchiveLoaderContext(stream, workingFolder), out tokens, typesToTry);
         }
 
         public static bool TryLoadArchive(ArchiveLoaderContext context, out ArchiveTokenization tokens, params string[] typesToTry)

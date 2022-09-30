@@ -49,6 +49,8 @@ steps:
     chmod +x $(Build.SourcesDirectory)/build/crosscompile_dumpextfs.sh
     $(Build.SourcesDirectory)/build/crosscompile_dumpextfs.sh ${{ parameters.dumpextfs_src_dir }} ${{ parameters.diffapi_build_dir }} ${{ parameters.vcpkg_dir }} ${{ parameters.dumpextfs_tool_full_path }}
   displayName: 'Build dumpextfs'
+  env:
+    VCPKG_ROOT: ${{ parameters.vcpkg_dir }}
 
 - bash: |
     mkdir -p $(Build.ArtifactStagingDirectory)/drop
@@ -60,5 +62,3 @@ steps:
     targetPath: '$(Build.ArtifactStagingDirectory)/drop'
     artifactType: 'pipeline'
     artifactName: 'unsigned-dumpextfs-drop.Release.${{ parameters.platform }}-${{ parameters.target_os }}'
-
-

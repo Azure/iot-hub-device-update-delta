@@ -21,15 +21,6 @@ parameters:
 - name: build_nuget
   type: boolean
   default: true
-- name: nuget_major_version
-  type: number
-  default: 1
-- name: nuget_minor_version
-  type: string
-  default: 0
-- name: nuget_patch_version
-  type: number
-  default: 2
 - name: nuget_files_dir
   type: string
   default: $(Build.ArtifactStagingDirectory)/nuget_files
@@ -66,11 +57,38 @@ steps:
   inputs:
     restoreSolution: '${{ parameters.solution }}'
 
+- task: PowerShell@2
+  displayName: 'Show Version'
+  condition: ${{ parameters.build_nuget }}
+  inputs:
+    targetType: inline
+    script: |
+      echo "major_version: $(major_version)"
+      echo "minor_version: $(minor_version)"
+      echo "major_minor_version: $(major_minor_version)"
+      echo "patch_version: $(patch_version)"
+      echo "semver_version: $(semver_version)"
+      echo "informational_version: $(informational_version)"
+      echo "semver_version_commas: $(semver_version_commas)"
+      echo "copyright: $(copyright)"
+
 - task: VSBuild@1
   inputs:
     solution: '${{ parameters.solution }}'
     platform: '${{ parameters.platform }}'
     configuration: '${{ parameters.configuration }}'
+    msbuildArgs: >-
+      /p:FileVersion="$(semver_version)"
+      /p:InformationalVersion="$(informational_version)"
+      /p:AssemblyVersion="$(semver_version)"
+      /p:Version="$(semver_version)"
+      /p:Copyright="$(copyright)"
+
+- task: PowerShell@2
+  displayName: 'Show DLL Version for built files'
+  inputs:
+    filePath: $(Build.SourcesDirectory)/build/dump-dll-versions.ps1
+    arguments: $(Build.SourcesDirectory)/src/managed
 
 - task: DownloadPipelineArtifact@2
   displayName: 'Download Microsoft x64-windows binaries'
@@ -111,7 +129,7 @@ steps:
   inputs:
     artifactName: 'tools-drop.Release.x64-linux'
     targetPath: ${{ parameters.nuget_files_dir }}
-    
+
 - task: DownloadPipelineArtifact@2
   displayName: 'Download x64-linux debian package'
   inputs:
@@ -155,7 +173,7 @@ steps:
   inputs:
     targetType: inline
     script: |
-      dotnet publish ${{ parameters.diffgen_tool_project }} --configuration ${{ parameters.configuration }} --framework net6.0 --runtime win-x64 --self-contained false
+      dotnet publish ${{ parameters.diffgen_tool_project }} --configuration ${{ parameters.configuration }} --framework net6.0 --runtime win-x64 --self-contained false /p:FileVersion="$(semver_version)" /p:InformationalVersion="$(informational_version)" /p:AssemblyVersion="$(semver_version)" /p:Version="$(semver_version)" /p:Copyright="$(copyright)"
       ls $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\ -R
       mkdir $(Build.ArtifactStagingDirectory)\x64-windows
       copy $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\${{ parameters.configuration }}\net6.0\win-x64\* $(Build.ArtifactStagingDirectory)\x64-windows
@@ -179,7 +197,7 @@ steps:
     targetPath: '$(Build.ArtifactStagingDirectory)\x64-windows'
     artifactType: 'pipeline'
     artifactName: 'diffgen-tool.Release.x64-windows'
-    
+
 - task: NuGetAuthenticate@0
   inputs:
     forceReinstallCredentialProvider: true
@@ -189,7 +207,7 @@ steps:
   inputs:
     targetType: inline
     script: |
-      dotnet publish ${{ parameters.diffgen_tool_project }} --configuration ${{ parameters.configuration }} --framework net6.0 --runtime linux-x64 --self-contained false
+      dotnet publish ${{ parameters.diffgen_tool_project }} --configuration ${{ parameters.configuration }} --framework net6.0 --runtime linux-x64 --self-contained false /p:FileVersion="$(semver_version)" /p:InformationalVersion="$(informational_version)" /p:AssemblyVersion="$(semver_version)" /p:Version="$(semver_version)" /p:Copyright="$(copyright)"
       ls $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\ -R
       mkdir $(Build.ArtifactStagingDirectory)\x64-linux
       copy $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\${{ parameters.configuration }}\net6.0\linux-x64\* $(Build.ArtifactStagingDirectory)\x64-linux
@@ -204,6 +222,11 @@ steps:
       copy ${{ parameters.license_file }} $(Build.ArtifactStagingDirectory)\x64-linux
       copy ${{ parameters.nuget_files_dir }}\*.deb $(Build.ArtifactStagingDirectory)\x64-linux
 
+- task: PowerShell@2
+  displayName: 'Show DLL Version for DiffGenTool folder'
+  inputs:
+    filePath: $(Build.SourcesDirectory)/build/dump-dll-versions.ps1
+    arguments: $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool
 
 - task: PowerShell@2
   displayName: 'Copy Windows DiffGenTool drop to nuget.'
@@ -220,20 +243,24 @@ steps:
     script: |
       mkdir '${{ parameters.nuget_files_dir }}\bin\DiffGenTool\x64-linux'
       copy $(Build.ArtifactStagingDirectory)\x64-linux\* '${{ parameters.nuget_files_dir }}\bin\DiffGenTool\x64-linux'
-      
+
 - task: NuGetCommand@2
   condition: ${{ parameters.build_nuget }}
   inputs:
-    command: 'pack'
-    packagesToPack: '${{ parameters.diffgen_project }}'
-    packDestination: '$(Build.ArtifactStagingDirectory)\nuget-build'
-    versioningScheme: byPrereleaseNumber
-    majorVersion: '${{ parameters.nuget_major_version }}'
-    minorVersion: '${{ parameters.nuget_minor_version }}'
-    patchVersion: '${{ parameters.nuget_patch_version }}'
-    configuration: '${{ parameters.configuration }}'
-    basePath: '${{ parameters.nuget_files_dir }}'
-    includeReferencedProjects: true
+    command: 'custom'
+    arguments: >-
+        pack ${{ parameters.diffgen_project }}
+        -NonInteractive
+        -OutputDirectory $(Build.ArtifactStagingDirectory)\nuget-build
+        -BasePath ${{ parameters.nuget_files_dir }}
+        -Version $(semver_version)
+        -IncludeReferencedProjects
+        -Verbosity Detailed
+        -Properties Version="$(semver_version)"
+        -Properties FileVersion="$(semver_version)"
+        -Properties InformationalVersion="$(informational_version)"
+        -Properties AssemblyVersion="$(semver_version)"
+        -Properties Configuration=${{ parameters.configuration }}
 
 - task: EsrpCodeSigning@1
   condition: and(${{ parameters.enable_signing }}, ${{ parameters.build_nuget }})

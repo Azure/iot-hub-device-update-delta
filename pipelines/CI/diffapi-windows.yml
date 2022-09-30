@@ -16,27 +16,49 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  buildPlatform: 'x64'
-  buildConfiguration: 'Release'
-  vcpkg_dir: $(Agent.BuildDirectory)\VCPKG
-  diffapi_build_dir: $(Agent.BuildDirectory)\diffapi-build
-  diffapi_solution: $(diffapi_build_dir)\diffs.sln
-  cmakeToolchainFile: $(vcpkg_dir)/scripts/buildsystems/vcpkg.cmake
-  solution: $(diffapi_build_dir)/adu_diffs.sln
-  diffapi_output_dir: $(diffapi_build_dir)\diffs\api\$(buildConfiguration)
-  io_utility_gtest_dir: $(diffapi_build_dir)\io_utility\gtest\$(buildConfiguration)
-  diff_gtest_dir: $(diffapi_build_dir)\diffs\gtest\$(buildConfiguration)
-  test_data_root: $(Build.SourcesDirectory)\data
-  zstd_compress_file_dir: $(diffapi_build_dir)\tools\zstd_compress_file\$(buildConfiguration)
-  zstd_compress_file_binary: zstd_compress_file.exe
-  zstd_compress_file: $(zstd_compress_file_dir)\$(zstd_compress_file_binary)
-  applydiff_tool_output_dir: $(diffapi_build_dir)\tools\applydiff\$(buildConfiguration)\
-  dumpdiff_tool_output_dir: $(diffapi_build_dir)\tools\dumpdiff\$(buildConfiguration)\
-  notice_txt_file: $(Build.SourcesDirectory)\notice\NOTICE.txt
-  license_file: $(Build.SourcesDirectory)\LICENSE
-  vcpkg_triplet: $(buildPlatform)-windows
-  ms_gsl_dir: $(vcpkg_dir)\packages\ms-gsl-$(vcpkg_triplet)\share\Microsoft.GSL
-  zstd_dir: $(vcpkg_dir)\packages\zstd_$(vcpkg_triplet)\share\zstd
+- name: buildPlatform
+  value: 'x64'
+- name: buildConfiguration
+  value: 'Release'
+- name: vcpkg_dir
+  value: $(Agent.BuildDirectory)\VCPKG
+- name: diffapi_build_dir
+  value: $(Agent.BuildDirectory)\diffapi-build
+- name: diffapi_solution
+  value: $(diffapi_build_dir)\diffs.sln
+- name: cmakeToolchainFile
+  value: $(vcpkg_dir)/scripts/buildsystems/vcpkg.cmake
+- name: solution
+  value: $(diffapi_build_dir)/adu_diffs.sln
+- name: diffapi_output_dir
+  value: $(diffapi_build_dir)\diffs\api\$(buildConfiguration)
+- name: io_utility_gtest_dir
+  value: $(diffapi_build_dir)\io_utility\gtest\$(buildConfiguration)
+- name: diff_gtest_dir
+  value: $(diffapi_build_dir)\diffs\gtest\$(buildConfiguration)
+- name: test_data_root
+  value: $(Build.SourcesDirectory)\data
+- name: zstd_compress_file_dir
+  value: $(diffapi_build_dir)\tools\zstd_compress_file\$(buildConfiguration)
+- name: zstd_compress_file_binary
+  value: zstd_compress_file.exe
+- name: zstd_compress_file
+  value: $(zstd_compress_file_dir)\$(zstd_compress_file_binary)
+- name: applydiff_tool_output_dir
+  value: $(diffapi_build_dir)\tools\applydiff\$(buildConfiguration)\
+- name: dumpdiff_tool_output_dir
+  value: $(diffapi_build_dir)\tools\dumpdiff\$(buildConfiguration)\
+- name: notice_txt_file
+  value: $(Build.SourcesDirectory)\notice\NOTICE.txt
+- name: license_file
+  value: $(Build.SourcesDirectory)\LICENSE
+- name: vcpkg_triplet
+  value: $(buildPlatform)-windows
+- name: ms_gsl_dir
+  value: $(vcpkg_dir)\packages\ms-gsl-$(vcpkg_triplet)\share\Microsoft.GSL
+- name: zstd_dir
+  value: $(vcpkg_dir)\packages\zstd_$(vcpkg_triplet)\share\zstd
+- template: ../templates/version-variables.yml
 
 steps:
 - task: CmdLine@2
@@ -60,7 +82,7 @@ steps:
 
 - task: CMake@1
   inputs:
-    cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(diffapi_build_dir) -DCMAKE_TOOLCHAIN_FILE=$(cmakeToolchainFile)
+    cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(diffapi_build_dir) -DCMAKE_TOOLCHAIN_FILE=$(cmakeToolchainFile) -DVER_ADUDIFFAPI_VERSION:STRING=$(file_version_commas) -DVER_ADUDIFFAPI_VERSION_STRING:STRING=$(informational_version)-CI
 
 - task: CmdLine@2
   displayName: 'Show diffapi_build_dir'
@@ -105,7 +127,7 @@ steps:
   displayName: Run Tests
   inputs:
     script: $(diff_gtest_dir)\diffs_gtest.exe --test_data_root $(test_data_root) --zstd_compress_file $(zstd_compress_file)
-    
+
 - task: CmdLine@2
   displayName: 'Copy DiffApi Binaries'
   inputs:

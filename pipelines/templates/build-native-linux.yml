@@ -43,17 +43,23 @@ steps:
     chmod +x ${{ parameters.setup_vcpkg_script }}
     ${{ parameters.setup_vcpkg_script }} ${{ parameters.vcpkg_dir }} ${{ parameters.vcpkg_ports }} ${{ parameters.vcpkg_triplet }}
   displayName: 'Setup VCPKG'
+  env:
+    VCPKG_ROOT: ${{ parameters.vcpkg_dir }}
 
 - task: CMake@1
   inputs:
     cmakeArgs: -S ${{ parameters.source_location }} -B ${{ parameters.build_location }} -DCMAKE_TOOLCHAIN_FILE=${{ parameters.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake -G "Unix Makefiles" -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkg_triplet }} -DCMAKE_C_COMPILER=${{ parameters.cmake_c_compiler }} -DCMAKE_CXX_COMPILER=${{ parameters.cmake_cxx_compiler }} --trace
   displayName: 'CMake'
+  env:
+    VCPKG_ROOT: ${{ parameters.vcpkg_dir }}
 
 - bash: |
     cd ${{ parameters.build_location }}
     make
     ls -R ${{ parameters.build_location }}
   displayName: 'Build diffapi'
+  env:
+    VCPKG_ROOT: ${{ parameters.vcpkg_dir }}
 
 - ${{ if ne('${{ parameters.package_location_dir }}', '') }}:
   - bash: |
