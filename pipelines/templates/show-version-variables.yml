@@ -1,0 +1,14 @@
+# File: show-version-variables.yml
+steps:
+- task: PowerShell@2
+  displayName: 'Show Version Variables'
+  inputs:
+    targetType: inline
+    script: |
+      echo "major_version: $(major_version)"
+      echo "minor_version: $(minor_version)"
+      echo "patch_version: $(patch_version)"
+      echo "semver_version: $(semver_version)"
+      echo "informational_version: $(informational_version)"
+      echo "semver_version_commas: $(semver_version_commas)"
+      echo "copyright: $(copyright)"
