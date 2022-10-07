@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <package >
   <metadata>
-    <id>Microsoft.Azure.ADUDiffs.DiffGeneration</id>
+    <id>Microsoft.Azure.DeviceUpdate.Diffs</id>
     <version>$version$</version>
-    <title>ADUDiffGeneration</title>
+    <title>Microsoft Azure Device Update Diffs</title>
     <projectUrl>https://azure.microsoft.com/en-us/services/iot-hub/</projectUrl>
     <authors>Microsoft</authors>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <description>This package contains necessary binaries to build ADU Diffs.</description>
     <copyright>© Microsoft Corporation. All rights reserved.</copyright>
     <license type="expression">MIT</license>
+    <repository type="git" url="https://github.com/Azure/iot-hub-device-update-delta" />
     <tags></tags>
   </metadata>
   <files>

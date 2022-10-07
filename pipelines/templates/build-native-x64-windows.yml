@@ -39,6 +39,8 @@ parameters:
   type: string
 
 steps:
+  - template: show-version-variables.yml
+
   - task: PowerShell@2
     displayName: 'Setup Vcpkg Script'
     inputs:
