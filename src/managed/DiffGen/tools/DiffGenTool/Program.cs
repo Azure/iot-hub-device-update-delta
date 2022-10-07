@@ -8,7 +8,7 @@ using System;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.AzureDeviceUpdate.Diffs;
+using Microsoft.Azure.DeviceUpdate.Diffs;
 
 using System.Runtime.InteropServices;
 using ArchiveUtility;

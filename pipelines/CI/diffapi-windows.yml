@@ -82,7 +82,7 @@ steps:
 
 - task: CMake@1
   inputs:
-    cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(diffapi_build_dir) -DCMAKE_TOOLCHAIN_FILE=$(cmakeToolchainFile) -DVER_ADUDIFFAPI_VERSION:STRING=$(file_version_commas) -DVER_ADUDIFFAPI_VERSION_STRING:STRING=$(informational_version)-CI
+    cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(diffapi_build_dir) -DCMAKE_TOOLCHAIN_FILE=$(cmakeToolchainFile) -DVER_ADUDIFFAPI_VERSION:STRING=$(semver_version_commas) -DVER_ADUDIFFAPI_VERSION_STRING:STRING=$(informational_version)-CI
 
 - task: CmdLine@2
   displayName: 'Show diffapi_build_dir'
