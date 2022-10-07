@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.AzureDeviceUpdate.Diffs
+namespace Microsoft.Azure.DeviceUpdate.Diffs
 {
     public enum FailureType
     {

@@ -7,7 +7,7 @@
 using ArchiveUtility;
 using CpioArchives;
 using Ext4Archives;
-using Microsoft.AzureDeviceUpdate.Diffs;
+using Microsoft.Azure.DeviceUpdate.Diffs;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SWUpdateArchives;
 using System;

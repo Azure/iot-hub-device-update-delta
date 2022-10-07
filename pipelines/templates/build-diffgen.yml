@@ -44,6 +44,8 @@ parameters:
   default: $(Build.SourcesDirectory)\LICENSE
 
 steps:
+- template: show-version-variables.yml
+
 - task: UseDotNet@2
   displayName: 'Use .NET Standard sdk'
   inputs:
@@ -56,21 +58,6 @@ steps:
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '${{ parameters.solution }}'
-
-- task: PowerShell@2
-  displayName: 'Show Version'
-  condition: ${{ parameters.build_nuget }}
-  inputs:
-    targetType: inline
-    script: |
-      echo "major_version: $(major_version)"
-      echo "minor_version: $(minor_version)"
-      echo "major_minor_version: $(major_minor_version)"
-      echo "patch_version: $(patch_version)"
-      echo "semver_version: $(semver_version)"
-      echo "informational_version: $(informational_version)"
-      echo "semver_version_commas: $(semver_version_commas)"
-      echo "copyright: $(copyright)"
 
 - task: VSBuild@1
   inputs:

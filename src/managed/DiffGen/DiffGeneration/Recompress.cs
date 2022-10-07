@@ -13,7 +13,7 @@ using System.Threading;
 
 using ArchiveUtility;
 
-namespace Microsoft.AzureDeviceUpdate.Diffs
+namespace Microsoft.Azure.DeviceUpdate.Diffs
 {
     class Recompress : Worker
     {

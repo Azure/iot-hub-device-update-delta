@@ -7,7 +7,7 @@
 using System;
 using System.IO;
 
-namespace Microsoft.AzureDeviceUpdate.Diffs
+namespace Microsoft.Azure.DeviceUpdate.Diffs
 {
     public static class TimeoutValueGenerator
     {
