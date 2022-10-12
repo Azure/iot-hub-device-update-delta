@@ -34,6 +34,6 @@
 
     <file src="ERRORS.md" target="." />
     
-    <file src="bin\**\*.*" target="bin" />
+    <file src="bin\**\*" target="bin" />
   </files>
 </package>
