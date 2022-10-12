@@ -5,7 +5,7 @@ variables:
   - name: minor_version
     value: 0
   - name: patch_version
-    value: 0
+    value: 1
   - name: semver_version
     value: '$(major_version).$(minor_version).$(patch_version)'
   - name: informational_version
