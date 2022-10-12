@@ -25,24 +25,26 @@ namespace Microsoft.Azure.DeviceUpdate.Diffs
         {
             CheckForCancellation();
 
-            if (File.Exists(OutputFile))
+            var outputFile = Path.GetFullPath(OutputFile);
+
+            if (File.Exists(outputFile))
             {
-                Logger.LogInformation("Deleting existing file: {0}", OutputFile);
-                File.Delete(OutputFile);
+                Logger.LogInformation("Deleting existing file: {0}", outputFile);
+                File.Delete(outputFile);
             }
 
-            string outputDirectory = Path.GetDirectoryName(OutputFile);
+            string outputDirectory = Path.GetDirectoryName(outputFile);
             if (!Directory.Exists(outputDirectory))
             {
                 Directory.CreateDirectory(outputDirectory);
             }
 
-            Logger.LogInformation("Writing diff to {0}", OutputFile);
+            Logger.LogInformation("Writing diff to {0}", outputFile);
 
-            string path = OutputFile;
+            string path = outputFile;
             DiffSerializer.WriteDiff(Diff, path);
 
-            FileInfo diffFileInfo = new(OutputFile);
+            FileInfo diffFileInfo = new(outputFile);
             Logger.LogInformation($"Size: {diffFileInfo.Length:#,0.####} bytes");
         }
     }
