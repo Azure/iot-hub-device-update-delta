@@ -7,21 +7,14 @@ trigger:
     - src
 
 variables:
-- name: solution
-  value: '$(Build.SourcesDirectory)/build/diff-generation.sln'
+- template: ../templates/diffgen-variables.yml
+- template: ../templates/version-variables.yml
 - name: platform
   value: 'x64'
 - name: configuration
   value: 'Release'
-- name: unittests_bin_dir
-  value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/UnitTests/bin/$(platform)/$(configuration)/net6.0
-- name: unittests_project
-  value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/UnitTests/UnitTests.csproj
-- name: archiveutilitytest_project
-  value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/ArchiveUtilityTest/ArchiveUtilityTest.csproj
 - name: nuget_files_dir
   value: $(Build.ArtifactStagingDirectory)/nuget_files
-- template: ../templates/version-variables.yml
 
 stages:
   - stage: BuildNativeCode
@@ -59,6 +52,8 @@ stages:
           inputs:
             forceReinstallCredentialProvider: true
 
+        - template: ../templates/download-swu-media.yml
+
         - task: DotNetCoreCLI@2
           inputs:
             command: 'build'
@@ -78,13 +73,13 @@ stages:
             targetPath: $(nuget_files_dir)
 
         - bash: |
-            mkdir -p $(unittests_bin_dir)
-            cp $(nuget_files_dir)/* $(unittests_bin_dir)
-            echo "Unit Test Folder: $(unittests_bin_dir)"
-            chmod +x $(unittests_bin_dir)/dumpextfs
-            chmod +x $(unittests_bin_dir)/bsdiff
-            chmod +x $(unittests_bin_dir)/bspatch
-            chmod +x $(unittests_bin_dir)/zstd_compress_file
+            mkdir -p $(unittests_bin_dir)/$(platform)/$(configuration)/net6.0
+            cp $(nuget_files_dir)/* $(unittests_bin_dir)/$(platform)/$(configuration)/net6.0
+            echo "Unit Test Folder: $(unittests_bin_dir)/$(platform)/$(configuration)/net6.0"
+            chmod +x $(unittests_bin_dir)/$(platform)/$(configuration)/net6.0/dumpextfs
+            chmod +x $(unittests_bin_dir)/$(platform)/$(configuration)/net6.0/bsdiff
+            chmod +x $(unittests_bin_dir)/$(platform)/$(configuration)/net6.0/bspatch
+            chmod +x $(unittests_bin_dir)/$(platform)/$(configuration)/net6.0/zstd_compress_file
           displayName: 'Copy Nuget Files to UnitTests'
 
         - task: DotNetCoreCLI@2

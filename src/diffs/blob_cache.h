@@ -54,6 +54,9 @@ class blob_cache
 	void cancel() { m_cancel = true; }
 
 	private:
+
+	void check_overlap(io_utility::reader *reader, uint64_t offset);
+
 	uint32_t get_blob_request_count_impl(const blob_definition &blobdef);
 	bool is_blob_reader_available_impl(const blob_definition &blobdef);
 	std::unique_ptr<io_utility::reader> get_blob_reader_impl(const blob_definition &blobdef);

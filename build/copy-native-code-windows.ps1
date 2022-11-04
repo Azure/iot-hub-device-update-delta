@@ -66,4 +66,4 @@ copy -Path $cmakeBuildDir\tools\zstd_compress_file\$vsBuildTypeSubFolder\zstd_co
 copy -Path $cmakeBuildDir\tools\applydiff\$vsBuildTypeSubFolder\applydiff.exe -Destination $destination\applydiff.exe
 copy -Path $cmakeBuildDir\tools\dumpdiff\$vsBuildTypeSubFolder\dumpdiff.exe -Destination $destination\dumpdiff.exe
 
-ls $destination
+#ls $destination

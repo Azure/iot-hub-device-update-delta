@@ -65,10 +65,10 @@ fs::path get_data_file(const fs::path file)
 	return path;
 }
 
-const fs::path c_source_remainder_compressed   = "source/remainder.dat.deflate";
-const fs::path c_source_remainder_uncompressed = "source/remainder.dat";
-const fs::path c_source_boot_file_compressed   = "source/boot.zst";
-const fs::path c_source_archive                = "source/source.swu";
+const fs::path c_remainder_compressed   = "remainder.dat.deflate";
+const fs::path c_remainder_uncompressed = "remainder.dat";
+const fs::path c_sample_file_compressed   = "sample.zst";
+const fs::path c_sample_file_uncompressed = "sample.dat";
 
 int main(int argc, char **argv)
 {
@@ -77,6 +77,7 @@ int main(int argc, char **argv)
 	{
 		printf("argv[%d] = %s\n", i, argv[i]);
 	}
+
 	if (argc > 4 && (strcmp(argv[1], "--test_data_root") == 0) && (strcmp(argv[3], "--zstd_compress_file") == 0))
 	{
 		test_data_root     = argv[2];
@@ -545,7 +546,7 @@ TEST(recipe_copy, bad_hash)
 	catch (error_utility::user_exception &e)
 	{
 		ASSERT_EQ(error_utility::error_code::diff_verify_hash_failure, e.get_error());
-        printf("Exception Message: %s\n", e.get_message());
+		printf("Exception Message: %s\n", e.get_message());
 		caughtException = true;
 	}
 	ASSERT_TRUE(caughtException);
@@ -996,7 +997,7 @@ TEST(recipe_remainder_chunk, basic)
 {
 	remainder_chunk_context context;
 
-	auto test_name = "Recipe_RemainderChunk";
+	auto test_name = "recipe_remainder_chunk.basic";
 
 	auto base_test_working = fs::temp_directory_path() / "diffs_test" / test_name;
 
@@ -1014,9 +1015,9 @@ TEST(recipe_remainder_chunk, basic)
 	std::fstream inline_assets_stream(inline_assets_path, std::ios::binary | std::ios::out);
 	inline_assets_stream.close();
 
-	context.remainder_path = (fs::current_path() / get_data_file(c_source_remainder_uncompressed)).lexically_normal();
+	context.remainder_path = (fs::current_path() / get_data_file(c_remainder_uncompressed)).lexically_normal();
 	context.remainder_path_deflate =
-		(fs::current_path() / get_data_file(c_source_remainder_compressed)).lexically_normal();
+		(fs::current_path() / get_data_file(c_remainder_compressed)).lexically_normal();
 
 	create_diff(
 		source_path,
@@ -1508,22 +1509,22 @@ TEST(recipe_nested_diff, basic)
 
 	make_diff_context nested_diff_context(
 		nested_diff_working,
-		get_data_file(c_source_remainder_uncompressed),
-		get_data_file(c_source_remainder_compressed));
+		get_data_file(c_remainder_uncompressed),
+		get_data_file(c_remainder_compressed));
 
 	nested_diff_context.add_item(std::make_unique<copy_source_definition>(0, 500, 33, 27));
 	nested_diff_context.add_item(
-		std::make_unique<remainder_chunk_definition>(0, 5000, get_data_file(c_source_remainder_uncompressed)));
+		std::make_unique<remainder_chunk_definition>(0, 5000, get_data_file(c_remainder_uncompressed)));
 	nested_diff_context.add_item(std::make_unique<copy_source_definition>(500, 325, 73, 13));
 	nested_diff_context.add_item(
-		std::make_unique<remainder_chunk_definition>(5000, 3333, get_data_file(c_source_remainder_uncompressed)));
+		std::make_unique<remainder_chunk_definition>(5000, 3333, get_data_file(c_remainder_uncompressed)));
 	nested_diff_context.add_item(std::make_unique<inline_asset_definition>(33, 73, 13));
 	nested_diff_context.add_item(std::make_unique<copy_source_definition>(1200, 733, 43, 66));
 	nested_diff_context.add_item(
-		std::make_unique<remainder_chunk_definition>(8333, 200000, get_data_file(c_source_remainder_uncompressed)));
+		std::make_unique<remainder_chunk_definition>(8333, 200000, get_data_file(c_remainder_uncompressed)));
 	nested_diff_context.add_item(std::make_unique<inline_asset_definition>(7777, 33, 77));
 	nested_diff_context.add_item(
-		std::make_unique<remainder_chunk_definition>(208333, 65000, get_data_file(c_source_remainder_uncompressed)));
+		std::make_unique<remainder_chunk_definition>(208333, 65000, get_data_file(c_remainder_uncompressed)));
 
 	nested_diff_context.create_files();
 
@@ -1543,13 +1544,13 @@ TEST(recipe_nested_diff, basic)
 
 	make_diff_context outter_diff_context(
 		outter_diff_working,
-		get_data_file(c_source_remainder_uncompressed),
-		get_data_file(c_source_remainder_compressed));
+		get_data_file(c_remainder_uncompressed),
+		get_data_file(c_remainder_compressed));
 
 	outter_diff_context.add_item(std::make_unique<copy_source_definition>(0, 500, 33, 27));
 	outter_diff_context.add_item(std::make_unique<inline_asset_definition>(33, 13, 31));
 	outter_diff_context.add_item(
-		std::make_unique<remainder_chunk_definition>(0, 500, get_data_file(c_source_remainder_uncompressed)));
+		std::make_unique<remainder_chunk_definition>(0, 500, get_data_file(c_remainder_uncompressed)));
 	outter_diff_context.add_item(std::make_unique<inline_asset_definition>(1003, 103, 29));
 
 	auto nested_diff_source_path = nested_diff_context.get_source_path();
@@ -1560,12 +1561,12 @@ TEST(recipe_nested_diff, basic)
 		nested_diff_source_path, nested_diff_target_path, nested_diff_diff_path, 500, 1003));
 
 	outter_diff_context.add_item(
-		std::make_unique<remainder_chunk_definition>(500, 1500, get_data_file(c_source_remainder_uncompressed)));
+		std::make_unique<remainder_chunk_definition>(500, 1500, get_data_file(c_remainder_uncompressed)));
 	outter_diff_context.add_item(std::make_unique<inline_asset_definition>(33333, 53, 43));
 	outter_diff_context.add_item(
 		std::make_unique<copy_source_definition>(nested_diff_context.get_source_size() + 3000, 1500, 73, 7));
 	outter_diff_context.add_item(
-		std::make_unique<remainder_chunk_definition>(2000, 31500, get_data_file(c_source_remainder_uncompressed)));
+		std::make_unique<remainder_chunk_definition>(2000, 31500, get_data_file(c_remainder_uncompressed)));
 
 	outter_diff_context.create_files();
 
@@ -1788,17 +1789,17 @@ TEST(zstd_compression_writer, basic)
 {
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 
-	auto temp_path = fs::temp_directory_path() / "TestApply_TestZstdCompressionWriter";
+	auto temp_path = fs::temp_directory_path() / "zstd_compression_writer_basic";
 	fs::remove_all(temp_path);
 	fs::create_directories(temp_path);
 
-	const fs::path compressed_path = get_data_file(c_source_boot_file_compressed);
-	auto uncompressed_path         = temp_path / "boot.ext4";
+	const fs::path compressed_path = get_data_file(c_sample_file_compressed);
+	auto uncompressed_path         = temp_path / c_sample_file_uncompressed;
 	uncompress_file(compressed_path, uncompressed_path);
 	auto& test_file = uncompressed_path;
 
-	auto test_file_compressed         = temp_path / "boot.ext4.zst";
-	auto test_file_compressed_applied = temp_path / "boot.ext4.zst.applied";
+	auto test_file_compressed         = temp_path / c_sample_file_compressed;
+	auto test_file_compressed_applied = temp_path / "sample.zst.applied";
 
 	{
 		//                std::ofstream compressed_file_stream(test_file_compressed, std::ios::binary |
@@ -1886,7 +1887,7 @@ bool FileAndReaderHaveIdenticalContent(fs::path path, io_utility::reader *reader
 
 TEST(binary_file_writer, basic)
 {
-	const fs::path test_file_path = get_data_file(c_source_boot_file_compressed);
+	const fs::path test_file_path = get_data_file(c_sample_file_compressed);
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 
 	std::string test_name = "BinaryFileReader";
@@ -1989,13 +1990,13 @@ TEST(recipe_zstd_compression, of_copy_source)
 {
 	diffs::recipe_host recipe_host;
 
-	auto temp_path = fs::temp_directory_path() / "Recipe_ZstdCompression_OfCopySource";
+	auto temp_path = fs::temp_directory_path() / "recipe_zstd_compression_of_copy_source";
 	printf("Deleting and recreating %s\n", temp_path.string().c_str());
 	fs::remove_all(temp_path);
 	fs::create_directories(temp_path);
 
-	const fs::path compressed_path = get_data_file(c_source_boot_file_compressed);
-	auto uncompressed_path         = temp_path / "boot.ext4";
+	const fs::path compressed_path = get_data_file(c_sample_file_compressed);
+	auto uncompressed_path         = temp_path / "sample.dat.uncompressed";
 	uncompress_file(compressed_path, uncompressed_path);
 	auto& test_file = uncompressed_path;
 
@@ -2103,20 +2104,20 @@ TEST(recipe_zstd_decompression, of_copy_source)
 {
 	diffs::recipe_host recipe_host;
 
-	auto temp_path = fs::temp_directory_path() / "Recipe_ZstdDecompression_OfCopySource";
+	auto temp_path = fs::temp_directory_path() / "recipe_zstd_decompression_of_copy_source";
 
-	const fs::path compressed_path = get_data_file(c_source_boot_file_compressed);
+	const fs::path compressed_path = get_data_file(c_sample_file_compressed);
 
 	fs::remove_all(temp_path);
 	fs::create_directories(temp_path);
 
-	auto uncompressed_path = temp_path / "boot.ext4";
+	auto uncompressed_path = temp_path / c_sample_file_uncompressed;
 
 	uncompress_file(compressed_path, uncompressed_path);
 
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 
-	fs::path target_path = temp_path / "boot.ext4.zst";
+	fs::path target_path = temp_path / "sample.zst";
 
 	auto compressed_hash   = get_hash(compressed_path);
 	auto uncompressed_hash = get_hash(uncompressed_path);
@@ -2190,38 +2191,37 @@ TEST(recipe_zstd_decompression, of_copy_source)
 
 TEST(zstd_decompression_reader, basic)
 {
-	const fs::path archive_path = get_data_file(c_source_archive);
-
-	auto temp_path = fs::temp_directory_path() / "zstd_decompression_reader";
+	auto temp_path = fs::temp_directory_path() / "zstd_decompression_reader_basic";
 	fs::remove_all(temp_path);
 	fs::create_directories(temp_path);
 
-	const fs::path compressed_path = get_data_file(c_source_boot_file_compressed);
+	const fs::path compressed_path = get_data_file(c_sample_file_compressed);
 	hash_utility::hasher hasher(hash_utility::algorithm::SHA256);
 
-	auto uncompressed_path = temp_path / "boot.ext4";
+	auto uncompressed_path = temp_path / c_sample_file_uncompressed;
 	uncompress_file(compressed_path, uncompressed_path);
 
-	std::string test_name = "TestApply_ZstdDecompressionMakeReader2";
+	std::string test_name = "zstd_decompression_reader_basic";
 
-	fs::path(target_path);
+	fs::path target_path;
 	make_target_file_path(test_name, &target_path);
 
 	auto compressed_size = fs::file_size(compressed_path);
 
-	auto archive_reader = std::make_unique<io_utility::binary_file_reader>(archive_path.string());
-	auto child_reader   = std::make_unique<io_utility::child_reader>(archive_reader.get(), 4024, compressed_size);
+	auto archive_reader = std::make_unique<io_utility::binary_file_reader>(compressed_path.string());
 	auto zstd_reader =
-		std::make_unique<io_utility::zstd_decompression_reader>(child_reader.get(), fs::file_size(uncompressed_path));
+		std::make_unique<io_utility::zstd_decompression_reader>(archive_reader.get(), compressed_size);
+
+	printf("Uncompressed_path: %s\n", uncompressed_path.string().c_str());
 
 	ASSERT_TRUE(FileAndReaderHaveIdenticalContent(uncompressed_path, zstd_reader.get(), 300, 500));
 	ASSERT_TRUE(FileAndReaderHaveIdenticalContent(uncompressed_path, zstd_reader.get(), 3000, 50000));
 	ASSERT_TRUE(FileAndReaderHaveIdenticalContent(uncompressed_path, zstd_reader.get(), 100000, 20));
 
-	auto zstd_reader2 =
-		std::make_unique<io_utility::zstd_decompression_reader>(child_reader.get(), fs::file_size(uncompressed_path));
-	ASSERT_TRUE(
-		FileAndReaderHaveIdenticalContent(uncompressed_path, zstd_reader2.get(), 0, fs::file_size(uncompressed_path)));
+	//auto zstd_reader2 =
+		// std::make_unique<io_utility::zstd_decompression_reader>(child_reader.get(), fs::file_size(uncompressed_path));
+	// ASSERT_TRUE(
+		// FileAndReaderHaveIdenticalContent(uncompressed_path, zstd_reader2.get(), 0, fs::file_size(uncompressed_path)));
 }
 
 struct blob_location_and_actual_hashes
@@ -2246,10 +2246,15 @@ void populate_blob_location_hashes(fs::path archive_path, std::vector<blob_locat
 
 TEST(blob_cache, test)
 {
-	const fs::path test_file_path = get_data_file(c_source_boot_file_compressed);
+	const fs::path test_file_path = get_data_file(c_sample_file_compressed);
 
 	std::vector<blob_location_and_actual_hashes> blob_locations{
-		{0, 1000}, {500, 20}, {30000, 2000}, {400, 50}, {9000, 1000}};
+		{0, 300},
+		{400, 50},
+		{500, 20},
+		{9000, 1000},
+		{30000, 2000},
+	};
 
 	populate_blob_location_hashes(test_file_path, blob_locations);
 
@@ -2330,10 +2335,15 @@ class sleepy_child_reader : public io_utility::child_reader
 
 TEST(blob_cache, spin_lock)
 {
-	const fs::path test_file_path = get_data_file(c_source_boot_file_compressed);
+	const fs::path test_file_path = get_data_file(c_sample_file_compressed);
 
 	std::vector<blob_location_and_actual_hashes> blob_locations{
-		{0, 1000}, {500, 20}, {30000, 2000}, {400, 50}, {9000, 1000}, {60000, 64 * 1024 * 10}};
+		{0, 300},
+		{400, 50},
+		{500, 20},
+		{9000, 1000},
+		{30000, 2000},
+	};
 
 	populate_blob_location_hashes(test_file_path, blob_locations);
 
@@ -2402,22 +2412,14 @@ TEST(blob_cache, spin_lock)
 
 TEST(blob_cache, wait)
 {
-	const fs::path test_file_path = get_data_file(c_source_boot_file_compressed);
+	const fs::path test_file_path = get_data_file(c_sample_file_compressed);
 
 	std::vector<blob_location_and_actual_hashes> blob_locations{
-		{0, 8654848},
-		{8655008, 864},
-		{8655872, 1286284},
-		{9942156, 884},
-		{9943040, 188553},
-		{10131593, 887},
-		{10132694, 810},
-		{10133504, 118},
-		{10133622, 8074},
-		{10141696, 597},
-		{10142293, 427},
-		{10142823, 343961},
-		{10486784, 4194304},
+		{0, 300},
+		{400, 50},
+		{500, 20},
+		{9000, 1000},
+		{30000, 2000},
 	};
 
 	populate_blob_location_hashes(test_file_path, blob_locations);
@@ -2492,36 +2494,29 @@ TEST(blob_cache, wait)
 
 TEST(blob_cache, decompressed_data_wait)
 {
-	const fs::path compressed_path = get_data_file(c_source_boot_file_compressed);
+	const fs::path compressed_path = get_data_file(c_sample_file_compressed);
 
 	auto temp_path = fs::temp_directory_path() / "blob_cache.decompressed_data_wait";
 	fs::remove_all(temp_path);
 	fs::create_directories(temp_path);
 
-	auto uncompressed_path = temp_path / "boot.ext4";
+	auto uncompressed_path = temp_path / c_sample_file_uncompressed;
+
 	uncompress_file(compressed_path, uncompressed_path);
+
 	auto& test_file = uncompressed_path;
 
 	std::vector<blob_location_and_actual_hashes> blob_locations{
-		{0, 8654848},
-		{8655008, 864},
-		{8655872, 1286284},
-		{9942156, 884},
-		{9943040, 188553},
-		{10131593, 887},
-		{10132694, 810},
-		{10133504, 118},
-		{10133622, 8074},
-		{10141696, 597},
-		{10142293, 427},
-		{10142823, 343961},
-		{10486784, 4194304},
+		{0, 300},
+		{400, 50},
+		{500, 20},
+		{9000, 1000},
+		{30000, 2000},
 	};
 
 	populate_blob_location_hashes(uncompressed_path, blob_locations);
 
 	diffs::blob_cache cache;
-
 	io_utility::binary_file_reader file_reader(compressed_path.string());
 	io_utility::zstd_decompression_reader decompression_reader(&file_reader, fs::file_size(uncompressed_path));
 	sleepy_child_reader raw_reader(&decompression_reader);
@@ -2585,6 +2580,75 @@ TEST(blob_cache, decompressed_data_wait)
 		ASSERT_EQ(
 			0, memcmp(entry.m_definition.m_hashes[0].m_hash_data.data(), entry.actual_hash_whole.data(), hash_size));
 		ASSERT_EQ(0, memcmp(entry.actual_hash_chunked.data(), entry.actual_hash_whole.data(), hash_size));
+	}
+}
+
+TEST(blob_cache, test_add_blobdefs)
+{
+	const fs::path compressed_path = get_data_file(c_sample_file_compressed);
+
+	auto temp_path = fs::temp_directory_path() / "blob_cache.test_add_blobdefs";
+	fs::remove_all(temp_path);
+	fs::create_directories(temp_path);
+
+	auto uncompressed_path = temp_path / c_sample_file_uncompressed;
+	uncompress_file(compressed_path, uncompressed_path);
+	auto &test_file = uncompressed_path;
+
+	// We don't want the data to have two overlaps in a row, because
+	// if we detect overlap for a sequential reader we will fail
+	// to add the entry and the logic of when we expect overlap 
+	// will be more complicated.
+	std::vector<blob_location_and_actual_hashes> blob_locations{
+		{0, 300}, // first element, no overlap
+		{300, 100}, // no overlap (300 <= 300)
+		{400, 50}, // no overlap (400 <= 400)
+		{430, 20}, // overlap (400 + 50 > 430)
+		{500, 20}, // no overlap (430 + 20 <= 500)
+		{8850, 100}, // no overlap (500 + 20 <= 8850)
+		{8900, 50}, // overlap (8850 + 100 > 8900)
+		{9000, 1001}, // no overlap (8900 + 50 <= 9000)
+		{10000, 2000}, // overlap (9000 + 1001 > 10000)
+	};
+
+	populate_blob_location_hashes(uncompressed_path, blob_locations);
+
+	diffs::blob_cache cache;
+
+	io_utility::binary_file_reader uncompressed_file_reader(uncompressed_path.string());
+
+	for (auto &entry : blob_locations)
+	{
+		cache.add_blob_source(&uncompressed_file_reader, entry.m_offset, entry.m_definition);
+	}
+
+	io_utility::binary_file_reader compressed_file_reader(compressed_path.string());
+	io_utility::zstd_decompression_reader decompression_reader(&compressed_file_reader, fs::file_size(uncompressed_path));
+
+	cache.add_blob_source(&decompression_reader, blob_locations[0].m_offset, blob_locations[0].m_definition);
+
+	for (size_t i = 1; i < blob_locations.size(); i++)
+	{
+		auto& prev_entry = blob_locations[i - 1];
+		auto& entry = blob_locations[i];
+
+		auto end_of_last = prev_entry.m_offset + prev_entry.m_definition.m_length;
+		bool expect_overlap = end_of_last > entry.m_offset;
+
+		bool hit_exception = false;
+
+		try
+		{
+			cache.add_blob_source(&decompression_reader, entry.m_offset, entry.m_definition);
+		}
+		catch (error_utility::user_exception& e)
+		{
+			hit_exception = true;
+
+			ASSERT_EQ(error_utility::error_code::diff_blob_cache_bad_blobdef_for_sequential_reader, e.get_error());
+		}
+
+		ASSERT_EQ(expect_overlap, hit_exception);
 	}
 }
 

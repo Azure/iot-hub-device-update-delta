@@ -1,8 +1,8 @@
-# File: end-to-end-linux.yml
+# File: end-to-end-tests.yml
 parameters:
 - name: solution
   type: string
-  default: '$(Build.SourcesDirectory)/build/diff-generation.sln'
+  default: $(Build.SourcesDirectory)/build/diff-generation.sln
 - name: platform
   type: string
   default: 'x64'
@@ -48,6 +48,8 @@ steps:
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '${{ parameters.solution }}'
+
+- template: download-swu-media.yml
 
 - task: DotNetCoreCLI@2
   inputs:
