@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT License.
 param(
     [Parameter(Mandatory=$True, Position=0, ValueFromPipeline=$false)]
     [System.String]
