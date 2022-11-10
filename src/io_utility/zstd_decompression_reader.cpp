@@ -19,8 +19,10 @@ size_t io_utility::zstd_decompression_reader::raw_read_some(gsl::span<char> buff
 
 		if (ZSTD_isError(ret))
 		{
-			throw error_utility::user_exception(
-				error_utility::error_code::io_zstd_decompress_stream_failed, ZSTD_getErrorName(ret));
+			auto error_name = ZSTD_getErrorName(ret);
+			std::string msg = "ZSTD_decompressStream() failed. ret: " + std::to_string(ret)
+			                + std::string(" error_name: ") + error_name;
+			throw error_utility::user_exception(error_utility::error_code::io_zstd_decompress_stream_failed, msg);
 		}
 
 		// There wasn't enough data already present, so read some more

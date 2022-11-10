@@ -36,13 +36,15 @@ namespace Microsoft.Azure.DeviceUpdate.Diffs
             using (Process process = new())
             {
                 string zstd_compress_file_path = ProcessHelper.GetPathInRunningDirectory("zstd_compress_file");
-                string arguments = $"{OriginalFile} {RecompressedFile} {zstd_compress_file_path}";
+                string arguments = $"\"{OriginalFile}\" \"{RecompressedFile}\" \"{zstd_compress_file_path}\"";
                 string pythonScriptPath;
                 pythonScriptPath = ProcessHelper.GetPathInRunningDirectory("recompress_tool.py");
                 if (!string.IsNullOrWhiteSpace(SigningCommand))
                 {
                     arguments += $" \"{SigningCommand}\"";
                 }
+
+                Logger.LogInformation($"Executing: {pythonScriptPath} with arguments: {arguments}");
 
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.CreateNoWindow = true;

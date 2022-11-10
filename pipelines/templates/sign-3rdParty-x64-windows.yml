@@ -1,4 +1,4 @@
-# File: build-diffapi-windows-template.yml
+# File: sign-3rdParty-x64-windows.yml
 
 steps:
 - task: DownloadPipelineArtifact@2

@@ -49,6 +49,8 @@ steps:
     ls -R $(zstd_compress_file_build_dir)
   displayName: 'Show zstd_compress_file build contents'
 
+- template: templates/download-swu-media.yml
+
 - bash: |
     cd $(python_test_dir)
     python3 test_integration.py --zstd_compress_file $(zstd_compress_file_build_dir)/tools/zstd_compress_file/zstd_compress_file

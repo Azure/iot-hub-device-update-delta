@@ -14,4 +14,3 @@ variables:
     value: "$(major_version),$(minor_version),$(patch_version)"
   - name: copyright
     value: "© Microsoft Corporation. All rights reserved."
-   

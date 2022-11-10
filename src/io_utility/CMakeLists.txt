@@ -9,7 +9,6 @@ add_library(io_utility STATIC
     sequential_reader.cpp
     sequential_writer.cpp
     stored_blob_reader.cpp
-    stored_blob_reader_factory.cpp
     temp_file_backed_reader.cpp
     wrapped_writer_sequential_hashed_writer.cpp
     zlib_decompression_reader.cpp

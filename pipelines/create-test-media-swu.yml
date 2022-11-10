@@ -1,0 +1,59 @@
+# File: create-test-media-swu.yml
+# This file downloads source and target SWU and generates a recompressed target SWU using our python scripts
+
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildPlatform: 'x64'
+  vcpkg_dir: $(Agent.BuildDirectory)/VCPKG
+  cmakeToolchainFile: $(vcpkg_dir)/scripts/buildsystems/vcpkg.cmake
+  vcpkg_triplet: $(buildPlatform)-linux
+  build_location: $(Build.SourcesDirectory)/src/out
+  download_script: $(Build.SourcesDirectory)/build/download-test-swu.sh
+  zstd_compress_file_build_location: $(build_location)/tools/zstd_compress_file/zstd_compress_file
+  recompress_script: $(Build.SourcesDirectory)/src/scripts/recompress_swu/src/recompress_tool.py
+  swu_folder: $(Build.ArtifactStagingDirectory)/swu
+  source_swu: $(swu_folder)/source.swu
+  target_swu: $(swu_folder)/target.swu
+  target_recompressed_swu: $(swu_folder)/target-recompressed.swu
+
+steps:
+- template: templates/build-native-linux.yml
+  parameters:
+    dependencies: g++ g++-9 autoconf autopoint ninja-build
+    setup_vcpkg_script: $(Build.SourcesDirectory)/build/setup_vcpkg.sh
+    vcpkg_dir: $(vcpkg_dir)
+    vcpkg_ports: $(Build.Repository.LocalPath)/vcpkg/ports
+    vcpkg_triplet: $(vcpkg_triplet)
+    source_location: $(Build.SourcesDirectory)/src
+    build_location: $(build_location)
+    cmake_c_compiler: /usr/bin/gcc-9
+    cmake_cxx_compiler: /usr/bin/g++-9
+    package_location_dir: $(Build.SourcesDirectory)/src/_packages
+
+- bash: |
+    chmod +x $(download_script)
+    $(download_script) $(swu_folder)
+  displayName: 'Download SWU files'
+  
+- bash: |
+    sudo apt update
+    sudo apt-get install -y pkg-config libmhash-dev cmake curl zip unzip tar autoconf autopoint libtool python3 python3-pip
+    apt list | grep installed
+    pip3 install libconf zstandard
+  displayName: 'Install Dependencies for Python Script'
+
+- bash: |
+    python3 $(recompress_script) $(target_swu) $(target_recompressed_swu) $(zstd_compress_file_build_location)
+  displayName: 'Run script to recompress target SWU file'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: '$(swu_folder)'
+    artifactType: 'pipeline'
+    artifactName: 'swu-files'
+  displayName: 'Publish swu files artifact'
