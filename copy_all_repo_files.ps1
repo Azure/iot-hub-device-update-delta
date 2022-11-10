@@ -1,14 +1,6 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-param(
-    [Parameter(Mandatory=$True, Position=0, ValueFromPipeline=$false)]
-    [System.String]
-    $Source,
-
-    [Parameter(Mandatory=$True, Position=1, ValueFromPipeline=$false)]
-    [System.String]
-    $Destination
-)
+param ([string] $Source, [string] $Destination)
 
 copy "$Source/*" $Destination
 
