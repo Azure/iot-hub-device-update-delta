@@ -28,5 +28,5 @@ std::unique_ptr<io_utility::reader> diffs::gz_decompression_recipe::make_reader(
 		m_blobdef.m_length,
 		io_utility::zlib_decompression_reader::init_type::gz);
 
-    return reader;
+	return reader;
 }

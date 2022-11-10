@@ -1,4 +1,4 @@
-# File: build-diffapi-windows-template.yml
+# File: build-native-x64-windows.yml
 parameters:
 # Required Parameters
 - name: configuration

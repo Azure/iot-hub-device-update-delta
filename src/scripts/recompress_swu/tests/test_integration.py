@@ -22,9 +22,9 @@ class TestIntegration(unittest.TestCase):
     output_folder = helpers.get_combined_path(tempfile.gettempdir(), str(uuid.uuid4()))
     repo_root_folder = os.path.abspath(f'{__file__}/../../../../..')
 
-    original_archive_path = helpers.get_combined_path(repo_root_folder, 'data/source/yocto.swu')
-    test_archive_path = helpers.get_combined_path(output_folder, 'yocto_RECOMPRESSED.swu')
-    production_archive_path = helpers.get_combined_path(output_folder, 'yocto_RECOMPRESSED_and_RE-SIGNED.swu')
+    original_archive_path = helpers.get_combined_path(repo_root_folder, 'src/managed/DiffGen/tests/samples/diffs/swu/source.swu')
+    test_archive_path = helpers.get_combined_path(output_folder, 'source_RECOMPRESSED.swu')
+    production_archive_path = helpers.get_combined_path(output_folder, 'source_RECOMPRESSED_and_RE-SIGNED.swu')
 
     original_archive_folder_path = helpers.get_combined_path(output_folder, helpers.get_filename_without_extension(original_archive_path))
     test_archive_folder_path = helpers.get_combined_path(output_folder, helpers.get_filename_without_extension(test_archive_path))

@@ -1,4 +1,4 @@
-# File: build-diffapi-windows-template.yml
+# File: build-diffgen.yml
 parameters:
 - name: solution
   type: string
@@ -58,6 +58,8 @@ steps:
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '${{ parameters.solution }}'
+
+- template: download-swu-media.yml
 
 - task: VSBuild@1
   inputs:

@@ -7,19 +7,14 @@ trigger:
     - src
 
 variables:
-- name: solution
-  value: '$(Build.SourcesDirectory)/build/diff-generation.sln'
+- template: ../templates/diffgen-variables.yml
+- template: ../templates/version-variables.yml
 - name: platform
   value: 'x64'
 - name: configuration
   value: 'Release'
-- name: unittests_bin_dir
-  value: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\UnitTests\bin
-- name: archiveutilitytest_bin_dir
-  value: $(Build.SourcesDirectory)\src\managed\DiffGen\tests\ArchiveUtilityTest\bin
 - name: nuget_files_dir
   value: $(Build.ArtifactStagingDirectory)/nuget_files
-- template: ../templates/version-variables.yml
 
 stages:
   - stage: BuildNativeCode
@@ -59,6 +54,8 @@ stages:
         - task: NuGetCommand@2
           inputs:
             restoreSolution: '$(solution)'
+
+        - template: ../templates/download-swu-media.yml
 
         - task: VSBuild@1
           inputs:

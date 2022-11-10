@@ -48,3 +48,7 @@ out.*linux*
 out.*mingw*
 _packages
 src/tools/dumpextfs/dumpextfs
+
+# SWU Sample files for tests
+*.compression-details.json
+*.swu

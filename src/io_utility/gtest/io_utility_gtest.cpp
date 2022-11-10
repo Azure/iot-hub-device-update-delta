@@ -32,7 +32,7 @@ using ::testing::TestInfo;
 using ::testing::TestPartResult;
 using ::testing::UnitTest;
 
-const fs::path c_source_boot_file_compressed = "source/boot.zst";
+const fs::path c_sample_file_compressed = "sample.zst";
 
 fs::path test_data_root;
 
@@ -95,11 +95,11 @@ void compare_reader_and_file(io_utility::reader &reader, fs::path test_file, uin
 
 TEST(binary_file_reader, open_and_verify)
 {
-	auto source_file_compressed = get_data_file(c_source_boot_file_compressed);
+	auto sample_file_compressed = get_data_file(c_sample_file_compressed);
 
-	auto file_size = fs::file_size(source_file_compressed);
-	io_utility::binary_file_reader reader(source_file_compressed.string());
-	compare_reader_and_file(reader, source_file_compressed, 0, file_size);
+	auto file_size = fs::file_size(sample_file_compressed);
+	io_utility::binary_file_reader reader(sample_file_compressed.string());
+	compare_reader_and_file(reader, sample_file_compressed, 0, file_size);
 	ASSERT_EQ(file_size, reader.size());
 }
 
@@ -127,7 +127,7 @@ TEST(binary_file_readerwriter, missing_directory)
 	auto test_temp_path = fs::temp_directory_path() / "binary_file_readerwriter";
 	fs::remove_all(test_temp_path);
 
-	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\boot.zst";
+	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\sample.zst";
 
 	bool caught_any_exception = false;
 	auto error                = error_utility::error_code::none;
@@ -154,7 +154,7 @@ TEST(binary_file_readerwriter, open_twice)
 
 	fs::create_directory(test_temp_path);
 
-	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\boot.zst";
+	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\sample.zst";
 
 	io_utility::binary_file_readerwriter reader(test_file_relative.string());
 
@@ -254,7 +254,7 @@ TEST(binary_file_readerwriter, write_file_and_verify)
 
 	fs::create_directory(test_temp_path);
 
-	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\boot.zst";
+	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\sample.zst";
 
 	fs::path test_file_absolute = test_file_relative.lexically_normal();
 
@@ -262,16 +262,16 @@ TEST(binary_file_readerwriter, write_file_and_verify)
 
 	ASSERT_EQ(0ull, readerwriter.size());
 
-	auto source_file_compressed = get_data_file(c_source_boot_file_compressed);
+	auto sample_file_compressed = get_data_file(c_sample_file_compressed);
 
-	write_file_to_writer(source_file_compressed, readerwriter);
-	auto file_size = fs::file_size(source_file_compressed);
+	write_file_to_writer(sample_file_compressed, readerwriter);
+	auto file_size = fs::file_size(sample_file_compressed);
 	ASSERT_EQ(file_size, readerwriter.size());
 
 	readerwriter.flush();
 
-	compare_reader_and_file(readerwriter, source_file_compressed, 0, file_size);
-	ASSERT_TRUE(files_are_equal(source_file_compressed, test_file_absolute));
+	compare_reader_and_file(readerwriter, sample_file_compressed, 0, file_size);
+	ASSERT_TRUE(files_are_equal(sample_file_compressed, test_file_absolute));
 }
 
 #define INVALID_FILE_NAME "<this_path_does_not_exist_I_hope/"
@@ -300,7 +300,7 @@ TEST(binary_file_writer, missing_directory)
 	auto test_temp_path = fs::temp_directory_path() / "binary_file_writer";
 	fs::remove_all(test_temp_path);
 
-	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\boot.zst";
+	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\sample.zst";
 
 	bool caught_any_exception = false;
 	auto error                = error_utility::error_code::none;
@@ -324,7 +324,7 @@ TEST(binary_file_writer, open_twice)
 	auto test_temp_path = fs::temp_directory_path() / "binary_file_writer";
 	fs::remove_all(test_temp_path);
 
-	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\boot.zst";
+	fs::path test_file_relative = test_temp_path / "a\\b\\c\\..\\..\\..\\sample.zst";
 
 	fs::create_directory(test_temp_path);
 
@@ -355,45 +355,45 @@ TEST(binary_file_writer, write_file_and_verify)
 	fs::remove_all(test_temp_path);
 	fs::create_directory(test_temp_path);
 
-	fs::path test_file_relative = test_temp_path / "a/b/c/../../../boot.zst";
+	fs::path test_file_relative = test_temp_path / "a/b/c/../../../sample.zst";
 	fs::path test_file_absolute = test_file_relative.lexically_normal();
 	io_utility::binary_file_writer writer(test_file_absolute.string());
-	auto source_file_compressed = get_data_file(c_source_boot_file_compressed);
-	write_file_to_writer(source_file_compressed, writer);
+	auto sample_file_compressed = get_data_file(c_sample_file_compressed);
+	write_file_to_writer(sample_file_compressed, writer);
 	writer.flush();
-	ASSERT_TRUE(files_are_equal(source_file_compressed, test_file_absolute));
+	ASSERT_TRUE(files_are_equal(sample_file_compressed, test_file_absolute));
 }
 
 TEST(child_reader, using_binary_file_reader)
 {
-	auto source_file_compressed = get_data_file(c_source_boot_file_compressed);
+	auto sample_file_compressed = get_data_file(c_sample_file_compressed);
 
-	auto file_size = fs::file_size(source_file_compressed);
-	io_utility::binary_file_reader file_reader(source_file_compressed.string());
-	compare_reader_and_file(file_reader, source_file_compressed, 0, file_size);
+	auto file_size = fs::file_size(sample_file_compressed);
+	io_utility::binary_file_reader file_reader(sample_file_compressed.string());
+	compare_reader_and_file(file_reader, sample_file_compressed, 0, file_size);
 
 	io_utility::child_reader child_reader_whole(&file_reader);
 
-	compare_reader_and_file(child_reader_whole, c_source_boot_file_compressed, 0, file_size);
+	compare_reader_and_file(child_reader_whole, c_sample_file_compressed, 0, file_size);
 
 	std::pair<uint64_t, uint64_t> offset_and_length[] = {
-		{100, 10000}, {1000000, 1000}, {100, file_size - 1000}, {62 * 1024, 132 * 1024}};
+		{100, 10000}, {60000, 1000}, {100, file_size - 1000}, {23 * 1024, 32 * 1024}};
 
 	for (const auto &values : offset_and_length)
 	{
 		auto offset = values.first;
 		auto length = values.second;
 		io_utility::child_reader reader(&file_reader, offset, length);
-		compare_reader_and_file(reader, c_source_boot_file_compressed, offset, length);
+		compare_reader_and_file(reader, c_sample_file_compressed, offset, length);
 	}
 
-	uint64_t offets[] = {100, 10313, 39921, 10231, 62 * 1024, 321 * 1024};
+	uint64_t offets[] = {100, 10313, 39921, 10231, 62 * 1024};
 
 	for (auto offset : offets)
 	{
 		auto length = file_size - offset;
 		auto reader = io_utility::child_reader::with_base_offset(&file_reader, offset);
-		compare_reader_and_file(*reader.get(), c_source_boot_file_compressed, offset, length);
+		compare_reader_and_file(*reader.get(), c_sample_file_compressed, offset, length);
 	}
 
 	uint64_t lengths[] = {103103, 1301313, 1323113, 100, 1313141, 12214122, 1124102931, 999999};
@@ -402,7 +402,7 @@ TEST(child_reader, using_binary_file_reader)
 	{
 		auto offset = 0ull;
 		auto reader = io_utility::child_reader::with_length(&file_reader, length);
-		compare_reader_and_file(*reader.get(), c_source_boot_file_compressed, offset, length);
+		compare_reader_and_file(*reader.get(), c_sample_file_compressed, offset, length);
 	}
 
 	for (const auto &values : offset_and_length)
@@ -410,26 +410,26 @@ TEST(child_reader, using_binary_file_reader)
 		auto offset = values.first;
 		auto length = values.second;
 		io_utility::child_reader reader(&file_reader, std::optional<uint64_t>{offset}, std::optional<uint64_t>{length});
-		compare_reader_and_file(reader, c_source_boot_file_compressed, offset, length);
+		compare_reader_and_file(reader, c_sample_file_compressed, offset, length);
 	}
 
 	for (auto offset : offets)
 	{
 		auto length = file_size - offset;
 		io_utility::child_reader reader(&file_reader, std::optional<uint64_t>{offset}, std::optional<uint64_t>{});
-		compare_reader_and_file(reader, c_source_boot_file_compressed, offset, length);
+		compare_reader_and_file(reader, c_sample_file_compressed, offset, length);
 	}
 
 	for (auto length : lengths)
 	{
 		auto offset = 0ull;
 		io_utility::child_reader reader(&file_reader, std::optional<uint64_t>{}, std::optional<uint64_t>{length});
-		compare_reader_and_file(reader, c_source_boot_file_compressed, offset, length);
+		compare_reader_and_file(reader, c_sample_file_compressed, offset, length);
 	}
 
 	{
 		io_utility::child_reader reader(&file_reader, std::optional<uint64_t>{}, std::optional<uint64_t>{});
-		compare_reader_and_file(reader, c_source_boot_file_compressed, 0, file_size);
+		compare_reader_and_file(reader, c_sample_file_compressed, 0, file_size);
 	}
 }
 

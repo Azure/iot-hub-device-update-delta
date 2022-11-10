@@ -48,26 +48,71 @@ bool diffs::operator<(const blob_definition &left, const blob_definition &right)
 	return false;
 }
 
+void diffs::blob_cache::check_overlap(io_utility::reader *reader, uint64_t offset)
+{
+	// Overlapping is fine for random access readers
+	if (reader->get_read_style() != io_utility::reader::read_style::sequential_only)
+	{
+		return;
+	}
+
+	auto &blob_locations_for_reader = m_reader_blob_location_map[reader];
+
+	auto itr = blob_locations_for_reader.lower_bound(offset);
+
+	if (itr == blob_locations_for_reader.cbegin())
+	{
+		return;
+	}
+
+	itr--;
+
+	if (itr == blob_locations_for_reader.cend())
+	{
+		return;
+	}
+
+	auto end_of_prev = itr->first + itr->second.m_length;
+
+	// no overlap
+	if (end_of_prev <= offset)
+	{
+		return;
+	}
+
+	std::string msg =
+		"add_blob_source(): Trying to add new blob at offset " + std::to_string(offset) + ". ";
+	msg += "Previous blob is offset " + std::to_string(itr->first) + " with length "
+			+ std::to_string(itr->second.m_length) + ". ";
+	msg += "This ends at offset " + std::to_string(end_of_prev) + ", which exceeds the new blob start. ";
+	msg += "This is an error, because the reader only supports sequential reads.";
+	throw error_utility::user_exception(
+		error_utility::error_code::diff_blob_cache_bad_blobdef_for_sequential_reader, msg);
+}
+
 void diffs::blob_cache::add_blob_source(io_utility::reader *reader, uint64_t offset, const blob_definition &blobdef)
 {
 	std::lock_guard<std::mutex> lock(m_request_mutex);
 
-	if (m_reader_blob_location_map.count(reader))
+	if (m_reader_blob_location_map.count(reader) == 0)
 	{
 		m_reader_blobdefs.emplace(reader, std::set<blob_definition>{});
 		m_reader_blob_location_map.emplace(reader, blob_location_map{});
 	}
 
-	auto count = m_reader_blobdefs[reader].count(blobdef);
-
 	// don't add duplicate entry.
-	if (count == 1)
+	if (m_reader_blobdefs[reader].count(blobdef) == 1)
 	{
 		return;
 	}
 
 	m_reader_blobdefs[reader].insert(blobdef);
-	m_reader_blob_location_map[reader].emplace(std::make_pair(offset, blobdef));
+
+	auto &blob_locations_for_reader = m_reader_blob_location_map[reader];
+
+	check_overlap(reader, offset);
+
+	blob_locations_for_reader.insert({offset, blobdef});
 }
 
 bool diffs::blob_cache::has_blob_source(io_utility::reader *reader, const blob_definition blobdef)

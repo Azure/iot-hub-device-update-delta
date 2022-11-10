@@ -1,0 +1,16 @@
+# File: download-swu-media.yml
+steps:
+- task: DownloadPipelineArtifact@2
+  displayName: 'Download Test Media'
+  inputs:
+    buildType: specific
+    project: '6aaa0331-fb39-433f-a07a-2245a798c042'
+    definition: 92640
+    buildVersionToDownload: latest
+    artifactName: 'swu-files'
+    targetPath: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/samples/diffs/swu
+
+- task: CmdLine@2
+  displayName: 'Show downloaded files.'
+  inputs:
+    script: 'tree $(Build.SourcesDirectory)/src/managed/DiffGen/tests/samples/diffs/swu'
