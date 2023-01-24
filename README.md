@@ -1,10 +1,182 @@
 This repo contains code for generating and applying Azure Device Update Diffs.
-There are two main code-bases here. The code for Diff Generation and is located 
-at src/managed/DiffGen, while the code for Diff Application is at src/diffs.
+There are two main code-bases here:
+<ol>
+	<li>The Delta Processor
+		<p>This code-base is written in C++ and deals with applying deltas. It also deals with low-level aspects of creating deltas.</p>
+	</li>
+	<li>the Diff Generation
+		<p>This code-base is written in C# and deals with creating deltas. It deals with higher-level aspects such as recognizing
+		formats of diffed items and selecting compression algorithms. It makes use of the Delta Processor and various tools for
+		low-level tasks.</p>
+	</li>
+</ol>
+
+<h1>Delta Processor</h1>
+The Delta Processor code-base is written in C++ using C++17. The Delta Processor code deals with low level aspects of creating and apply deltas.
+
+<h2>Open Source Dependencies</h2>
+The code uses a few open source libraries:
+<ol>
+<li>BSDiff</li>
+<li>Bzip2 (via BSDiff)</li>
+<li>libgcrypt (linux only)</li>
+<li>ligpg-error (linux only)</li>
+<li>ms-gsl</li>
+<li>ZLIB</li>
+<li>ZSTD</li>
+</ol>
+
+<h2>Components</h2>
+The following represent the major components of Diff Application:
+<ol>
+    <li>diff lib
+        <p>Source Code: src/diffs</p>
+        <p>This module is written in C++ using C++17.
+        This is the main module for implementing diffs. This code has objects to represent the diff,
+        archive_items (chunks, blobs, payload), and recipes; these exists in parallel to the objects that 
+        are present in the DiffGeneration code-base, as they represent the same ideas. The a diff is composed of
+        a set of one or more chunks, which themselves contain recipes, which may refer to more archive_items; the diff
+        ends up with a tree-like structure.
+        While applying the diff we must traverse the tree of archive_items and recipes and write them to the 
+        desired location. To accomplish this we create an apply_context object that can be mutated as it visits the
+        tree; the mutations will allow us to read/write data for the diff application appropriately without having to 
+        modify any state on the diff items.
+        </p>
+    </li>
+    <li>diff api
+        <p>Source Code: src/diffs/api</p>
+        <p>The code compiles with default C options for gcc and Visaul Studio, but should be compatible with C11 and C17.
+        A C API to expose apply and create functionality from the C++ code in the diff lib. This allows both for
+        PINVOKE from C# code and also calling from applications written in C.
+        The headers for the code here expose a simple session model for the API with create/close APIs and
+        other APIs for interacting with the handle to apply or create diffs.</P>
+    </li>    
+    <li>hash_utility
+        <p>Source Code: src/hash_utility</p>
+        <p>This module is written in C++ using C++17.
+        A module to support hashing bytes in a cross-platform manner. It has #ifdefs for WIN32 to use bcrypt and otherwise
+        uses mhash for Linux. We want to isolate any code that has to use #ifdefs from the rest of the code.</p>
+    </li>
+    <li>io_utility
+        <p>Source Code: src/io_utility</p>
+        <p>This module is written in C++ using C++17.
+        A module to support reading and writing from streams. The streams/objects here are not compatible with boost or C++ streams, but instead are specific to this implementation. Streaming to/from files is supported as well as streaming with various compression types (zstd, zlib, bsdiff).
+        </p>
+    </li>
+    4) applydiff
+        <p>Source Code: src/tools/applydiff</p>
+        <p>This tool is written in C. The code compiles with default C options for gcc and Visaul Studio, but should be compatible with C11 and C17.
+        This tool is a simple wrapper around the diff api. It is used as a proof of concept for the API and
+        also a testing tool in development.</p>
+</ol>
+
+
+<h2>Building in Ubuntu 20.04</h2>
+<h3>Install Dependencies</h3>
+<h4>Apt packages</h4>
+<p>These packages must be installed using apt. You may have to update apt to find all required packages.
+<ul>
+    <li>curl</li>
+    <li>zip</li>
+    <li>unzip</li>
+    <li>tar</li>
+    <li>g++</li>
+    <li>gcc-9</li>
+    <li>g++-9/li>
+    <li>autoconf</li>
+    <li>autopoint</li>
+    <li>ninja-build</li>
+    <li>pkg-config</li>
+    <li>build-essential</li>
+    <li>libtool</li>
+    <li>cmake</li>
+</ul>
+<h4>Setting up alternatives for gcc/g++</h4>
+<p>
+You should setup alternatives for gcc and g++. Here are commands that will do this:
+</p>
+<ul>
+<li>sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 20</li>
+<li>sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 20</li>
+</ul>
+<h4>VCPKG dependencies</h4>
+<p>We use several dependencies from VCPKG. Use the script at build/setup_vcpkg.sh to install the vcpkgs to a director of your choice. The script has two required and one optional arguments.
+<ul>
+    <li>&lt;vcpkg root&gt;: Required. Location to install the vcpkg dependencies</li>
+    <li>&lt;port root&gt;: Required. Location for vcpkg ports. This is in the repo at vcpkg/ports</li>
+    <li>[&lt;triplet&gt;]: Optional. The platform information for vcpkg installation - default is x64-linux.</li>
+</ul>
+</p>
+<p>
+Example: /mnt/c/code/ADU/build/setup_vcpkg.sh ~/vcpkg /mnt/c/code/ADU/vcpkg/ports/
+When the script is finished running you should see output like this:
+</p>
+<p>
+CMake arguments should be: -DCMAKE_TOOLCHAIN_FILE=/home/username/vcpkg/scripts/buildsystems/vcpkg.cmake
+</p>
+<h4>Using CMake<h4>
+<p>
+To build you'll use CMake. It's advised to create a separate folder inside of src. I typically use "out.linux". Once you've created the directory, cd into it and invoke cmake. After invoking cmake you should have a set of makefiles available and simply running "make" should build the binaries.
+</p>
+
+<h4>Running Tests</h4>
+You can verify that things build correctly by running the tests. From your build output directory you can find the test at diffs/gtest/diffs_gtest.<br>
+
+You will need to specify the path to the test data in the repo as well as the path to zstd_compress_file.<br>
+
+Example: diffs/gtest/diffs_gtest --test_data_root /mnt/c/code/ADU/data --zstd_compress_file tools/zstd_compress_file/zstd_compress_file<br>
+
+A successful run should see all tests passing, with an output like this:<br>
+
+[----------] Global test environment tear-down<br>
+[==========] 21 tests from 15 test suites ran. (10302 ms total)<br>
+[  PASSED  ] 21 tests.<br>
+
+<h2>Building in Windows</h2>
+<p>Follow these steps to build:</p>
+<ol>
+    <li>Make sure Visual Studio is installed</li>
+    <li>Use git to pull down the repo to a location, we'll use C:\code\adu-delta</li>
+    <li>Select a location to install vcpkg, we'll use C:\code\vcpkg</li>
+    <li>
+        <p>Setup vcpkg using the script. Call C:\code\adu-delta\build\setup_vcpkg.ps1 with the repo locations for vcpkg and the ADU delta code.</p>
+        <p>Example:  C:\code\adu-delta\build\setup_vcpkg.ps1 C:\code\vcpkg C:\code\adu-delta</p>
+    </li>
+    <li>Start up Visual Studio and open the folder C:\code\adu-delta\src as a CMake project. Select "C:\code\adu-delta\src\CMakeLists.txt" Via the menu: File->Open->CMake...</li>
+    <li>Build the code via the menu: Build->Build</li>
+</ol>
+
+<h3>Pipeline Examples</h3>
+<ul>
+	<li>pipelines/CI/diffapi-ubuntu1804.yml</li>
+	<li>pipelines/CI/diffapi-ubuntu2004-arm.yml</li>
+	<li>pipelines/CI/diffapi-ubuntu2004-arm64.yml</li>
+	<li>pipelines/CI/diffapi-ubuntu2004.yml</li>
+	<li>pipelines/templates/build-native-linux.yml</li>
+</ul>
 
 <h1>Diff Generation</h1>
 
 The Diff Generation code-base is written in C# in .NET 6.0, but leverages some native code.
+
+<h2>Building in Ubuntu 20.04</h2>
+<p>
+To build the Diff Generation code in Linux, use the dotnet SDK:<br>
+<ul>
+    <li>sudo apt-get install -y dotnet-sdk-6.0</li>
+    <li>dotnet buildbuild/diff-generation.sln</li>
+</ul>
+To clean the build output, use:
+<ul>
+    <li>dotnet clean build/diff-generation.sln</li>
+</ul>
+    And to run the unit tests on Linux:
+<ul>
+    <li>dotnet test src/managed/DiffGen/tests/UnitTests/UnitTests.csproj</li>
+</ul>
+
+<h2>Building in Windows</h2>
+    <p>To build the Diff Generation C# code in Windows use a Visual Studio with support for .NET 6.0, such as Visual Studio 2022. Open up the solution at build/diff-generation.sln and build as normal.</p>
 
 <h2>Components</h2>
 
@@ -65,7 +237,7 @@ The Diff Generation solution depends on several pieces of native code.
         </p>
     </li>
     <li> zstd_compress_file
-        Source Code: src
+        Source Code: src/tools/zstd_compress_file
         <p>
         </p>
     </li>
@@ -76,72 +248,3 @@ The Diff Generation solution depends on several pieces of native code.
         </p>
     </li>
 </ol>
-
-<h1>Diff API</h1>
-The Diff API code-base is written in C++ using C++17. 
-
-<h2>Open Source Dependencies</h2>
-The code uses a few open source libraries:
-<ol>
-<li>BSDiff</li>
-<li>Bzip2 (via BSDiff)</li>
-<li>libgcrypt (linux only)</li>
-<li>ligpg-error (linux only)</li>
-<li>ms-gsl</li>
-<li>ZLIB</li>
-<li>ZSTD</li>
-</ol>
-
-<h2>Components</h2>
-The following represent the major components of Diff Application:
-<ol>
-    <li>diff lib
-        <p>Source Code: src/diffs</p>
-        <p>This module is written in C++ using C++17.
-        This is the main module for implementing diffs. This code has objects to represent the diff,
-        archive_items (chunks, blobs, payload), and recipes; these exists in parallel to the objects that 
-        are present in the DiffGeneration code-base, as they represent the same ideas. The a diff is composed of
-        a set of one or more chunks, which themselves contain recipes, which may refer to more archive_items; the diff
-        ends up with a tree-like structure.
-        While applying the diff we must traverse the tree of archive_items and recipes and write them to the 
-        desired location. To accomplish this we create an apply_context object that can be mutated as it visits the
-        tree; the mutations will allow us to read/write data for the diff application appropriately without having to 
-        modify any state on the diff items.
-        </p>
-    </li>
-    <li>diff api
-        <p>Source Code: src/diffs/api</p>
-        <p>The code compiles with default C options for gcc and Visaul Studio, but should be compatible with C11 and C17.
-        A C API to expose apply and create functionality from the C++ code in the diff lib. This allows both for
-        PINVOKE from C# code and also calling from applications written in C.
-        The headers for the code here expose a simple session model for the API with create/close APIs and
-        other APIs for interacting with the handle to apply or create diffs.</P>
-    </li>    
-    <li>hash_utility
-        <p>Source Code: src/hash_utility</p>
-        <p>This module is written in C++ using C++17.
-        A module to support hashing bytes in a cross-platform manner. It has #ifdefs for WIN32 to use bcrypt and otherwise
-        uses mhash for Linux. We want to isolate any code that has to use #ifdefs from the rest of the code.</p>
-    </li>
-    <li>io_utility
-        <p>Source Code: src/io_utility</p>
-        <p>This module is written in C++ using C++17.
-        A module to support reading and writing from streams. The streams/objects here are not compatible with boost or C++ streams, but instead are specific to this implementation. Streaming to/from files is supported as well as streaming with various compression types (zstd, zlib, bsdiff).
-        </p>
-    </li>
-    4) applydiff
-        <p>Source Code: src/tools/applydiff</p>
-        <p>This tool is written in C. The code compiles with default C options for gcc and Visaul Studio, but should be compatible with C11 and C17.
-        This tool is a simple wrapper around the diff api. It is used as a proof of concept for the API and
-        also a testing tool in development.</p>
-</ol>
-
-Building in Linux:
-    To build the Diff Generation code in Linux, use the dotnet SDK:
-        sudo apt-get install -y dotnet-sdk-6.0
-        dotnet buildbuild/diff-generation.sln
-    To clean the build output, use:
-        dotnet clean build/diff-generation.sln
-    And to run the unit tests on Linux:
-        dotnet test src/managed/DiffGen/tests/UnitTests/UnitTests.csproj
-    To build the native C++ tools, preferably use CMAKE at the AzureDeviceUpdateDiffs/src/out folder.
