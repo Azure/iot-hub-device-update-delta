@@ -1,20 +1,26 @@
 diff --git a/cipher/poly1305.c b/cipher/poly1305.c
-index 41e55e8d..d04b25d1 100644
+index e57e64f..9c26bc9 100644
 --- a/cipher/poly1305.c
 +++ b/cipher/poly1305.c
-@@ -297,6 +297,7 @@ static unsigned int poly1305_final (poly1305_context_t *ctx,
- 	       : "=r" (HI), "=r" (LO) \
- 	       : "0" (HI), "1" (LO), "r" (A), "r" (B) )
+@@ -289,6 +289,8 @@ static unsigned int poly1305_final (poly1305_context_t *ctx,
  
-+#if 0
- /* A += B (arm) */
- #define ADD_1305_32(A4, A3, A2, A1, A0, B4, B3, B2, B1, B0) \
-       __asm__ ("adds %0, %0, %5\n" \
-@@ -307,6 +308,7 @@ static unsigned int poly1305_final (poly1305_context_t *ctx,
- 	       : "+r" (A0), "+r" (A1), "+r" (A2), "+r" (A3), "+r" (A4) \
- 	       : "r" (B0), "r" (B1), "r" (B2), "r" (B3), "r" (B4) \
- 	       : "cc" )
-+#endif
+ #ifdef USE_MPI_32BIT
  
- #endif /* HAVE_COMPATIBLE_GCC_ARM_PLATFORM_AS */
++#undef HAVE_COMPATIBLE_GCC_ARM_PLATFORM_AS
++
+ #ifdef HAVE_COMPATIBLE_GCC_ARM_PLATFORM_AS
+ 
+ /* HI:LO += A * B (arm) */
+diff --git a/mpi/ec-inline.h b/mpi/ec-inline.h
+index a07826e..cfe380a 100644
+--- a/mpi/ec-inline.h
++++ b/mpi/ec-inline.h
+@@ -755,7 +755,7 @@ LIMB64_HILO(mpi_limb_t hi, mpi_limb_t lo)
+ 
+ #endif /* __i386__ */
+ 
+-
++#undef HAVE_COMPATIBLE_GCC_ARM_PLATFORM_AS
+ /* ARM addition/subtraction helpers.  */
+ #ifdef HAVE_COMPATIBLE_GCC_ARM_PLATFORM_AS
  
