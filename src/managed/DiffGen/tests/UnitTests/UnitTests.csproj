@@ -1,347 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-	<DefineConstants Condition="'$(TargetOS)' == 'LINUX'">$(DefineConstants);LINUX</DefineConstants>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
-
+  
   <ItemGroup>
-    <Content Include="..\samples\archive_manifests\cpio1.swu.json" Link="samples\archive_manifests\cpio1.swu.json">
+    <Content Include="..\samples.zip" Link="samples.zip">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archive_manifests\cpio2.cpio.json" Link="samples\archive_manifests\cpio2.cpio.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archive_manifests\cpio3.cpio.json" Link="samples\archive_manifests\cpio3.cpio.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archive_manifests\cpio4.cpio.json" Link="samples\archive_manifests\cpio4.cpio.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archive_manifests\cpio5.cpio.json" Link="samples\archive_manifests\cpio5.cpio.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archive_manifests\cpio6.cpio.json" Link="samples\archive_manifests\cpio6.cpio.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archive_manifests\ext4\sample1.ext4.json" Link="samples\archive_manifests\ext4\sample1.ext4.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archive_manifests\ext4\sample2.ext4.json" Link="samples\archive_manifests\ext4\sample2.ext4.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archive_manifests\ext4\sample3.ext4.json" Link="samples\archive_manifests\ext4\sample3.ext4.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </Content>  
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="..\samples\archives\cpio1.swu" Link="samples\archives\cpio1.swu">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archives\cpio2.cpio" Link="samples\archives\cpio2.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archives\cpio3.cpio" Link="samples\archives\cpio3.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archives\cpio4.cpio" Link="samples\archives\cpio4.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archives\cpio5.cpio" Link="samples\archives\cpio5.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archives\cpio6.cpio" Link="samples\archives\cpio6.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archives\ext4\sample1.ext4" Link="samples\archives\ext4\sample1.ext4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archives\ext4\sample2.ext4" Link="samples\archives\ext4\sample2.ext4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\archives\ext4\sample3.ext4" Link="samples\archives\ext4\sample3.ext4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="..\samples\expanded_chunks\cpio1\0" Link="samples\expanded_chunks\cpio1\0">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio1\1" Link="samples\expanded_chunks\cpio1\1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio1\2" Link="samples\expanded_chunks\cpio1\2">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio1\3" Link="samples\expanded_chunks\cpio1\3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio1\4" Link="samples\expanded_chunks\cpio1\4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio1\5" Link="samples\expanded_chunks\cpio1\5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio1\6" Link="samples\expanded_chunks\cpio1\6">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio1\7" Link="samples\expanded_chunks\cpio1\7">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio1\8" Link="samples\expanded_chunks\cpio1\8">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio1\9" Link="samples\expanded_chunks\cpio1\9">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio2\0" Link="samples\expanded_chunks\cpio2\0">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio2\1" Link="samples\expanded_chunks\cpio2\1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio2\3" Link="samples\expanded_chunks\cpio2\3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio2\4" Link="samples\expanded_chunks\cpio2\4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio3\0" Link="samples\expanded_chunks\cpio3\0">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio3\1" Link="samples\expanded_chunks\cpio3\1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio3\3" Link="samples\expanded_chunks\cpio3\3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio3\4" Link="samples\expanded_chunks\cpio3\4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio3\6" Link="samples\expanded_chunks\cpio3\6">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio4\0" Link="samples\expanded_chunks\cpio4\0">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio4\1" Link="samples\expanded_chunks\cpio4\1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio4\3" Link="samples\expanded_chunks\cpio4\3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio4\4" Link="samples\expanded_chunks\cpio4\4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio4\6" Link="samples\expanded_chunks\cpio4\6">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio5\0" Link="samples\expanded_chunks\cpio5\0">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio5\1" Link="samples\expanded_chunks\cpio5\1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio5\3" Link="samples\expanded_chunks\cpio5\3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio5\4" Link="samples\expanded_chunks\cpio5\4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio5\5" Link="samples\expanded_chunks\cpio5\5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio5\7" Link="samples\expanded_chunks\cpio5\7">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio6\0" Link="samples\expanded_chunks\cpio6\0">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio6\1" Link="samples\expanded_chunks\cpio6\1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio6\3" Link="samples\expanded_chunks\cpio6\3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio6\4" Link="samples\expanded_chunks\cpio6\4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio6\5" Link="samples\expanded_chunks\cpio6\5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\cpio6\7" Link="samples\expanded_chunks\cpio6\7">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_1\1" Link="samples\expanded_chunks\ext4_1\1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_1\3" Link="samples\expanded_chunks\ext4_1\3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_1\4" Link="samples\expanded_chunks\ext4_1\4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_2\1" Link="samples\expanded_chunks\ext4_2\1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_2\3" Link="samples\expanded_chunks\ext4_2\3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_2\5" Link="samples\expanded_chunks\ext4_2\5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_2\7" Link="samples\expanded_chunks\ext4_2\7">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_2\8" Link="samples\expanded_chunks\ext4_2\8">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_2\16" Link="samples\expanded_chunks\ext4_2\16">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_3\1" Link="samples\expanded_chunks\ext4_3\1">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_3\3" Link="samples\expanded_chunks\ext4_3\3">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_3\5" Link="samples\expanded_chunks\ext4_3\5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_chunks\ext4_3\6" Link="samples\expanded_chunks\ext4_3\6">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="..\samples\expanded_payloads\cpio1\11" Link="samples\expanded_payloads\cpio1\11">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio1\12" Link="samples\expanded_payloads\cpio1\12">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio1\13" Link="samples\expanded_payloads\cpio1\13">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio1\14" Link="samples\expanded_payloads\cpio1\14">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio2\2" Link="samples\expanded_payloads\cpio2\2">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio3\2" Link="samples\expanded_payloads\cpio3\2">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio3\5" Link="samples\expanded_payloads\cpio3\5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio4\2" Link="samples\expanded_payloads\cpio4\2">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio4\5" Link="samples\expanded_payloads\cpio4\5">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio5\2" Link="samples\expanded_payloads\cpio5\2">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio5\6" Link="samples\expanded_payloads\cpio5\6">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio6\2" Link="samples\expanded_payloads\cpio6\2">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\cpio6\6" Link="samples\expanded_payloads\cpio6\6">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\ext4_1\0" Link="samples\expanded_payloads\ext4_1\0">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\ext4_1\2" Link="samples\expanded_payloads\ext4_1\2">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\ext4_2\0" Link="samples\expanded_payloads\ext4_2\0">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\ext4_2\2" Link="samples\expanded_payloads\ext4_2\2">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\ext4_2\4" Link="samples\expanded_payloads\ext4_2\4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\ext4_2\6" Link="samples\expanded_payloads\ext4_2\6">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\ext4_3\0" Link="samples\expanded_payloads\ext4_3\0">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\ext4_3\2" Link="samples\expanded_payloads\ext4_3\2">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\expanded_payloads\ext4_3\4" Link="samples\expanded_payloads\ext4_3\4">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="..\samples\diffs\simple\source.cpio" Link="samples\diffs\simple\source.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\simple\target.cpio" Link="samples\diffs\simple\target.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\simple\logs\diff.json" Link="samples\diffs\simple\logs\diff.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\nested\source.cpio" Link="samples\diffs\nested\source.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\nested\target.cpio" Link="samples\diffs\nested\target.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\nested\logs\diff.json" Link="samples\diffs\nested\logs\diff.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\nested\logs\nested.5.5\diff.json" Link="samples\diffs\nested\logs\nested.5.5\diff.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\nested\logs_linux\diff.json" Link="samples\diffs\nested\logs_linux\diff.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\nested\logs_linux\nested.5.5\diff.json" Link="samples\diffs\nested\logs_linux\nested.5.5\diff.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\complex\source.cpio" Link="samples\diffs\complex\source.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\complex\target.cpio" Link="samples\diffs\complex\target.cpio">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\complex\logs\diff.json" Link="samples\diffs\complex\logs\diff.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\complex\logs\nested.11.14\diff.json" Link="samples\diffs\complex\logs\nested.11.14\diff.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\complex\logs\nested.17.23\diff.json" Link="samples\diffs\complex\logs\nested.17.23\diff.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\samples\diffs\complex\logs\nested.17.23\nested.12.12\diff.json" Link="samples\diffs\complex\logs\nested.17.23\nested.12.12\diff.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0-preview-20221003-04" />
-    <PackageReference Include="MSTest.TestAdapter" Version="2.3.0-preview-20220810-02" />
-    <PackageReference Include="MSTest.TestFramework" Version="2.3.0-preview-20220810-02" />
-    <PackageReference Include="coverlet.collector" Version="3.2.0">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="MSTest.TestAdapter" />
+    <PackageReference Include="MSTest.TestFramework" />
+    <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2-beta2" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
   <ItemGroup>
@@ -352,4 +29,20 @@
     <ProjectReference Include="..\..\archives\TarArchives\TarArchives.csproj" />
     <ProjectReference Include="..\..\DiffGeneration\DiffGeneration.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="StyleCop.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <NativeBinaries Condition=" '$(OS)' == 'Windows_NT' " Include="$(SolutionDir)\..\..\native\out.windows\build\x64-windows\$(Configuration)\bin\$(Configuration)\*" />
+      <NativeBinaries Condition=" '$(OS)' != 'Windows_NT' " Include="$(SolutionDir)/../../native/out.linux/build/x64-linux/$(Configuration)/bin/*;$(SolutionDir)/../../native/build/x64-linux/$(Configuration)/lib/*.so" />
+    </ItemGroup>
+    <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)" />
+  </Target>
+
 </Project>

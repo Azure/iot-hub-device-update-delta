@@ -1,0 +1,6 @@
+# File: arm64-linux-variables.yml
+variables:
+  arm64_linux_cmake_c_compiler: /usr/bin/aarch64-linux-gnu-gcc-9
+  arm64_linux_cmake_cxx_compiler: /usr/bin/aarch64-linux-gnu-g++-9
+  arm64_linux_dependencies: gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu g++-9-aarch64-linux-gnu qemu-system-arm qemu-efi-aarch64 qemu-utils qemu-user
+  arm64_linux_qemu_command: 'qemu-aarch64 -L /usr/aarch64-linux-gnu'

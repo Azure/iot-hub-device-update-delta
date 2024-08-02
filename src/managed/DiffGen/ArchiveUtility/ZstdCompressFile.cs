@@ -43,7 +43,7 @@ namespace ArchiveUtility
             }
         }
 
-        static void Call(string source, string target, string delta)
+        private static void Call(string source, string target, string delta)
         {
             using (Process process = new())
             {
@@ -58,6 +58,11 @@ namespace ArchiveUtility
                 if (!process.HasExited)
                 {
                     process.Kill(true);
+                }
+
+                if (process.ExitCode != 0)
+                {
+                    throw new Exception($"Failure when trying to call {process.StartInfo.FileName}: {process.ExitCode}");
                 }
             }
         }

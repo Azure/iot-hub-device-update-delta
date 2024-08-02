@@ -1,0 +1,34 @@
+# File: diffgen-variables.yml
+variables:
+  - name: diffgen_solution
+    value: '$(Build.SourcesDirectory)/src/managed/DiffGen/diff-generation.sln'
+  - name: diffgen_framework
+    value: net8.0
+  - name: diffgen_sdk_version
+    value: 8.x
+  - name: nuget_config
+    value: $(Build.SourcesDirectory)/nuget.config
+  - name: diffgen_nuget
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/DiffGenTool.nuspec
+  - name: diffgen_project
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/DiffGeneration/DiffGeneration.csproj
+  - name: diffgen_tool_project
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/DiffGenTool.csproj
+  - name: unittests_bin_dir
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/UnitTests/bin
+  - name: unittests_project
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/UnitTests/UnitTests.csproj
+  - name: archiveutilitytest_project
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/ArchiveUtilityTest/ArchiveUtilityTest.csproj
+  - name: archiveutilitytest_bin_dir
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/ArchiveUtilityTest/bin
+  - name: diffgen_tests_samples_dir
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/samples
+  - name: end_to_end_tests_bin_dir
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/EndToEndTests/bin
+  - name: end_to_end_tests_project
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/tests/EndToEndTests/EndToEndTests.csproj
+  - name: setup_diffgen_tool_x64_linux_script
+    value: $(Build.SourcesDirectory)/build/scripts/setup-diffgentool-x64-linux.sh
+  - name: diffgen_errors_md_file
+    value: $(Build.SourcesDirectory)/src/managed/DiffGen/DiffGeneration/ERRORS.md

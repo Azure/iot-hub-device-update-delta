@@ -4,269 +4,282 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Security.Authentication;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Microsoft.Extensions.Options;
-
 namespace ArchiveUtility
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Text.Json;
+    using Microsoft.Extensions.Logging;
+    using Microsoft.VisualBasic;
+    using RecipeLookup = System.Collections.Generic.Dictionary<ArchiveUtility.ItemDefinition, ArchiveUtility.Recipe>;
+    using SerializedPayloadList = System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<ArchiveUtility.Payload, System.Collections.Generic.HashSet<ArchiveUtility.ItemDefinition>>>;
+    using SerializedRecipeList = System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<ArchiveUtility.ItemDefinition, System.Collections.Generic.HashSet<ArchiveUtility.Recipe>>>;
+
+    [SuppressMessage("Microsoft.StyleCop.CSharp.ReadabilityRules", "SA1121", Justification = "We want to be explicit about bit-width using these aliases.")]
     public class ArchiveTokenization
     {
         public string Type { get; private set; }
+
         public string Subtype { get; private set; }
-        public ArchiveItemCollection ArchiveItems { get; set; } = new();
-        public ArchiveItem[] Chunks => ArchiveItems.Chunks;
-        public ArchiveItem[] Payload => ArchiveItems.Payload;
+
+        public string WorkingFolder { get; set; }
+
+        public string ItemFolder { get => Path.Combine(WorkingFolder, "items"); }
+
+        public ItemDefinition ArchiveItem { get; set; } = null;
+
+        // Items it is ok to take a dependency on without being present
+        // in the tokenization. Used to allow diffs to depend upon
+        // the source item
+        public ItemDefinition SourceItem { get; set; } = null;
+
+        public SerializedPayloadList Payload { get => PayloadCatalog.Entries.ToList(); }
+
+        public SerializedRecipeList Recipes { get => RecipeCatalog.Entries.ToList(); }
+
+        public RecipeLookup ForwardRecipes { get; set; } = new();
+
+        public RecipeLookup ReverseRecipes { get; set; } = new();
+
+        private PayloadCatalog PayloadCatalog = new();
+
+        private RecipeCatalog RecipeCatalog = new();
+
         public ArchiveTokenization(string type, string subtype)
         {
             Type = type;
             Subtype = subtype;
         }
-        public class ArchiveItemCollection
+
+        public ArchiveTokenization(string type, string subtype, ArchiveTokenization parentTokens)
         {
-            Dictionary<int, ArchiveItem> lookup = new();
-            List<ArchiveItem> payload = new();
-            List<ArchiveItem> chunks = new();
+            Type = type;
+            Subtype = subtype;
 
-            public ArchiveItem[] Chunks => chunks.ToArray();
-            public ArchiveItem[] Payload => payload.ToArray();
-            public bool Contains(int id) => lookup.ContainsKey(id);
-            public ArchiveItem Get(int id) => lookup[id];
-            protected int NextId
+            PayloadCatalog = parentTokens.PayloadCatalog;
+            RecipeCatalog = parentTokens.RecipeCatalog;
+            ForwardRecipes = parentTokens.ForwardRecipes;
+            ReverseRecipes = parentTokens.ReverseRecipes;
+            ArchiveItem = parentTokens.ArchiveItem;
+        }
+
+        public ArchiveTokenization CreateDiffTokens(ArchiveTokenization sourceTokens)
+        {
+            ArchiveTokenization diffTokens = new("Diff", "Standard");
+
+            diffTokens.SourceItem = sourceTokens.ArchiveItem;
+            diffTokens.ArchiveItem = ArchiveItem;
+
+            foreach (Recipe recipe in ForwardRecipes.Values)
             {
-                get
-                {
-                    return (lookup.Count == 0) ? 0 : lookup.Keys.Max() + 1;
-                }
+                diffTokens.AddForwardRecipe(recipe);
             }
 
-            public void ClearPayload()
-            {
-                foreach (var item in payload)
-                {
-                    lookup.Remove(item.Id.GetValueOrDefault());
-                }
-                payload.Clear();
-            }
+            return diffTokens;
+        }
 
-            public void Add(ArchiveItem item)
+        public void SetPayload(SerializedPayloadList payloadList)
+        {
+            foreach (var payloadEntry in payloadList)
             {
-                List<ArchiveItem> list;
-                switch (item.Type)
+                var payload = payloadEntry.Key;
+                foreach (var item in payloadEntry.Value)
                 {
-                    case ArchiveItemType.Chunk:
-                        list = chunks;
-                        break;
-                    case ArchiveItemType.Payload:
-                        list = payload;
-                        break;
-                    default:
-                        throw new FatalException($"Unexpected ArchiveItem type being added to collection for name: {item.Name}, type: {item.Type}");
+                    PayloadCatalog.AddPayload(payload, item);
                 }
-
-                if (!item.Id.HasValue || lookup.ContainsKey(item.Id.GetValueOrDefault()))
-                {
-                    item.Id = NextId;
-                }
-                list.Add(item);
-                lookup.Add(item.Id.GetValueOrDefault(), item);
             }
         }
 
-        public void RemoveRecipesDependentOnArchiveItemId(string id)
+        public void SetRecipes(SerializedRecipeList recipes)
         {
-            foreach (var chunk in Chunks)
+            foreach (var recipeEntry in recipes)
             {
-                chunk.Recipes.RemoveAll(recipe => recipe.DependsOnArchiveItemId(id));
+                foreach (var recipe in recipeEntry.Value)
+                {
+                    RecipeCatalog.AddRecipe(recipe);
+                }
             }
         }
 
-        public Dictionary<string, ArchiveItem> BuildPayloadNameToChunkMap()
+        private static bool HasItemImpl(ItemDefinition item)
         {
-            Dictionary<string, ArchiveItem> map = new();
-
-            foreach (var chunk in Chunks)
-            {
-                if (chunk.Recipes.Count == 0)
-                {
-                    continue;
-                }
-
-                if (chunk.Recipes[0].Type != RecipeType.Copy)
-                {
-                    continue;
-                }
-
-                var copyRecipe = chunk.Recipes[0] as CopyRecipe;
-                map[copyRecipe.Item.Name] = chunk;
-            }
-            return map;
+            return item != null && item.Length > 0;
         }
 
-        Recipe GetChunkRecipeForExposedPayload(ArchiveItem  payload)
+        public bool HasSourceItem()
         {
-            return new ZstdCompressionRecipe(payload.MakeReference(), 1, 5, 3);
+            return HasItemImpl(SourceItem);
         }
 
-        bool CanValidateChunk(ArchiveItem chunk)
+        public ItemDefinition InlineAssetsItem { get; set; } = null;
+
+        public bool HasInlineAssetsItem()
         {
-            return chunk.Hashes.ContainsKey(HashAlgorithmType.Sha256);
+            return HasItemImpl(InlineAssetsItem);
         }
 
-        bool ExposeTypeRequiresValidation(ExposeCompressedPayloadType exposeType)
+        public ItemDefinition RemainderItem { get; set; } = null;
+
+        public bool HasRemainderItem()
         {
-            return exposeType == ExposeCompressedPayloadType.ValidatedZstandard;
+            return HasItemImpl(RemainderItem);
         }
 
-        bool TryExposeCompressedPayloadFromRecipe(Stream archiveStream, ArchiveItem payload, ArchiveItem chunk, Recipe payloadRecipe, ExposeCompressedPayloadType exposeType)
+        private Dictionary<ItemDefinition, HashSet<string>> ItemToNamesLookup = new();
+        private Dictionary<string, HashSet<ItemDefinition>> NameToItemsLookup = new();
+        private Dictionary<string, HashSet<ItemDefinition>> WildcardNameToItemsLookup = new();
+        private Dictionary<UInt64, HashSet<ItemDefinition>> LengthBasedItemLookup = new();
+        private Dictionary<Hash, HashSet<ItemDefinition>> HashToItemLookup = new();
+
+        public bool IsSpecialItem(ItemDefinition item)
         {
-            var uncompressedFile = Path.GetTempFileName();
-
-            if (ExposeTypeRequiresValidation(exposeType) && !CanValidateChunk(chunk))
+            if (item.Equals(ArchiveItem))
             {
-                return false;
+                return true;
             }
 
-            using (var uncompressedStream = File.OpenWrite(uncompressedFile))
+            if (HasInlineAssetsItem() && item.Equals(InlineAssetsItem))
             {
-                try
-                {
-                    payloadRecipe.CopyTo(archiveStream, uncompressedStream);
-                }
-                catch (Exception)
-                {
-                    return false;
-                }
+                return true;
             }
 
-            string name = Path.GetFileNameWithoutExtension(payload.Name);
-
-            ulong length = (ulong)new FileInfo(uncompressedFile).Length;
-            var sha256Hash = Hash.FromFile(uncompressedFile).ValueString();
-
-            Dictionary<HashAlgorithmType, string> hashes = new() { { HashAlgorithmType.Sha256, sha256Hash } };
-
-            if (exposeType == ExposeCompressedPayloadType.ValidatedZstandard)
+            if (HasRemainderItem() && item.Equals(RemainderItem))
             {
-                string recompressedFile = uncompressedFile + ".zst";
-                ZstdCompressFile.CompressFile(uncompressedFile, recompressedFile);
-
-                var recompressedFileSha256Hash = Hash.FromFile(recompressedFile).ValueString();
-
-                var compressedFileSha256Hash = chunk.Hashes[HashAlgorithmType.Sha256];
-
-                if (!compressedFileSha256Hash.Equals(recompressedFileSha256Hash))
-                {
-                    return false;
-                }
+                return true;
             }
 
-            var newPayload = ArchiveItem.CreatePayload(name, length, hashes);
-
-            newPayload.Recipes.Add(payloadRecipe);
-            ArchiveItems.Add(newPayload);
-
-            chunk.Recipes.Clear();
-            if (exposeType == ExposeCompressedPayloadType.ValidatedZstandard)
-            {
-                Recipe newChunkRecipe = GetChunkRecipeForExposedPayload(newPayload);
-                if (newChunkRecipe != null)
-                {
-                    chunk.Recipes.Add(newChunkRecipe);
-                }
-            }
-
-            return true;
+            return false;
         }
 
-        Recipe GetRecipeForCompressedEntry(Stream archiveStream, ArchiveItem payload, ArchiveItem chunk)
+        public IEnumerable<ItemDefinition> GetItemsWithSameSize(UInt64 length)
         {
-            if (payload.Name.EndsWith(".zst", StringComparison.OrdinalIgnoreCase)
-            || payload.Name.EndsWith(".zstd", StringComparison.OrdinalIgnoreCase))
+            if (LengthBasedItemLookup.ContainsKey(length))
             {
-                return new ZstdDecompressionRecipe(chunk.MakeReference());
-            }
-            else if (payload.Name.EndsWith(".gz", StringComparison.OrdinalIgnoreCase))
-            {
-                return new GzDecompressionRecipe(chunk.MakeReference());
+                return LengthBasedItemLookup[length];
             }
 
             return null;
         }
 
-        public bool TryExposePayloadFromChunk(Stream archiveStream, ArchiveItem payload, ArchiveItem chunk, ExposeCompressedPayloadType exposeType)
+        public void AddRootPayload(string name, ItemDefinition item)
         {
-            Recipe payloadRecipe = GetRecipeForCompressedEntry(archiveStream, payload, chunk);
-
-            if (payloadRecipe == null)
-            {
-                return false;
-            }
-
-            if ((exposeType == ExposeCompressedPayloadType.ValidatedZstandard) && (payloadRecipe.Type != RecipeType.ZstdDecompression))
-            {
-                return false;
-            }
-
-            return TryExposeCompressedPayloadFromRecipe(archiveStream, payload, chunk, payloadRecipe, exposeType);
+            Payload payload = new(ArchiveItem, name);
+            PayloadCatalog.AddPayload(payload, item);
         }
 
-        public enum ExposeCompressedPayloadType
+        public bool HasRootPayload(string name)
         {
-            None,
-            All,
-            ValidatedZstandard
+            Payload payload = new(ArchiveItem, name);
+            return PayloadCatalog.HasPayload(payload);
         }
 
-        public void ExposeCompressedPayload(Stream archiveStream, ExposeCompressedPayloadType exposeType)
+        public bool HasPayloadWithName(string name) => PayloadCatalog.HasPayloadWithName(name);
+
+        public IEnumerable<ItemDefinition> GetPayloadWithName(string name) => PayloadCatalog.GetPayloadWithName(name);
+
+        public IEnumerable<ItemDefinition> GetPayloadMatchingWildcard(string name) => PayloadCatalog.GetPayloadMatchingWildcard(name);
+
+        public IEnumerable<ItemDefinition> GetRootPayload(string name)
         {
-            if (exposeType == ExposeCompressedPayloadType.None)
+            Payload payload = new(ArchiveItem, name);
+            return PayloadCatalog.GetPayload(payload);
+        }
+
+        public void AddRecipe(Recipe recipe)
+        {
+            RecipeCatalog.AddRecipe(recipe);
+        }
+
+        public void AddRecipes(IEnumerable<Recipe> recipes)
+        {
+            foreach (var recipe in recipes)
             {
-                return;
+                AddRecipe(recipe);
             }
+        }
 
-            var originalPayload = Payload;
+        public void AddForwardRecipe(Recipe recipe)
+        {
+            var itemKey = recipe.Result.WithoutNames();
+            ForwardRecipes[itemKey] = recipe;
+            AddRecipe(recipe);
+        }
 
-            var map = BuildPayloadNameToChunkMap();
-            ArchiveItems.ClearPayload();
-            foreach (var payload in originalPayload)
+        public void AddReverseRecipe(Recipe recipe)
+        {
+            var itemKey = recipe.Result.WithoutNames();
+            ReverseRecipes[itemKey] = recipe;
+            AddRecipe(recipe);
+        }
+
+        public bool HasAnyRecipes(ItemDefinition item)
+        {
+            return RecipeCatalog.HasAnyRecipes(item);
+        }
+
+        public bool TryAddRecipe(Recipe recipe) => RecipeCatalog.TryAddRecipe(recipe);
+
+        public bool HasRecipe(Recipe recipe) => RecipeCatalog.HasRecipe(recipe);
+
+        public void ClearRecipes() => RecipeCatalog.ClearRecipes();
+
+        public IEnumerable<Recipe> GetRemainderRecipes() => RecipeCatalog.GetRecipesUsing(RemainderItem);
+
+        public IEnumerable<Recipe> GetInlineAssetRecipes() => RecipeCatalog.GetRecipesUsing(InlineAssetsItem);
+
+        // Serialization
+        public static JsonSerializerOptions GetStandardJsonSerializerOptions()
+        {
+            var options = new JsonSerializerOptions()
             {
-                if (map.ContainsKey(payload.Name))
+                Converters =
                 {
-                    var chunk = map[payload.Name];
+                    new ArchiveTokenizationJsonConverter(),
+                    new ItemDefinitionJsonConverter(),
+                    new HashJsonConverter(),
+                    new RecipeJsonConverter(),
+                },
+                MaxDepth = 128,
+            };
 
-                    if (TryExposePayloadFromChunk(archiveStream, payload, chunk, exposeType))
-                    {
-                        continue;
-                    }
-                }
+            return options;
+        }
 
-                ArchiveItems.Add(payload);
-            }
+        public static ArchiveTokenization FromJsonPath(string path)
+        {
+            using var stream = File.OpenRead(path);
+            return FromJson(stream);
+        }
+
+        public static ArchiveTokenization FromJson(Stream stream)
+        {
+            using var reader = new StreamReader(stream);
+            var jsonText = reader.ReadToEnd();
+            return FromJson(jsonText);
+        }
+
+        public static ArchiveTokenization FromJson(string jsonText)
+        {
+            var options = GetStandardJsonSerializerOptions();
+            var deserialized = JsonSerializer.Deserialize<ArchiveTokenization>(jsonText, options);
+            return deserialized;
         }
 
         public void WriteJson(Stream stream, bool writeIndented)
         {
-            using (var writer = new StreamWriter(stream, Encoding.UTF8, -1, true))
-            {
-                var value = ToJson(writeIndented);
-
-                writer.Write(value);
-            }
+            using var writer = new StreamWriter(stream, Encoding.UTF8, -1, true);
+            var jsonText = ToJson(writeIndented);
+            writer.Write(jsonText);
         }
 
         public string ToJson(bool writeIndented)
         {
             var options = GetStandardJsonSerializerOptions();
             options.WriteIndented = writeIndented;
-
             return JsonSerializer.Serialize(this, options);
         }
 
@@ -275,106 +288,222 @@ namespace ArchiveUtility
             return ToJson(false);
         }
 
-        public static ArchiveTokenization FromJsonPath(string path)
+#pragma warning disable SA1010 // Opening square brackets should be spaced correctly
+        private static string[][] ArchiveExtensions = [[".ext4", "ext4"], [".ext2", "ext4"], [".ext3", "ext4"], [".tar", "tar"], [".cpio", "cpio"], [".swu", "swu"], [".zst", "zstd"], [".zstd", "zstd"], [".gz", "zip"]];
+#pragma warning restore SA1010 // Opening square brackets should be spaced correctly
+
+        public void ProcessNestedArchives(Stream stream, ArchiveUseCase useCase)
         {
-            using (var stream = File.OpenRead(path))
+            // Not useful to get detailed view of nested items if we can't reconstruct this archive from them
+            if ((useCase == ArchiveUseCase.DiffTarget) && !ForwardRecipes.ContainsKey(ArchiveItem))
             {
-                return FromJson(stream);
+                return;
             }
-        }
 
-        public static ArchiveTokenization FromJson(Stream stream)
-        {
-            using (var reader = new StreamReader(stream))
+            List<Tuple<ItemDefinition, string, string>> potentialNestedArchives = new();
+
+            foreach (var payloadEntry in PayloadCatalog.Entries)
             {
-                var json = reader.ReadToEnd();
-                return FromJson(json);
-            }
-        }
+                Payload payload = payloadEntry.Key;
 
-        public static ArchiveTokenization FromJson(string json)
-        {
-            return JsonSerializer.Deserialize<ArchiveTokenization>(json, GetStandardJsonSerializerOptions());
-        }
-
-        public static JsonSerializerOptions GetStandardJsonSerializerOptions()
-        {
-            var options = new JsonSerializerOptions()
-            {
-                Converters =
+                if (!payload.ArchiveItem.Equals(ArchiveItem))
                 {
-                    new ArchiveTokenizationJsonConverter(),
-                    new RecipeParameterJsonConverter(),
-                    new ArchiveItemJsonConverter(),
-                    new RecipeMethodJsonConverter()
-                },
-                MaxDepth = 128,
-            };
-
-            return options;
-        }
-
-        public void FillChunkGaps(Stream archiveFile)
-        {
-            List<ArchiveItem> gapChunks = FindChunkGaps(archiveFile, Chunks.ToList());
-            foreach(var gapChunk in gapChunks)
-            {
-                ArchiveItems.Add(gapChunk);
-            }
-        }
-
-        public static List<ArchiveItem> FindChunkGaps(Stream archiveFile, List<ArchiveItem> chunks)
-        {
-            chunks.Sort((c1, c2) =>
-            {
-                var offsetDiff = c1.Offset.Value - c2.Offset.Value;
-                if (offsetDiff != 0)
-                {
-                    return (int)offsetDiff;
-                }
-                return (int)(c1.Length - c2.Length);
-            });
-            List<ArchiveItem> gapChunks = new();
-
-            ulong nextFreePosition = 0;
-            archiveFile.Seek(0, SeekOrigin.Begin);
-
-            foreach (ArchiveItem chunk in chunks)
-            {
-                if (chunk.Offset.Value < nextFreePosition)
-                {
-                    //ideally, chunks should not overlap. But if they do, we ignore the latter.
                     continue;
                 }
 
-                if (chunk.Offset.Value > nextFreePosition)
+                var payloadName = payload.Name;
+
+                foreach (var extInfo in ArchiveExtensions)
                 {
-                    gapChunks.AddRange(ArchiveItemsFromGap(archiveFile, nextFreePosition, chunk.Offset.Value));
+                    var ext = extInfo[0];
+                    var archiveType = extInfo[1];
+                    if (payloadName.EndsWith(ext, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var payloadItems = payloadEntry.Value;
+                        foreach (var item in payloadItems)
+                        {
+                            potentialNestedArchives.Add(new(item, payloadName, archiveType));
+                            break;
+                        }
+                    }
                 }
-
-                nextFreePosition = chunk.Offset.Value + chunk.Length;
-                archiveFile.Seek((long) nextFreePosition, SeekOrigin.Begin);
             }
 
-            if ((ulong) archiveFile.Length > nextFreePosition)
+            using (FileFromStream file = new FileFromStream(stream, WorkingFolder))
             {
-                gapChunks.AddRange(ArchiveItemsFromGap(archiveFile, nextFreePosition, (ulong) archiveFile.Length));
+                string archivePath = file.Name;
+
+                if (!TryExtractItems(ArchiveLoaderContext.DefaultLogger, archivePath, potentialNestedArchives.Select(n => n.Item1)))
+                {
+                    throw new Exception($"Couldn't extract items for nested archives for: {archivePath}");
+                }
             }
 
-            return gapChunks;
+            foreach (var nested in potentialNestedArchives)
+            {
+                var (nestedItem, payloadName, type) = nested;
+
+                var archiveFile = nestedItem.GetExtractionPath(ItemFolder);
+
+                using var archiveStream = File.OpenRead(archiveFile);
+
+                ArchiveLoaderContext context = new(archiveStream, WorkingFolder, ArchiveLoaderContext.DefaultLogger, LogLevel.None)
+                {
+                    UseCase = useCase,
+                };
+
+                context.OriginalArchiveFileName = payloadName;
+
+                if (ArchiveLoader.TryLoadArchive(context, out ArchiveTokenization tokens, type))
+                {
+                    context.Logger.LogInformation("Loaded nested archive of type: {type}", type);
+
+                    string nestedJson = tokens.ArchiveItem.GetExtractionPath(context.WorkingFolder) + $".{type}.json";
+
+                    context.Logger.LogInformation("Writing nested json to {NestedJson}", nestedJson);
+
+                    using (var nestedJsonStream = File.OpenWrite(nestedJson))
+                    {
+                        tokens.WriteJson(nestedJsonStream, true);
+                    }
+
+                    ImportArchive(context.Logger, tokens);
+                }
+            }
         }
 
-        private static List<ArchiveItem> ArchiveItemsFromGap(Stream archiveFile, ulong gapBegin, ulong gapEnd)
+        public HashSet<ItemDefinition> GetDependencies(ItemDefinition item, bool excludeSpecialItems)
         {
-            List<ArchiveItem> gapArchiveItems = new();
+            HashSet<ItemDefinition> dependencies = new();
+
+            PopulateDependencies(item, dependencies, excludeSpecialItems);
+
+            return dependencies;
+        }
+
+        private record Chunk(ulong Offset, ItemDefinition Item);
+
+        private static Chunk ChunkFromSlice(Recipe recipe) => new Chunk(recipe.NumberIngredients[0], recipe.Result);
+
+        private List<Chunk> GetChunksFromRecipes()
+        {
+            var slices = RecipeCatalog.GetSlicesOf(ArchiveItem);
+            var chunks = slices.Select(x => ChunkFromSlice(x)).ToList();
+            return chunks;
+        }
+
+        private IEnumerable<Chunk> GetAllChunks(Stream stream)
+        {
+            var chunks = GetChunksFromRecipes();
+
+            // We don't want to create gap chunks if there are no already defined chunks
+            if (chunks.Count == 0)
+            {
+                return chunks;
+            }
+
+            var sortedChunks = chunks.OrderBy(x => x.Offset);
+
+            List<Chunk> gapChunks = new();
+
+            ulong expectedOffset = 0;
+            foreach (var chunk in sortedChunks)
+            {
+                if (expectedOffset < chunk.Offset)
+                {
+                    stream.Seek((long)expectedOffset, SeekOrigin.Begin);
+                    using var reader = new BinaryReader(stream, Encoding.ASCII, true);
+                    ulong length = chunk.Offset - expectedOffset;
+
+                    var chunksForThisGap = MakeChunksForGap(reader, expectedOffset, length);
+                    gapChunks.AddRange(chunksForThisGap);
+                }
+
+                expectedOffset = chunk.Offset + chunk.Item.Length;
+            }
+
+            if (expectedOffset == 0)
+            {
+                throw new Exception("Found no chunks of archive. Expected Offset for last chunk is zero. This would result in a chunk of entire file.");
+            }
+
+            if (expectedOffset < ArchiveItem.Length)
+            {
+                stream.Seek((long)expectedOffset, SeekOrigin.Begin);
+                using var reader = new BinaryReader(stream, Encoding.ASCII, true);
+                ulong length = ArchiveItem.Length - expectedOffset;
+
+                var chunksForThisGap = MakeChunksForGap(reader, expectedOffset, length);
+                gapChunks.AddRange(chunksForThisGap);
+            }
+
+            chunks.AddRange(gapChunks);
+
+            return chunks.OrderBy(x => x.Offset);
+        }
+
+        private ItemDefinition CreateItemForGap(BinaryReader reader, ulong begin, ulong end)
+        {
+            ulong length = end - begin;
+
+            reader.BaseStream.Seek((long)begin, SeekOrigin.Begin);
+            ItemDefinition item = ItemDefinition.FromBinaryReader(reader, length).WithName(ChunkNames.MakeGapChunkName(begin, length));
+
+            bool allZeros = true;
+
+            ulong remaining = length;
+
+            const int read_block_size = 1024 * 8;
+            byte[] data = new byte[read_block_size];
+            reader.BaseStream.Seek((long)begin, SeekOrigin.Begin);
+            while (remaining > 0)
+            {
+                int toRead = (int)Math.Min(remaining, read_block_size);
+
+                var span = new Span<byte>(data, 0, toRead);
+
+                int actualRead = reader.Read(span);
+                if (actualRead != toRead)
+                {
+                    throw new Exception($"Couldn't read gap data. Didn't read expected amount of bytes. Expected: {toRead}, Actual: {actualRead}");
+                }
+
+                if (!AsciiData.IsAllNul(span))
+                {
+                    allZeros = false;
+                    break;
+                }
+
+                remaining -= (ulong)actualRead;
+            }
+
+            if (allZeros)
+            {
+                Recipe allZerosRecipe = new (Recipe.RecipeTypeToString(RecipeType.AllZeros), item, new(), new());
+                AddForwardRecipe(allZerosRecipe);
+            }
+
+            Recipe sliceRecipe = new(RecipeType.Slice, item, new() { begin }, new List<ItemDefinition>() { ArchiveItem });
+            AddReverseRecipe(sliceRecipe);
+
+            return item;
+        }
+
+        private IEnumerable<Chunk> MakeChunksForGap(BinaryReader reader, ulong offset, ulong length)
+        {
+            var chunks = new List<Chunk>();
+            ulong gapBegin = offset;
+            ulong gapEnd = offset + length;
 
             //Align gap chunks on 1024 bytes, to make matching easier
             if (gapBegin % 1024 != 0)
             {
                 ulong updatedGapBegin = ((gapBegin >> 10) + 1) << 10;
+
                 if (updatedGapBegin <= gapEnd)
                 {
-                    gapArchiveItems.Add(ArchiveItemFromGap(archiveFile, gapBegin, updatedGapBegin));
+                    var item = CreateItemForGap(reader, gapBegin, updatedGapBegin);
+                    chunks.Add(new(gapBegin, item));
                     gapBegin = updatedGapBegin;
                 }
             }
@@ -382,128 +511,212 @@ namespace ArchiveUtility
             //the maximum size allowed for gap chunks
             const ulong TEN_MB = 10 * (1 << 20);
 
-            for (ulong archiveItemBegin = gapBegin, archiveItemEnd; archiveItemBegin < gapEnd; archiveItemBegin = archiveItemEnd)
+            for (ulong thisGapBegin = gapBegin, thisGapEnd; thisGapBegin < gapEnd; thisGapBegin = thisGapEnd)
             {
-                archiveItemEnd = Math.Min(gapEnd, archiveItemBegin + TEN_MB);
+                thisGapEnd = Math.Min(gapEnd, thisGapBegin + TEN_MB);
 
-                gapArchiveItems.Add(ArchiveItemFromGap(archiveFile, archiveItemBegin, archiveItemEnd));
+                var item = CreateItemForGap(reader, thisGapBegin, thisGapEnd);
+                chunks.Add(new(gapBegin, item));
             }
 
-            return gapArchiveItems;
+            return chunks;
         }
 
-        private static ArchiveItem ArchiveItemFromGap(Stream archiveFile, ulong archiveItemBegin, ulong archiveItemEnd)
+        public void HandleGapChunks(Stream stream)
         {
-            ulong archiveItemLength = archiveItemEnd - archiveItemBegin;
-            using (BinaryReader reader = new(archiveFile, Encoding.Default, true))
+            var allChunks = GetAllChunks(stream);
+            var items = allChunks.Select(x => x.Item).ToList();
+
+            // Don't overwrite whatever the json already had
+            if (ForwardRecipes.ContainsKey(ArchiveItem))
             {
-                byte[] buffer = new byte[archiveItemLength];
-                if (archiveItemLength != (ulong) reader.Read(buffer, 0, (int)archiveItemLength))
-                {
-                    throw new FormatException($"Not enough data to read binary chunk of {archiveItemLength} bytes.");
-                }
-
-                var chunkId = ArchiveItem.MakeGapChunkId(archiveItemBegin);
-                ArchiveItem archiveItem = ArchiveItem.FromByteSpan(chunkId, ArchiveItemType.Chunk, buffer, archiveItemBegin);
-
-                //if buffer is all zeroes, add all-zero recipe
-                if (AsciiData.IsAllNul(buffer))
-                {
-                    archiveItem.Recipes.Add(new AllZeroRecipe(archiveItemLength));
-                }
-
-                return archiveItem;
-            }
-        }
-    }
-
-    public class ArchiveTokenizationJsonConverter : JsonConverter<ArchiveTokenization>
-    {
-        public override ArchiveTokenization Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            reader.CheckStartObject();
-
-            string type = null;
-            string subtype = null;
-            ArchiveItem[] chunks = null;
-            ArchiveItem[] payload = null;
-
-            while (reader.Read())
-            {
-                if (reader.TokenType == JsonTokenType.EndObject)
-                {
-                    break;
-                }
-
-                if (reader.TokenType != JsonTokenType.PropertyName)
-                {
-                    throw new JsonException();
-                }
-
-                string propertyName = reader.GetString();
-                reader.Read();
-                switch (propertyName)
-                {
-                    case "Type":
-                        type = reader.GetString();
-                        break;
-                    case "Subtype":
-                        subtype = reader.GetString();
-                        break;
-                    case "Chunks":
-                        chunks = JsonSerializer.Deserialize<ArchiveItem[]>(ref reader, options);
-                        break;
-                    case "Payload":
-                        payload = JsonSerializer.Deserialize<ArchiveItem[]>(ref reader, options);
-                        break;
-                    default:
-                        throw new JsonException();
-                }
+                return;
             }
 
-            ArchiveTokenization tokens = new(type, subtype);
-            if (chunks != null)
+            if (items.Count == 0)
             {
-                foreach (var chunkItem in chunks)
-                {
-                    if (tokens.ArchiveItems.Contains(chunkItem.Id.Value))
-                    {
-                        throw new FatalException($"Duplicate Id detected for Chunk: {chunkItem.Id}");
-                    }
-                    tokens.ArchiveItems.Add(chunkItem);
-                }
+                return;
             }
 
-            if (payload != null)
+            var totalItemLength = items.Sum(x => (long)x.Length);
+            if (totalItemLength != (long)ArchiveItem.Length)
             {
-                foreach (var payloadItem in payload)
-                {
-                    if (tokens.ArchiveItems.Contains(payloadItem.Id.Value))
-                    {
-                        throw new FatalException($"Duplicate Id detected for Payload: {payloadItem.Id}");
-                    }
-                    tokens.ArchiveItems.Add(payloadItem);
-                }
+                throw new Exception($"Total items length for chain recipe when handling gaps mismatch. Item length: {ArchiveItem.Length}, Chain total item length: {totalItemLength}");
             }
 
-            return tokens;
+            Recipe archiveRecipe = new Recipe(RecipeType.Chain, ArchiveItem, new() { }, items);
+            AddForwardRecipe(archiveRecipe);
         }
 
-        public override void Write(Utf8JsonWriter writer, ArchiveTokenization tokens, JsonSerializerOptions options)
+        private void PopulateDependencies(ItemDefinition item, HashSet<ItemDefinition> dependencies, bool excludeSpecialItems)
         {
-            writer.WriteStartObject();
+            if (excludeSpecialItems && IsSpecialItem(item))
+            {
+                return;
+            }
 
-            writer.WriteStringProperty("Type", tokens.Type);
+            if (dependencies.Contains(item))
+            {
+                return;
+            }
 
-            writer.WriteStringProperty("Subtype", tokens.Subtype);
+            dependencies.Add(item);
 
-            writer.WritePropertyName("Chunks");
-            JsonSerializer.Serialize(writer, tokens.Chunks, options);
+            var recipes = RecipeCatalog.GetRecipes(item);
 
-            writer.WritePropertyName("Payload");
-            JsonSerializer.Serialize(writer, tokens.Payload, options);
+            foreach (var recipe in recipes)
+            {
+                foreach (var ingredient in recipe.ItemIngredients)
+                {
+                    PopulateDependencies(ingredient, dependencies, excludeSpecialItems);
+                }
+            }
+        }
 
-            writer.WriteEndObject();
+        public HashSet<Recipe> GetRecipes(ItemDefinition item) => RecipeCatalog.GetRecipes(item);
+
+        public bool HasArchiveItem(ItemDefinition item) => PayloadCatalog.ArchiveItems.Contains(item.WithoutNames());
+
+        public IEnumerable<ItemDefinition> ArchiveItems => PayloadCatalog.ArchiveItems;
+
+        private void ImportArchive(ILogger logger, ArchiveTokenization tokens)
+        {
+            var toArchive = ArchiveItem.GetSha256HashString();
+            var fromArchive = tokens.ArchiveItem.GetSha256HashString();
+
+            logger.LogInformation("Importing archive {fromArchive} into {toArchive}", fromArchive, toArchive);
+
+            if (tokens.RecipeCatalog.HasAnyRecipes(tokens.ArchiveItem))
+            {
+                logger.LogInformation("Imported archive has a recipe for the ArchiveItem.");
+            }
+            else
+            {
+                logger.LogInformation("Imported archive does not have a recipe for the ArchiveItem.");
+            }
+
+            foreach (var recipeEntry in tokens.Recipes)
+            {
+                var result = recipeEntry.Key;
+                var recipes = recipeEntry.Value;
+
+                foreach (var recipe in recipes)
+                {
+                    RecipeCatalog.AddRecipe(recipe);
+                }
+            }
+
+            foreach (var recipeEntry in tokens.ForwardRecipes)
+            {
+                var result = recipeEntry.Key;
+                var recipe = recipeEntry.Value;
+
+                ForwardRecipes[result] = recipe;
+            }
+
+            foreach (var recipeEntry in tokens.ReverseRecipes)
+            {
+                var result = recipeEntry.Key;
+                var recipe = recipeEntry.Value;
+
+                ReverseRecipes[result] = recipe;
+            }
+
+            foreach (var (payload, items) in tokens.Payload)
+            {
+                foreach (var item in items)
+                {
+                    PayloadCatalog.AddPayload(payload, item);
+                }
+            }
+        }
+
+        public bool TryExtractItems(ILogger logger, string archivePath, IEnumerable<ItemDefinition> toExtract)
+        {
+            try
+            {
+                ExtractItems(logger, archivePath, toExtract);
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        public void ExtractItems(ILogger logger, string archivePath, IEnumerable<ItemDefinition> toExtract)
+        {
+            using var createSession = new DiffApi.DiffcSession();
+            createSession.SetTarget(ArchiveItem);
+
+            var extractionRoot = ItemFolder;
+
+            int recipeCount = 0;
+            foreach (var entry in RecipeCatalog.Entries)
+            {
+                var recipes = entry.Value;
+                foreach (var recipe in recipes)
+                {
+                    recipeCount++;
+                    createSession.AddRecipe(recipe);
+                }
+            }
+
+            using var applySession = createSession.NewApplySession();
+
+            logger?.LogInformation("Trying to extract {toExtractCount} items from {archivePath} using {recipeCount} recipes.", toExtract.Count(), archivePath, recipeCount);
+
+            foreach (var item in toExtract)
+            {
+                var itemPath = item.GetExtractionPath(extractionRoot);
+                applySession.RequestItem(item);
+            }
+
+            applySession.AddItemToPantry(archivePath);
+
+            if (!applySession.ProcessRequestedItems())
+            {
+                var msg = $"Can't process items from: {archivePath}";
+                logger?.LogError(msg);
+                throw new Exception(msg);
+            }
+
+            applySession.ResumeSlicing();
+
+            Directory.CreateDirectory(extractionRoot);
+
+            foreach (var item in toExtract)
+            {
+                var hashString = item.GetSha256HashString();
+                if (hashString == null)
+                {
+                    var msg = "Trying to extract an item without a sha256 hash.";
+                    logger?.LogError(msg);
+                    throw new Exception(msg);
+                }
+
+                var itemPath = item.GetExtractionPath(extractionRoot);
+                applySession.ExtractItemToPath(item, itemPath);
+
+                var fromFile = ItemDefinition.FromFile(itemPath);
+            }
+
+            applySession.CancelSlicing();
+
+            foreach (var item in toExtract)
+            {
+                var itemPath = item.GetExtractionPath(extractionRoot);
+                var fromFile = ItemDefinition.FromFile(itemPath);
+
+                if (!item.Equals(fromFile))
+                {
+                    var msg = $"Extracted file {itemPath} mismatch from expected result. Expected: {item}, Actual: {fromFile}";
+                    logger?.LogError(msg);
+                    applySession.CancelSlicing();
+                    throw new Exception(msg);
+                }
+            }
         }
     }
 }

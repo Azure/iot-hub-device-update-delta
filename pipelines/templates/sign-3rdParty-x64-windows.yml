@@ -9,6 +9,13 @@ steps:
 
 - pwsh: dir $(Build.ArtifactStagingDirectory)/signing -s
 
+- task: BinSkim@4
+  inputs:
+    InputType: 'Basic'
+    Function: 'analyze'
+    TargetPattern: 'guardianGlob'
+    AnalyzeTargetGlob: '$(Build.ArtifactStagingDirectory)/**.dll;$(Build.ArtifactStagingDirectory)/**.exe;'
+
 # Code written by 3rd party, built by MS
 - task: EsrpCodeSigning@1
   inputs:

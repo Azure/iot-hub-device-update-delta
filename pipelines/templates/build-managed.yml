@@ -1,0 +1,59 @@
+# File: build-managed.yml
+
+parameters:
+# Required Parameters
+# Optional Parameters
+- name: platform
+  type: string
+  default: x64
+- name: configuration
+  type: string
+  default: Release
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET Standard sdk'
+  inputs:
+    packageType: sdk
+    version: $(diffgen_sdk_version)
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: NuGetToolInstaller@1
+
+- task: CmdLine@2
+  displayName: 'Dump nuget.config'
+  inputs:
+    script: cat $(nuget_config)
+
+- task: NuGetAuthenticate@1
+  inputs:
+    forceReinstallCredentialProvider: true
+
+- task: NuGetCommand@2
+  inputs:
+    feedsToUse: config
+    includeNuGetOrg: false
+    nugetConfigPath: $(nuget_config)
+    restoreSolution: '$(diffgen_solution)'
+
+- template: /pipelines/templates/download-swu-media.yml@self
+
+- task: VSBuild@1
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  inputs:
+    solution: '$(diffgen_solution)'
+    platform: '${{ parameters.platform }}'
+    configuration: '${{ parameters.configuration }}'
+    msbuildArgs: >-
+      /p:FileVersion="$(semver_version)"
+      /p:InformationalVersion="$(informational_version)"
+      /p:AssemblyVersion="$(semver_version)"
+      /p:Version="$(semver_version)"
+      /p:Copyright="$(copyright)"
+
+- task: DotNetCoreCLI@2
+  condition: eq( variables['Agent.OS'], 'Linux' )
+  inputs:
+    command: 'build'
+    projects: '$(diffgen_solution)'
+    arguments: '--configuration ${{ parameters.configuration }}'

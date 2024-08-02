@@ -1,0 +1,21 @@
+# File: download-package.yml
+parameters:
+# Required Parameters
+- name: package_dir
+  type: string
+# Optional Parameters  
+- name: configuration
+  type: string
+  default: Release
+
+steps:
+- task: DownloadPipelineArtifact@2
+  displayName: 'Download x64-linux debian package'
+  inputs:
+    artifactName: 'package-drop.${{ parameters.configuration }}.x64-linux'
+    targetPath: ${{ parameters.package_dir }}
+
+- task: CmdLine@2
+  displayName: 'Show downloaded files.'
+  inputs:
+    script: 'tree ${{ parameters.package_dir }}'

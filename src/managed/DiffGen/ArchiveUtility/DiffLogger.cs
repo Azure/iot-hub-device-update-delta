@@ -8,7 +8,6 @@ namespace ArchiveUtility
 {
     using System;
     using System.IO;
-    using System.Runtime.InteropServices;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -16,33 +15,39 @@ namespace ArchiveUtility
 
     public class DiffLogger : ILogger, IDisposable
     {
-        class Writer
+        public class Writer
         {
             private StreamWriter writer;
             private bool consoleLogging;
 
-            public Writer(string path) : this(path, true)
+            public Writer(string path)
+                : this(path, true)
             {
             }
 
             private Writer(string path, bool consoleLogging)
             {
                 this.consoleLogging = consoleLogging;
-
-                writer = File.AppendText(path);
+                this.writer = File.AppendText(path);
             }
 
             public void WriteLine(string msg)
             {
                 Task task = new Task(() =>
                 {
-                    lock (writer)
+                    lock (this.writer)
                     {
-                        writer.WriteLine(msg);
-                        writer.Flush();
+                        try
+                        {
+                            this.writer.WriteLine(msg);
+                            this.writer.Flush();
+                        }
+                        catch (System.ObjectDisposedException)
+                        {
+                        }
                     }
 
-                    if (consoleLogging)
+                    if (this.consoleLogging)
                     {
                         Console.WriteLine(msg);
                     }
@@ -58,16 +63,20 @@ namespace ArchiveUtility
         }
 
         public string LogPath { get; private set; }
+
         private Writer writer;
+
         public DiffLogger(string path)
         {
-            LogPath = path;
-            writer = new Writer(LogPath);
+            this.LogPath = path;
+            this.writer = new Writer(LogPath);
         }
+
         public IDisposable BeginScope<TState>(TState state) => default;
+
         public bool IsEnabled(LogLevel logLevel)
         {
-            return true;
+            return logLevel != LogLevel.None;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)

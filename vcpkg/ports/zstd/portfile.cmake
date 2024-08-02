@@ -7,6 +7,7 @@ vcpkg_from_github(
     PATCHES
         install_pkgpc.patch
         fix-c4703-error.patch
+		zstd-secure-build.patch
 )
 
 string(COMPARE EQUAL "${VCPKG_LIBRARY_LINKAGE}" "static" ZSTD_BUILD_STATIC)

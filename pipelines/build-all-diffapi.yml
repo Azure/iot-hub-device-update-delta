@@ -1,10 +1,16 @@
-trigger:
+schedules:
+- cron: "0 8 * * *"
+  displayName: Midnight Build
   branches:
     include:
     - main
+    - dev
+  always: true
 
 variables:
-- template: templates/version-variables.yml
+- template: /pipelines/variables/common-variables.yml@self
+- template: /pipelines/variables/arm-linux-variables.yml@self
+- template: /pipelines/variables/arm64-linux-variables.yml@self
 
 stages:
   # We require heterogenous environments for these jobs, so they
@@ -16,9 +22,10 @@ stages:
       pool:
         vmImage: 'windows-latest'
       steps:
-        - template: templates/build-native-x64-windows.yml
+        - template: /pipelines/templates/build-native.yml@self
           parameters:
-            configuration: 'Release'
+            build_target_os: windows
+            build_configuration: 'Release'
             version_suffix: '-Release'
 
     - job: BuildWindowsNativeCode_x64_windows_Debug
@@ -26,107 +33,49 @@ stages:
       pool:
         vmImage: 'windows-latest'
       steps:
-        - template: templates/build-native-x64-windows.yml
+        - template: /pipelines/templates/build-native.yml@self
           parameters:
-            configuration: 'Debug'
+            build_target_os: windows
+            build_configuration: 'Debug'
             version_suffix: '-Debug'
-
-    - job: CrossCompile_dumpextfs_x64_windows
-      displayName: 'Cross-Compile dumpextfs.exe - x64-windows'
-      pool:
-        vmImage: 'ubuntu-latest'
-      steps:
-        - template: templates/crosscompile-dumpextfs.yml
 
     - job: BuildLinuxNativeCodeRelease_x64
       displayName: 'Build Linux Native Code - x64-linux'
       pool:
-        vmImage: 'ubuntu-latest'
+        vmImage: 'ubuntu-20.04'
       steps:
-        - template: templates/all-native-linux.yml
+        - template: /pipelines/templates/build-native.yml@self
           parameters:
-            vcpkg_triplet: x64-linux
+            build_target_os: linux
+            build_platform: x64
+            version_suffix: '-Release'
 
     - job: BuildLinuxNativeCodeRelease_arm64
       displayName: 'Build Linux Native Code - arm64-linux'
       pool:
-        vmImage: 'ubuntu-latest'
+        vmImage: 'ubuntu-20.04'
       steps:
-        - template: templates/all-native-linux.yml
+        - template: /pipelines/templates/build-native.yml@self
           parameters:
-            vcpkg_triplet: arm64-linux
-            dependencies: gcc-aarch64-linux-gnu g++-aarch64-linux-gnu binutils-aarch64-linux-gnu g++-9-aarch64-linux-gnu
-            cmake_c_compiler: /usr/bin/aarch64-linux-gnu-gcc-9
-            cmake_cxx_compiler: /usr/bin/aarch64-linux-gnu-g++-9
-            test_dependencies: qemu-system-arm qemu-efi-aarch64 qemu-utils qemu-user
-            qemu_command: "qemu-aarch64 -L /usr/aarch64-linux-gnu "
+            build_target_os: linux
+            build_platform: arm64
+            version_suffix: '-Release'
+            cmake_c_compiler: $(arm64_linux_cmake_c_compiler)
+            cmake_cxx_compiler: $(arm64_linux_cmake_cxx_compiler)
+            dependencies: $(arm64_linux_dependencies)
+            qemu_command: $(arm64_linux_qemu_command)
 
     - job: BuildLinuxNativeCodeRelease_arm
       displayName: 'Build Linux Native Code - arm-linux'
       pool:
-        vmImage: 'ubuntu-latest'
+        vmImage: 'ubuntu-20.04'
       steps:
-        - template: templates/all-native-linux.yml
+        - template: /pipelines/templates/build-native.yml@self
           parameters:
-            vcpkg_triplet: arm-linux
-            dependencies: gcc make gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf g++-9-arm-linux-gnueabihf binutils-arm-linux-gnueabihf
-            cmake_c_compiler: /usr/bin/arm-linux-gnueabihf-gcc-9
-            cmake_cxx_compiler: /usr/bin/arm-linux-gnueabihf-g++-9
-            test_dependencies: qemu-system-arm qemu-utils qemu-user
-            qemu_command: "qemu-arm -L /usr/arm-linux-gnueabihf "
-
-  # Gather unsigned results and sign types that can be
-  # batched in separate jobs so we can do it in parallel
-  - stage: SignNativeCode
-    jobs:
-    - job: SignMicrosoftWin64Code
-      pool:
-        vmImage: 'windows-latest'
-      steps:
-        - template: templates/sign-microsoft-x64-windows.yml
-    - job: Sign3rdPartyWin64Code
-      pool:
-        vmImage: 'windows-latest'
-      steps:
-        - template: templates/sign-3rdParty-x64-windows.yml
-
-  # We need the signed binaries, so this needs to be a later stage.
-  # The work here is linear - one depends on the next (excepting tests),
-  # so doing it in a single job works well.
-  - stage: BuildSignPublishManagedCode
-    jobs:
-    - job: BuildManageCode
-      pool:
-        vmImage: 'windows-latest'
-      steps:
-        - template: templates/build-diffgen.yml
-
-  - stage: EndToEndTests
-    jobs:
-    - job: EndToEndTestsWindows
-      pool:
-        vmImage: 'windows-latest'
-      steps:
-        - template: templates/end-to-end-tests.yml
-          parameters:
-            diffgentool_artifact_name: diffgen-tool.Release.x64-windows
-
-    - job: EndToEndTestsUbuntuLatest
-      pool:
-        vmImage: 'ubuntu-latest'
-      steps:
-        - template: templates/end-to-end-tests.yml
-          parameters:
-            diffgentool_artifact_name: diffgen-tool.Release.x64-linux
-            install_dependencies_script: $(Build.SourcesDirectory)/build/install-diffgentool-x64-linux-deps.sh
-            post_download_artifact_script: $(Build.SourcesDirectory)/build/setup-diffgentool-x64-linux.sh
-
-    - job: EndToEndTestsUbuntu1804
-      pool:
-        vmImage: 'ubuntu-18.04'
-      steps:
-        - template: templates/end-to-end-tests.yml
-          parameters:
-            diffgentool_artifact_name: diffgen-tool.Release.x64-linux
-            install_dependencies_script: $(Build.SourcesDirectory)/build/install-diffgentool-x64-linux-deps.sh
-            post_download_artifact_script: $(Build.SourcesDirectory)/build/setup-diffgentool-x64-linux.sh
+            build_target_os: linux
+            build_platform: arm
+            version_suffix: '-Release'
+            cmake_c_compiler: $(arm_linux_cmake_c_compiler)
+            cmake_cxx_compiler: $(arm_linux_cmake_cxx_compiler)
+            dependencies: $(arm_linux_dependencies)
+            qemu_command: $(arm_linux_qemu_command)

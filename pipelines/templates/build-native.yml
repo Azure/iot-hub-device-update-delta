@@ -1,0 +1,244 @@
+# File: build_native.yml
+parameters:
+# Required Parameters
+- name: build_target_os
+  type: string
+# We could make this default to '', but then we could accidentally publish a standard package.
+# Better to require explicit setting to '' to elect for this behavior.
+- name: version_suffix
+  type: string
+
+# Optional Parameters
+- name: build_platform
+  type: string
+  default: x64
+- name: build_configuration
+  type: string
+  default: 'Release'
+- name: dependencies
+  type: string
+  default: ''
+- name: cmake_c_compiler
+  type: string
+  default: ''
+- name: cmake_cxx_compiler
+  type: string
+  default: ''
+- name: qemu_command
+  type: string
+  default: ''
+
+steps:
+  - template: /pipelines/variables/show-version-variables.yml@self
+  - template: /pipelines/variables/show-vcpkg-variables.yml@self
+  - template: /pipelines/variables/show-cmake-variables.yml@self
+
+  - task: CmdLine@2
+    displayName: 'Install Dependencies - Common (Linux)'
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    inputs:
+      script: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build autoconf autopoint g++ g++-9 libtool
+        dpkg-query -l
+
+  - ${{ if ne(parameters.dependencies, '') }}:
+    - task: CmdLine@2
+      displayName: 'Install Dependencies (Linux)'
+      condition: eq( variables['Agent.OS'], 'Linux' )
+      inputs:
+        script: |
+          sudo apt-get update
+          sudo apt-get install -y ${{ parameters.dependencies }}
+          dpkg-query -l
+
+  - task: CmdLine@2
+    displayName: 'Setup vcpkg (Linux)'
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    inputs:
+      script: |
+        chmod +x $(vcpkg_script).sh
+        $(vcpkg_script).sh $(vcpkg_dir) $(vcpkg_port_root) ${{ parameters.build_platform }}-${{parameters.build_target_os }}
+    env:
+      VCPKG_ROOT: $(vcpkg_dir)
+
+  - task: PowerShell@2
+    displayName: 'Setup vcpkg'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+    inputs:
+      filePath: $(vcpkg_script).ps1
+      arguments: $(vcpkg_dir) $(vcpkg_port_root) ${{ parameters.build_platform }}-${{parameters.build_target_os }}
+    env:
+      VCPKG_ROOT: $(vcpkg_dir)
+
+  - task: CmdLine@2
+    displayName: 'Dump vcpkg files (Linux)'
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    inputs:
+      script: tree $(vcpkg_dir) -f
+
+  - task: CmdLine@2
+    displayName: 'Dump vcpkg files (Windows)'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+    inputs:
+      script: tree $(vcpkg_dir) /f
+
+  - ${{ if ne(parameters.cmake_c_compiler, '') }}:
+    - task: CMake@1
+      inputs:
+        cmakeArgs: -S $(cmake_src_dir) -B $(cmake_output_root_dir) -DCMAKE_TOOLCHAIN_FILE=$(vcpkg_cmake_toolchain_file) -DVER_ADUDIFFAPI_VERSION:STRING=$(semver_version_commas) -DVER_ADUDIFFAPI_VERSION_STRING:STRING=$(informational_version)${{ parameters.version_suffix }} -DCMAKE_C_COMPILER=${{ parameters.cmake_c_compiler }} -DCMAKE_CXX_COMPILER=${{ parameters.cmake_cxx_compiler }} -DVCPKG_TARGET_TRIPLET=${{ parameters.build_platform }}-${{parameters.build_target_os }}
+      env:
+        VCPKG_ROOT: $(vcpkg_dir)
+
+  - ${{ if eq(parameters.cmake_c_compiler, '') }}:
+    - task: CMake@1
+      inputs:
+        cmakeArgs: -S $(cmake_src_dir) -B $(cmake_output_root_dir) -DCMAKE_TOOLCHAIN_FILE=$(vcpkg_cmake_toolchain_file) -DVER_ADUDIFFAPI_VERSION:STRING=$(semver_version_commas) -DVER_ADUDIFFAPI_VERSION_STRING:STRING=$(informational_version)${{ parameters.version_suffix }} -DVCPKG_TARGET_TRIPLET=${{ parameters.build_platform }}-${{parameters.build_target_os }}
+      env:
+        VCPKG_ROOT: $(vcpkg_dir)
+
+  - task: CmdLine@2
+    displayName: 'Dump CMake output (Linux)'
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    inputs:
+      script: tree $(cmake_output_root_dir) -f
+
+  - task: CmdLine@2
+    displayName: 'Dump CMake output (Windows)'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+    inputs:
+      script: tree $(cmake_output_root_dir) /f
+
+  - bash: |
+      cd $(cmake_output_root_dir)
+      make
+    displayName: 'Build Native Code via Make (Linux)'
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    env:
+      VCPKG_ROOT: $(vcpkg_dir)
+
+  - task: VSBuild@1
+    displayName: 'Build Native Code via VS (Windows)'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+    inputs:
+      solution: '$(cmake_output_root_dir)/adu_diffs.sln'
+      msbuildArgs: '-p:DebugSymbols=true'
+      platform: '${{parameters.build_platform }}'
+      configuration: ${{parameters.build_configuration }}
+    env:
+      VCPKG_ROOT: $(vcpkg_dir)
+
+  - task: CmdLine@2
+    displayName: 'Dump built files (Linux)'
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    inputs:
+      script: tree $(cmake_output_root_dir) -f
+
+  - task: CmdLine@2
+    displayName: 'Dump built files (Windows)'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+    inputs:
+      script: tree $(cmake_output_root_dir) /f
+
+  - task: CmdLine@2
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    displayName: 'Copy Unsigned Native Binaries (Linux)'
+    inputs:
+      script: |
+        chmod +x $(copy_native_binaries_script).sh
+        $(copy_native_binaries_script).sh $(cmake_output_root_dir) $(vcpkg_dir) $(native_binaries_drop_path)
+
+  - task: CmdLine@2
+    displayName: 'Copy Binaries from VCPKG (Linux)'
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    inputs:
+      script: |
+        cp $(vcpkg_dir)/packages/bsdiff_${{ parameters.build_platform }}-${{ parameters.build_target_os }}/bin/bsdiff_diff $(native_binaries_drop_path)/bsdiff
+        cp $(vcpkg_dir)/packages/bsdiff_${{ parameters.build_platform }}-${{ parameters.build_target_os }}/bin/bsdiff_patch $(native_binaries_drop_path)/bspatch
+
+  - pwsh: $(copy_native_binaries_script).ps1 $(cmake_output_root_dir) $(vcpkg_dir) ${{ parameters.build_configuration }} $(native_binaries_drop_path)
+    displayName: 'Copy Unsigned Native Binaries (Windows)'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
+  - task: PowerShell@2
+    displayName: 'Setup vcpkg'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+    inputs:
+      filePath: $(vcpkg_script).ps1
+      arguments: $(vcpkg_dir) $(vcpkg_port_root) ${{ parameters.build_platform }}-${{parameters.build_target_os }}
+    env:
+      VCPKG_ROOT: $(vcpkg_dir)
+
+  - task: PowerShell@2
+    displayName: 'Copy Binaries from VCPKG (Windows)'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+    inputs:
+      targetType: inline
+      script: |
+        copy $(vcpkg_dir)/packages/bsdiff_${{ parameters.build_platform }}-${{ parameters.build_target_os }}/bin/bsdiff_diff.exe $(native_binaries_drop_path)/bsdiff.exe
+        copy $(vcpkg_dir)/packages/bsdiff_${{ parameters.build_platform }}-${{ parameters.build_target_os }}/bin/bsdiff_patch.exe $(native_binaries_drop_path)/bspatch.exe
+        copy $(vcpkg_dir)/packages/jsoncpp_${{ parameters.build_platform }}-${{ parameters.build_target_os }}/bin/jsoncpp.dll $(native_binaries_drop_path)/jsoncpp.dll
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Binaries'
+    inputs:
+      targetPath: '$(native_binaries_drop_path)'
+      artifactType: 'pipeline'
+      artifactName: 'unsigned-binaries-drop.${{ parameters.build_configuration }}.${{ parameters.build_platform }}-${{ parameters.build_target_os }}'
+
+  - task: CmdLine@2
+    displayName: 'Copy Tests (Linux)'
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    inputs:
+      script: |
+        chmod +x $(copy_gtests_script).sh
+        $(copy_gtests_script).sh $(cmake_output_root_dir) $(native_gtests_drop_path)
+
+  - pwsh: $(copy_gtests_script).ps1 $(cmake_output_root_dir) $(native_gtests_drop_path)
+    displayName: 'Copy Tests (Windows)'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
+  - task: PublishPipelineArtifact@1
+    displayName: 'Publish Tests'
+    inputs:
+      targetPath: '$(native_gtests_drop_path)'
+      artifactType: 'pipeline'
+      artifactName: 'tests-drop.${{ parameters.build_configuration }}.${{ parameters.build_platform }}-${{ parameters.build_target_os }}'
+
+  - task: CmdLine@2
+    displayName: 'Run Tests (Linux)'
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    inputs:
+      script: |
+        chmod +x $(run_gtests_script).sh
+        $(run_gtests_script).sh $(cmake_output_root_dir) $(Build.SourcesDirectory)/data "${{ parameters.qemu_command }}"
+
+  - pwsh: $(run_gtests_script).ps1 $(cmake_output_root_dir) $(Build.SourcesDirectory)/data
+    displayName: 'Run Tests (Windows)'
+    condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
+  - bash: |
+      cd $(cmake_output_root_dir)
+      cpack -G DEB -DVER_ADUDIFFAPI_VERSION:STRING=$(semver_version)
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    displayName: 'Create debian package'
+
+  - bash: |
+      test -e $(cmake_output_root_dir)/_CPack_Packages/Linux/DEB/PreinstallOutput.log && cat $(cmake_output_root_dir)/_CPack_Packages/Linux/DEB/PreinstallOutput.log
+      ls -R $(cmake_output_root_dir)/_packages
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    displayName: 'Show package output'
+
+  - bash: |
+      mkdir -p $(package_publish_dir)
+      cp  $(cmake_output_root_dir)/_packages/*.deb $(package_publish_dir)
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    displayName: 'Copy packages to staging directory'
+
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: $(package_publish_dir)
+      artifactType: 'pipeline'
+      artifactName: 'package-drop.${{ parameters.build_configuration }}.${{ parameters.build_platform }}-${{parameters.build_target_os }}'
+    condition: eq( variables['Agent.OS'], 'Linux' )
+    displayName: 'Publish package artifact'

@@ -10,17 +10,19 @@ namespace Ext4Archives
     using System.Diagnostics;
     using System.IO;
     using System.Runtime.InteropServices;
-
-    using Microsoft.Extensions.Logging;
-
-    using ArchiveUtility;
     using System.Threading;
 
-    public class Ext4Archive : IArchive
-    {
-        const int FIVE_MINUTES_IN_MILLISECONDS = 5 * 60 * 1000;
+    using ArchiveUtility;
+    using Microsoft.Extensions.Logging;
 
-        public static string DUMPEXTFS_EXE_PATH
+    public class Ext4Archive : ArchiveImpl
+    {
+        private const int FiveMinutesInMilliseconds = 5 * 60 * 1000;
+        private const int CleanupRetries = 5;
+        private const int OneSecondInMilliseconds = 1000;
+        private const int CleanupRetrySleep = OneSecondInMilliseconds;
+
+        public static string DumpextfsPath
         {
             get
             {
@@ -33,32 +35,23 @@ namespace Ext4Archives
             }
         }
 
-        public string ArchiveType => "Ext4";
-        public string ArchiveSubtype => "base";
+        public override string ArchiveType => "ext4";
 
-        private ArchiveLoaderContext Context;
+        public override string ArchiveSubtype => "base";
 
         public Ext4Archive(ArchiveLoaderContext context)
+            : base(context)
         {
-            Context = context;
         }
 
-        private bool hasTriedProcessing = false;
-
-        private ArchiveTokenization tokenization = null;
-
-        const int CLEANUP_RETRIES = 5;
-        const int ONE_SECOND_IN_MILLISECONDS = 1000;
-        const int CLEANUP_RETRY_SLEEP = ONE_SECOND_IN_MILLISECONDS;
-
-        void Cleanup(string path)
+        private void Cleanup(string path)
         {
             if (!File.Exists(path))
             {
                 return;
             }
 
-            for (int retry = 0; retry < CLEANUP_RETRIES; retry++)
+            for (int retry = 0; retry < CleanupRetries; retry++)
             {
                 try
                 {
@@ -66,16 +59,14 @@ namespace Ext4Archives
                 }
                 catch (IOException)
                 {
-                    Thread.Sleep(CLEANUP_RETRY_SLEEP);
+                    Thread.Sleep(CleanupRetrySleep);
                 }
             }
         }
 
-        void TryTokenize()
+        public override bool TryTokenize(ItemDefinition archiveItem, out ArchiveTokenization tokens)
         {
-            hasTriedProcessing = true;
-
-            string tempJsonPath = Path.GetTempFileName();
+            string jsonFile = archiveItem.GetExtractionPath(Context.WorkingFolder) + ".ext4.json";
 
             try
             {
@@ -87,75 +78,61 @@ namespace Ext4Archives
                     process.StartInfo.UseShellExecute = false;
                     process.StartInfo.CreateNoWindow = true;
                     process.StartInfo.RedirectStandardOutput = true;
-                    process.StartInfo.FileName = ProcessHelper.GetPathInRunningDirectory(DUMPEXTFS_EXE_PATH);
-                    process.StartInfo.Arguments = $"\"{archivePath}\" \"{tempJsonPath}\"";
+                    process.StartInfo.FileName = ProcessHelper.GetPathInRunningDirectory(DumpextfsPath);
+                    process.StartInfo.Arguments = $"\"{archivePath}\" \"{jsonFile}\"";
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardError = true;
+
+                    process.OutputDataReceived += (sender, e) =>
+                    {
+                        if (e.Data is not null)
+                        {
+                            Context.Logger.LogInformation(e.Data);
+                        }
+                    };
+
+                    process.ErrorDataReceived += (sender, e) =>
+                    {
+                        if (e.Data is not null)
+                        {
+                            Context.Logger.LogError(e.Data);
+                        }
+                    };
 
                     process.StartAndReport();
-                    process.WaitForExit(FIVE_MINUTES_IN_MILLISECONDS, Context.CancellationToken);
+                    process.BeginOutputReadLine();
+                    process.BeginErrorReadLine();
+                    process.WaitForExit(FiveMinutesInMilliseconds, Context.CancellationToken);
 
                     if (!process.HasExited)
                     {
-                        throw new Exception($"{DUMPEXTFS_EXE_PATH} failed to load file within timeout of {FIVE_MINUTES_IN_MILLISECONDS} milliseconds.");
+                        throw new Exception($"{DumpextfsPath} failed to load file within timeout of {FiveMinutesInMilliseconds} milliseconds.");
                     }
 
                     if (process.ExitCode != 0)
                     {
-                        throw new Exception($"{DUMPEXTFS_EXE_PATH} failed to parse the provided file. Exit Code: {process.ExitCode}");
+                        throw new Exception($"{DumpextfsPath} failed to parse the provided file: {archivePath}. Exit Code: {process.ExitCode}");
                     }
 
-                    tokenization = ArchiveTokenization.FromJsonPath(tempJsonPath);
+                    tokens = ArchiveTokenization.FromJsonPath(jsonFile);
                 }
             }
             catch (Exception e)
             {
-                if (Context.Logger != null)
+                if (Context.Logger is not null)
                 {
-                    Context.Logger.LogInformation($"[Tokenization of file as ext4 failed. Error: {e.Message}]");
+                    Context.Logger.Log(Context.LogLevel, "[Tokenization of file as ext4 failed. Error: {msg}]", e.Message);
+                    if (File.Exists(jsonFile))
+                    {
+                        Context.Logger.Log(Context.LogLevel, "[ext4 JsonFile: {jsonFile}]", jsonFile);
+                    }
                 }
-                tokenization = null;
-            }
-            finally
-            {
-                Cleanup(tempJsonPath);
-            }
-        }
 
-        public bool IsMatchingFormat()
-        {
-            if (Context.TokenCache.ContainsKey(GetType()))
-            {
-                return true;
+                tokens = null;
+                return false;
             }
 
-            if (!hasTriedProcessing)
-            {
-                TryTokenize();
-                if (tokenization != null)
-                {
-                    Context.TokenCache[GetType()] = tokenization;
-                }
-            }
-
-            return tokenization != null;
-        }
-
-        public ArchiveTokenization Tokenize()
-        {
-            if (Context.TokenCache.ContainsKey(GetType()))
-            {
-                return Context.TokenCache[GetType()];
-            }
-
-            if (!hasTriedProcessing)
-            {
-                TryTokenize();
-                if (tokenization != null)
-                {
-                    Context.TokenCache[GetType()] = tokenization;
-                }
-            }
-
-            return tokenization;
+            return true;
         }
     }
 }

@@ -1,0 +1,38 @@
+<Project>
+  <PropertyGroup>
+    <!-- Default TargetFramework for .NET projects -->
+    <NetFrameworkVersion>net8.0</NetFrameworkVersion>
+    <!-- Default TargetFramework for .NET Standard projects -->
+    <NetStandardVersion>netstandard2.0</NetStandardVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Set the default TargetFramework -->
+  <PropertyGroup>
+    <TargetFramework>$(NetFrameworkVersion)</TargetFramework>
+  </PropertyGroup>
+
+  <!-- Solution Directory -->
+  <PropertyGroup>
+    <SolutionRoot>$(MSBuildThisFileDirectory)</SolutionRoot>
+  </PropertyGroup>
+
+  <!-- Common package references -->
+  <ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <!-- Style cop settings -->
+  <PropertyGroup>
+    <WarningLevel>4</WarningLevel>
+    <NoWarn>SA0001</NoWarn>
+  </PropertyGroup>
+
+  <!-- Additional files -->
+  <ItemGroup>
+    <AdditionalFiles Include="$(SolutionRoot)\stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
+</Project>

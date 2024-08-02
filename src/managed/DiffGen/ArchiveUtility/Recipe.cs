@@ -4,319 +4,110 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Text.Json.Serialization;
-using System.Text.Json;
-
 namespace ArchiveUtility
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
+
     public enum RecipeType : byte
     {
-        Copy = 0,
-        Region,
-        Concatenation,
-        ApplyBsDiff,
-        ApplyNestedDiff,
-        Remainder,
-        InlineAsset,
-        CopySource,
-        ApplyZstdDelta,
-        InlineAssetCopy,
+        AllZeros,
+        Chain,
+        Slice,
+        BsPatchDecompression,
+        ZlibCompression,
+        ZlibDecompression,
         ZstdCompression,
         ZstdDecompression,
-        AllZero,
-        GzDecompression,
     }
 
-    public abstract class Recipe
+    [SuppressMessage("Microsoft.StyleCop.CSharp.ReadabilityRules", "SA1121", Justification = "We want to be explicit about bit-width using these aliases.")]
+    public class Recipe
     {
-        public abstract string Name { get; }
-        public abstract RecipeType Type { get; }
-        protected abstract List<string> ParameterNames { get; }
-        private Dictionary<string, RecipeParameter> ParameterDictionary { get; set; } = new();
-        public Recipe()
-        {
-        }
-        public Recipe(params RecipeParameter[] recipeParameters)
-        {
-            ParameterDictionary = InitializeParameters(recipeParameters);
-        }
-        public Recipe(params ArchiveItem[] archiveItemParameters)
-        {
-            var recipeParameters = archiveItemParameters.Select(r => new ArchiveItemRecipeParameter(r)).ToArray();
-            ParameterDictionary = InitializeParameters(recipeParameters);
-        }
+        public string Name { get; init; }
 
-        public virtual void SetParameter(string name, RecipeParameter value)
+        public ItemDefinition Result { get; init; }
+
+        public List<UInt64> NumberIngredients { get; init; }
+
+        public List<ItemDefinition> ItemIngredients { get; init; }
+
+        private int? HashCodeCache = null;
+
+        public static string RecipeTypeToString(RecipeType type)
         {
-            if (!ParameterNames.Contains(name))
+            switch (type)
             {
-                throw new Exception($"Trying to add unsupported parameter to recipe. RecipeType: {this.Type}, Name: {name}");
+            case RecipeType.AllZeros: return "all_zeros";
+            case RecipeType.Chain: return "chain";
+            case RecipeType.Slice: return "slice";
+            case RecipeType.BsPatchDecompression: return "bspatch_decompression";
+            case RecipeType.ZlibDecompression: return "zlib_decompression";
+            case RecipeType.ZlibCompression: return "zlib_compression";
+            case RecipeType.ZstdCompression: return "zstd_compression";
+            case RecipeType.ZstdDecompression: return "zstd_decompression";
             }
 
-            ParameterDictionary[name] = value;
-        }
-        public RecipeParameter GetParameter(string name)
-        {
-            return ParameterDictionary[name];
+            throw new Exception($"Unexpected recype type: {type}");
         }
 
-        public IEnumerable<Tuple<string, RecipeParameter>> GetParameters()
+        public Recipe(RecipeType recipeType, ItemDefinition result, List<UInt64> numbers, List<ItemDefinition> items)
+            : this(RecipeTypeToString(recipeType), result, numbers, items)
         {
-            if (ParameterNames.Count != ParameterDictionary.Count)
+        }
+
+        public Recipe(string name, ItemDefinition result, List<UInt64> numbers, List<ItemDefinition> items)
+        {
+            if (items.Any(x => x.Equals(result)))
             {
-                throw new Exception($"GetParameters(): Invalid Recipe Parameters: ParameterNames.Count ({ParameterNames.Count}) must match ParameterDictionary.Count ({ParameterDictionary.Count})");
-            }
-            return ParameterNames.Select(n => new Tuple<string, RecipeParameter>(n, ParameterDictionary[n]));
-        }
-        public virtual void CopyTo(Stream archiveStream, Stream stream)
-        {
-            throw new NotImplementedException();
-        }
-        public virtual Recipe ReplaceItem(ArchiveItem itemOld, ArchiveItem itemNew)
-        {
-            var copy = DeepCopy();
-
-            var parameters = GetParameters();
-
-            foreach (var parameter in parameters)
-            {
-                var paramName = parameter.Item1;
-                var paramValue = parameter.Item2;
-
-                if (paramValue.Type == RecipeParameterType.ArchiveItem)
-                {
-                    var itemParam = paramValue as ArchiveItemRecipeParameter;
-                    var item = itemParam.Item;
-                    var paramReplaced = new ArchiveItemRecipeParameter(item.ReplaceItem(itemOld, itemNew));
-
-                    copy.SetParameter(paramName, paramReplaced);
-                }
+                throw new Exception($"Creating self referential recipe! Name: {name}, Result: {result}");
             }
 
-            return copy;
+            Name = name;
+            Result = result;
+            NumberIngredients = numbers;
+            ItemIngredients = items;
         }
-        public abstract Recipe DeepCopy();
-        protected ulong GetNumberParameter(string name)
-        {
-            if (!ParameterDictionary.TryGetValue(name, out RecipeParameter param))
-            {
-                throw new Exception($"{name} wasn't present.");
-            }
-            var numberParam = (NumberRecipeParameter)param;
-            return numberParam.Number;
-        }
-        protected ArchiveItem GetArchiveItemParameter(string name)
-        {
-            if (!ParameterDictionary.TryGetValue(name, out RecipeParameter param))
-            {
-                throw new Exception($"{name} wasn't present.");
-            }
-            var archiveItemParameter = (ArchiveItemRecipeParameter)param;
-            return archiveItemParameter.Item;
-        }
-        protected virtual Dictionary<string, RecipeParameter> InitializeParameters(RecipeParameter[] recipeParameters)
-        {
-            var parameterDictionary = new Dictionary<string, RecipeParameter>();
 
-            if (recipeParameters.Length != 0)
+        public override int GetHashCode()
+        {
+            if (!HashCodeCache.HasValue)
             {
-                if (recipeParameters.Length != ParameterNames.Count)
-                {
-                    throw new Exception($"Expecting {ParameterNames.Count} parameter(s), but there are {recipeParameters.Length} parameter(s).");
-                }
-
-                for (int i = 0; i < recipeParameters.Length; i++)
-                {
-                    parameterDictionary[ParameterNames[i]] = recipeParameters[i];
-                }
+                ComputeHashCode();
             }
 
-            return parameterDictionary;
+            return HashCodeCache.Value;
         }
-        public virtual void SetParameters(Dictionary<string, RecipeParameter> parameterDictionary)
+
+        private void ComputeHashCode()
         {
-            if (ParameterDictionary.Count != 0)
+            int hashCode = Name.GetHashCode();
+
+            hashCode = HashCode.Combine(hashCode, Result.GetHashCode());
+
+            foreach (var number in NumberIngredients)
             {
-                throw new Exception("Cannot set ParametersDictionary after it has been initialized.");
+                hashCode = HashCode.Combine(hashCode, number.GetHashCode());
             }
 
-            ParameterDictionary = parameterDictionary;
-        }
-        public static Recipe ReplaceItem(Recipe recipe, ArchiveItem itemOld, ArchiveItem itemNew)
-        {
-            if (recipe.Type == RecipeType.Copy)
+            foreach (var item in ItemIngredients)
             {
-                var copyRecipe = recipe as CopyRecipe;
-                if (copyRecipe.Item == itemOld)
-                {
-                    return itemNew.Recipes[0];
-                }
-
-                return recipe;
+                hashCode = HashCode.Combine(hashCode, item.GetHashCode());
             }
 
-            return recipe.ReplaceItem(itemOld, itemNew);
+            HashCodeCache = hashCode;
         }
-        public static Recipe DeepCopy<T>(Recipe original) where T : Recipe, new()
+
+        public override bool Equals(object obj)
         {
-            var copy = new T();
-
-            var parameters = original.GetParameters();
-
-            foreach (var parameter in parameters)
+            if (obj is not Recipe)
             {
-                var paramName = parameter.Item1;
-                var paramValue = parameter.Item2;
-                RecipeParameter paramCopy = paramValue.DeepCopy();
-
-                copy.SetParameter(paramName, paramCopy);
+                return false;
             }
 
-            return copy;
-        }
-
-        public bool DependsOnArchiveItemId(string id)
-        {
-            return ParameterDictionary.Values.Any(param => param.DependsOnArchiveItemId(id));
-        }
-        public IList<ArchiveItem> GetDependencies()
-        {
-            List<ArchiveItem> dependencies = new();
-
-            foreach (var param in ParameterDictionary.Values)
-            {
-                switch (param.Type)
-                {
-                    case RecipeParameterType.ArchiveItem:
-                        var item = ((ArchiveItemRecipeParameter)param).Item;
-
-                        if (item.Recipes.Count > 0)
-                        {
-                            var recipe = item.Recipes[0];
-                            dependencies.AddRange(recipe.GetDependencies());
-                        }
-
-                        dependencies.Add(item);
-
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return dependencies;
-        }
-        public virtual bool IsCompressedDependency(ArchiveItem dependency)
-        {
-            foreach (var param in ParameterDictionary.Values)
-            {
-                switch (param.Type)
-                {
-                    case RecipeParameterType.ArchiveItem:
-                        var item = ((ArchiveItemRecipeParameter)param).Item;
-
-                        if (item.Recipes.Count > 0)
-                        {
-                            return item.Recipes[0].IsCompressedDependency(dependency);
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-
-            return false;
-        }
-
-        public Recipe Export()
-        {
-            if (Type == RecipeType.Copy)
-            {
-                var copyRecipe = this as CopyRecipe;
-                var item = copyRecipe.Item;
-                if (item.Type == ArchiveItemType.Chunk)
-                {
-                    if (!item.Offset.HasValue)
-                    {
-                        throw new Exception($"Chunk {item.Name}({item.Id}) had no offset.");
-                    }
-                    return new CopySourceRecipe(item.Offset.Value);
-                }
-            }
-
-            var newRecipe = DeepCopy();
-            foreach (var paramName in newRecipe.ParameterDictionary.Keys)
-            {
-                var paramValue = newRecipe.ParameterDictionary[paramName];
-                newRecipe.ParameterDictionary[paramName] = paramValue.Export();
-            }
-            return newRecipe;
-        }
-
-        public static Recipe Create(string recipeName)
-        {
-            var assembly = Assembly.GetAssembly(typeof(Recipe));
-
-            var assemblyName = assembly.GetName().Name;
-
-            string recipeTypeName = $"{assemblyName}.{recipeName}Recipe";
-
-            Type recipeType = assembly.GetType(recipeTypeName);
-            if (recipeType == null)
-            {
-                throw new Exception($"Could not find recipe for name: {recipeName}");
-            }
-
-            var ctor = recipeType.GetConstructor(new Type[0]);
-
-            var recipe = (Recipe) ctor.Invoke(new object[0]);
-
-            return recipe;
-        }
-    }
-
-    public class RecipeMethodJsonConverter : JsonConverter<Recipe>
-    {
-        public override Recipe Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            reader.CheckStartObject();
-
-            string name = reader.ReadStringProperty("Name");
-
-            Recipe recipe = Recipe.Create(name);
-
-            var parameterDictionary = reader.ReadObjectProperty<Dictionary<string, RecipeParameter>>("Parameters", options);
-
-            recipe.SetParameters(parameterDictionary);
-
-            reader.ReadEndObject();
-
-            return recipe;
-        }
-
-        public override void Write(Utf8JsonWriter writer, Recipe value, JsonSerializerOptions options)
-        {
-            writer.WriteStartObject();
-
-            writer.WriteStringProperty("Name", value.Name);
-
-            writer.WritePropertyName("Parameters");
-
-            Dictionary<string, RecipeParameter> paramDictionary = new();
-            var parameters = value.GetParameters();
-            foreach (var parameter in parameters)
-            {
-                paramDictionary[parameter.Item1] = parameter.Item2;
-            }
-
-            JsonSerializer.Serialize(writer, paramDictionary, options);
-
-            writer.WriteEndObject();
+            return GetHashCode() == obj.GetHashCode();
         }
     }
 }

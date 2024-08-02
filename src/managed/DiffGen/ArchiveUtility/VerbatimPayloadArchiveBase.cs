@@ -4,118 +4,154 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
+namespace ArchiveUtility;
+
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Text;
 
-namespace ArchiveUtility
+[SuppressMessage("Microsoft.StyleCop.CSharp.ReadabilityRules", "SA1121", Justification = "We want to be explicit about bit-width using these aliases.")]
+public abstract class VerbatimPayloadArchiveBase : ArchiveImpl
 {
-    public abstract class VerbatimPayloadArchiveBase : IArchive
+    public VerbatimPayloadArchiveBase(ArchiveLoaderContext context)
+        : base(context)
     {
-        protected ArchiveLoaderContext Context;
-        protected abstract void ReadHeader(BinaryReader reader, UInt64 offset, out ArchiveItem chunk, out string payloadName, out UInt64 payloadLength);
-        public bool IsMatchingFormat()
+    }
+
+    public record HeaderDetails(ItemDefinition Item, Recipe Recipe, string PayloadName, UInt64 PayloadLength)
+    {
+        public HeaderDetails()
+            : this(null, null, string.Empty, 0)
         {
-            try
-            {
-                Context.Stream.Seek(0, SeekOrigin.Begin);
-                using var reader = new BinaryReader(Context.Stream, Encoding.Default, true);
-                ReadHeader(reader, 0, out ArchiveItem chunk, out string payloadName, out UInt64 payloadLength);
-
-                if (payloadLength < 0)
-                {
-                    throw new FormatException("Payload length in first chunk is negative.");
-                }
-
-                UInt64 remainingStreamData = (UInt64) (reader.BaseStream.Length - reader.BaseStream.Position);
-                if (payloadLength > remainingStreamData)
-                {
-                    throw new FormatException("Payload for first chunk extends past end of stream.");
-                }
-
-                return true;
-            }
-            catch (FormatException)
-            {
-            }
-            catch (ArgumentException)
-            {
-            }
-            return false;
         }
-        protected abstract bool DoneTokenizing { get; }
-        protected abstract bool SkipPayloadToken { get; }
-        protected abstract Encoding StreamEncoding { get; }
-        protected abstract UInt64 PayloadAlignment { get; }
-        public ArchiveTokenization Tokenize()
+    }
+
+    protected abstract HeaderDetails ReadHeader(BinaryReader reader);
+
+    public override bool IsMatchingFormat()
+    {
+        try
         {
-            if (Context.TokenCache.ContainsKey(GetType()))
-            {
-                return Context.TokenCache[GetType()];
-            }
-
-            ArchiveTokenization tokens = new(ArchiveType, ArchiveSubtype);
-
             Context.Stream.Seek(0, SeekOrigin.Begin);
-            var length = (UInt64) Context.Stream.Length;
+            using var reader = new BinaryReader(Context.Stream, Encoding.Default, true);
+            var headerDetails = ReadHeader(reader);
 
-            using (var reader = new BinaryReader(Context.Stream, StreamEncoding, true))
+            if (headerDetails.PayloadLength < 0)
             {
-                UInt64 offset = 0;
-
-                while (offset < length)
-                {
-                    ReadHeader(reader, offset, out ArchiveItem headerChunk, out string payloadName, out UInt64 payloadLength);
-                    tokens.ArchiveItems.Add(headerChunk);
-
-                    if (DoneTokenizing)
-                    {
-                        break;
-                    }
-
-                    offset += headerChunk.Length;
-
-                    if (SkipPayloadToken)
-                    {
-                        continue;
-                    }
-
-                    ReadPayload(reader, payloadLength, payloadName, out ArchiveItem payload);
-
-                    var payloadChunkName = ArchiveItem.MakeChunkName(payloadName);
-                    ArchiveItem payloadChunk = new(payloadChunkName, ArchiveItemType.Chunk, (UInt64)offset, (UInt64)payloadLength, null, payload.Hashes);
-
-                    Recipe payloadRecipe = new CopyRecipe(payloadChunk.MakeReference());
-                    Recipe chunkRecipe = new CopyRecipe(payload.MakeReference());
-
-                    payloadChunk.Recipes.Add(chunkRecipe);
-                    payload.Recipes.Add(payloadRecipe);
-
-                    tokens.ArchiveItems.Add(payloadChunk);
-                    tokens.ArchiveItems.Add(payload);
-
-                    offset += payloadLength;
-
-                    UInt64 paddingNeeded = BinaryData.GetPaddingNeeded(offset, PayloadAlignment);
-                    if (paddingNeeded != 0)
-                    {
-                        var name = ArchiveItem.MakePaddingChunkName(offset);
-                        var paddingChunk = ArchiveItem.FromBinaryReader(name, ArchiveItemType.Chunk, reader, paddingNeeded, offset);
-                        tokens.ArchiveItems.Add(paddingChunk);
-                        offset += paddingNeeded;
-                    }
-                }
+                // Payload length in first chunk is negative.
+                return false;
             }
 
-            Context.TokenCache[GetType()] = tokens;
-            return tokens;
+            UInt64 remainingStreamData = (UInt64)(reader.BaseStream.Length - reader.BaseStream.Position);
+            if (headerDetails.PayloadLength > remainingStreamData)
+            {
+                // Payload for first chunk extends past end of stream.
+                return false;
+            }
+
+            return true;
         }
-        public abstract string ArchiveType { get; }
-        public abstract string ArchiveSubtype { get; }
-        protected static void ReadPayload(BinaryReader reader, UInt64 payloadLength, string payloadName, out ArchiveItem payload)
+        catch (FormatException)
         {
-            payload = ArchiveItem.FromBinaryReader(payloadName, ArchiveItemType.Payload, reader, payloadLength);
         }
+        catch (ArgumentException)
+        {
+        }
+
+        return false;
+    }
+
+    protected abstract bool DoneTokenizing { get; }
+
+    protected abstract bool SkipPayloadToken { get; }
+
+    protected abstract Encoding StreamEncoding { get; }
+
+    protected abstract UInt64 PayloadAlignment { get; }
+
+    protected void AddChunk(ArchiveTokenization tokens, ulong offset, ItemDefinition item)
+    {
+        Recipe chunkRecipe = new(RecipeType.Slice, item, new() { offset }, new List<ItemDefinition>() { tokens.ArchiveItem });
+        tokens.AddReverseRecipe(chunkRecipe);
+    }
+
+    private void ReadChunk(BinaryReader reader, ArchiveTokenization tokens, ref UInt64 offset, out bool doneTokenizing)
+    {
+        var headerDetails = ReadHeader(reader);
+
+        var headerItem = headerDetails.Item;
+
+        AddChunk(tokens, offset, headerItem);
+
+        offset += headerItem.Length;
+
+        if (headerDetails.Recipe != null)
+        {
+            tokens.AddRecipe(headerDetails.Recipe);
+        }
+
+        if (DoneTokenizing)
+        {
+            doneTokenizing = true;
+            return;
+        }
+
+        if (SkipPayloadToken)
+        {
+            doneTokenizing = false;
+            return;
+        }
+
+        var payloadItem = ReadPayload(reader, headerDetails.PayloadLength, headerDetails.PayloadName);
+        tokens.AddRootPayload(headerDetails.PayloadName, payloadItem);
+
+        AddChunk(tokens, offset, payloadItem);
+
+        offset += payloadItem.Length;
+
+        UInt64 paddingNeeded = BinaryData.GetPaddingNeeded(offset, PayloadAlignment);
+        if (paddingNeeded != 0)
+        {
+            var name = ChunkNames.MakePaddingChunkName(offset);
+            var paddingItem = ItemDefinition.FromBinaryReader(reader, paddingNeeded).WithName(name);
+
+            AddChunk(tokens, offset, paddingItem);
+            offset += paddingItem.Length;
+        }
+
+        doneTokenizing = false;
+    }
+
+    public override bool TryTokenize(ItemDefinition archiveItem, out ArchiveTokenization tokens)
+    {
+        ArchiveTokenization newTokens = new(ArchiveType, ArchiveSubtype);
+
+        newTokens.ArchiveItem = archiveItem;
+        Context.Stream.Seek(0, SeekOrigin.Begin);
+        var length = (UInt64)Context.Stream.Length;
+
+        using var reader = new BinaryReader(Context.Stream, StreamEncoding, true);
+
+        UInt64 offset = 0;
+
+        while (offset < length)
+        {
+            ReadChunk(reader, newTokens, ref offset, out bool doneTokenizing);
+
+            if (doneTokenizing)
+            {
+                break;
+            }
+        }
+
+        tokens = newTokens;
+        return true;
+    }
+
+    protected static ItemDefinition ReadPayload(BinaryReader reader, UInt64 payloadLength, string payloadName)
+    {
+        return ItemDefinition.FromBinaryReader(reader, payloadLength).WithName(payloadName);
     }
 }
