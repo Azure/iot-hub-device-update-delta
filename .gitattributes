@@ -1,10 +1,9 @@
 # Disable CRLF-mapping for all files.
 * -text
-
 *.sh -crlf
-
-*.ext4 -text
+*.ext4 filter=lfs diff=lfs merge=lfs -text
 *.zst -text
 *.dat -text
 *.deflate -text
 *.swu -text
+*.zip filter=lfs diff=lfs merge=lfs -text
