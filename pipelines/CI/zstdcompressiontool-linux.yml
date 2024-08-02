@@ -1,0 +1,69 @@
+trigger:
+- main
+
+schedules:
+- cron: "0 8 * * *"
+  displayName: Midnight Build
+  branches:
+    include:
+    - main
+    - dev
+  always: true
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  - name: buildPlatform
+    value: 'x64'
+  - name: zstd_compress_file_build_dir
+    value: $(Agent.BuildDirectory)/zstd_compress_file-build
+  - name: python_test_dir
+    value: $(Build.SourcesDirectory)/src/scripts/recompress_swu/tests
+  - name: vcpkg_triplet
+    value: $(buildPlatform)-linux
+  - template: /pipelines/variables/vcpkg-variables.yml@self
+
+steps:
+- bash: |
+    sudo apt-get install -y g++-9
+    sudo apt-get install -y g++
+    sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 10
+    sudo apt-get install -y pkg-config libmhash-dev cmake curl zip unzip tar autoconf autopoint libtool python3 python3-pip
+    pip3 install libconf zstandard
+  displayName: 'Install Dependencies'
+
+- bash: |
+    cat $(vcpkg_script).sh
+  displayName: 'Dump setup_vcpkg.sh'
+
+- bash: |
+    chmod +x $(vcpkg_script).sh
+    $(vcpkg_script).sh $(vcpkg_dir) $(vcpkg_port_root) $(vcpkg_triplet)
+  displayName: 'Setup VCPKG'
+  env:
+    VCPKG_ROOT: $(vcpkg_dir)
+
+- task: CMake@1
+  inputs:
+    cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(zstd_compress_file_build_dir) -DCMAKE_TOOLCHAIN_FILE=$(vcpkg_cmake_toolchain_file)
+  env:
+    VCPKG_ROOT: $(vcpkg_dir)
+
+- bash: |
+    cd $(zstd_compress_file_build_dir)
+    make
+  displayName: 'Make zstd_compress_file'
+  env:
+    VCPKG_ROOT: $(vcpkg_dir)
+
+- bash: |
+    ls -R $(zstd_compress_file_build_dir)
+  displayName: 'Show zstd_compress_file build contents'
+
+- template: /pipelines/templates/download-swu-media.yml@self
+
+- bash: |
+    cd $(python_test_dir)
+    python3 test_integration.py --zstd_compress_file $(zstd_compress_file_build_dir)/tools/zstd_compress_file/zstd_compress_file
+  displayName: 'Run tests'

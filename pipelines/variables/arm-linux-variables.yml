@@ -1,0 +1,6 @@
+# File: arm-linux-variables.yml
+variables:
+  arm_linux_cmake_c_compiler: /usr/bin/arm-linux-gnueabihf-gcc-9
+  arm_linux_cmake_cxx_compiler: /usr/bin/arm-linux-gnueabihf-g++-9
+  arm_linux_dependencies: gcc make gcc-arm-linux-gnueabihf g++-arm-linux-gnueabihf g++-9-arm-linux-gnueabihf binutils-arm-linux-gnueabihf qemu-system-arm qemu-utils qemu-user
+  arm_linux_qemu_command: 'qemu-arm -L /usr/arm-linux-gnueabihf'

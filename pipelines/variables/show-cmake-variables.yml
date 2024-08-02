@@ -1,0 +1,10 @@
+# File: show-version-variables.yml
+steps:
+- task: CmdLine@2
+  displayName: 'Show CMake Variables'
+  inputs:
+    targetType: inline
+    script: |
+      echo "cmake_src_dir: $(cmake_src_dir)"
+      echo "cmake_output_root_dir: $(cmake_output_root_dir)"
+      echo "diffapi_solution: $(diffapi_solution)"

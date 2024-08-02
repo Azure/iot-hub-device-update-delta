@@ -1,0 +1,42 @@
+# file: diffapi-windows-debug.yml
+trigger:
+  branches:
+    include:
+    - user/*
+  paths:
+    include:
+    - src
+    - pipelines/ci/diffapi-windows-debug.yml
+    - pipelines/templates/build-native-windows.yml
+    - pipelines/templates/build-managed-windows.yml
+
+schedules:
+- cron: "0 8 * * *"
+  displayName: Midnight Build
+  branches:
+    include:
+    - main
+    - dev
+  always: true
+
+pool:
+  vmImage: windows-latest
+
+variables:
+- template: /pipelines/variables/common-variables.yml@self
+- template: /pipelines/variables/diffgen-variables.yml@self
+
+steps:
+  - template: /pipelines/variables/show-version-variables.yml@self
+
+  - template: /pipelines/templates/build-native-windows.yml@self
+    parameters:
+      build_platform: x64
+      build_configuration: Debug
+      version_suffix: '-CI'
+
+  - template: /pipelines/templates/build-managed-windows.yml@self
+    parameters:
+      build_platform: x64
+      build_configuration: Debug
+      version_suffix: '-CI'

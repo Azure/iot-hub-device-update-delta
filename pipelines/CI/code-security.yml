@@ -1,0 +1,73 @@
+# File: code-security.yml
+# This pipeline performs various checks for security compliance
+trigger:
+  branches:
+    include:
+    - user/*
+  paths:
+    include:
+    - src
+
+schedules:
+- cron: "0 8 * * *"
+  displayName: Midnight Build
+  branches:
+    include:
+    - main
+    - dev
+  always: true
+
+pool:
+  vmImage: 'windows-latest'
+
+variables:
+- template: /pipelines/variables/common-variables.yml@self
+- template: /pipelines/variables/diffgen-variables.yml@self
+
+steps:
+- task: CredScan@3
+  displayName: Run CredScan
+  inputs:
+    outputFormat: pre
+    debugMode: false
+    verboseOutput: true
+
+- task: UseDotNet@2
+  displayName: 'Use .NET Standard sdk'
+  inputs:
+    packageType: sdk
+    version: $(diffgen_sdk_version)
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: NuGetToolInstaller@1
+
+- task: NuGetAuthenticate@1
+  inputs:
+    forceReinstallCredentialProvider: true
+
+- task: CmdLine@2
+  inputs:
+    script: |
+      cat $(Build.SourcesDirectory)/nuget.config
+  displayName: Show nuget.config
+
+- task: NuGetCommand@2
+  inputs:
+    feedsToUse: config
+    includeNuGetOrg: false
+    nugetConfigPath: $(Build.SourcesDirectory)/nuget.config
+    restoreSolution: '$(diffgen_solution)'
+
+- task: Semmle@1
+  inputs:
+    sourceCodeDirectory: '$(Build.SourcesDirectory)'
+    language: 'csharp'
+    querySuite: 'Recommended'
+    timeout: '1800'
+    ram: '16384'
+    addProjectDirToScanningExclusionList: true
+  displayName: Semmle C#
+
+- task: CodeInspector@2
+  inputs:
+    ProductId: 'd1c4191c-4bda-4143-9777-6894dfdc7140'

@@ -4,35 +4,37 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-
 namespace ArchiveUtility
 {
+    using System;
+    using System.Collections.Generic;
+    using System.ComponentModel;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     public static class ProcessHelper
     {
-        class ProcessEntry
+        private const int OneSecond = 1000;
+
+        public class ProcessEntry
         {
             public string ProcessName { get; set; }
+
             public string StartFileName { get; set; }
+
             public string StartArguments { get; set; }
+
             public int Id { get; set; }
+
             public DateTime StartTime { get; set; }
         }
 
-        class ProcessesReport
+        public class ProcessesReport
         {
             public List<ProcessEntry> Processes { get; set; } = new();
         }
-
-        const int ONE_SECOND = 1000;
 
         private static string ProcessesReportFilePath = null;
 
@@ -49,7 +51,8 @@ namespace ArchiveUtility
                     process.Kill();
                     cancellationToken.ThrowIfCancellationRequested();
                 }
-                process.WaitForExit(ONE_SECOND);
+
+                process.WaitForExit(OneSecond);
             }
 
             return process.HasExited;
@@ -75,7 +78,9 @@ namespace ArchiveUtility
                     {
                         JsonHelper.Serialize(CurrentProcessesReport, ProcessesReportFilePath);
                     }
-                    catch (Exception) { }
+                    catch (Exception)
+                    {
+                    }
                 }
             }
         }
@@ -99,9 +104,13 @@ namespace ArchiveUtility
                 //store this data and then write the report file
                 Task.Run(() => StoreAndReportProcess(processEntry));
             }
-            catch (InvalidOperationException) {}
-            catch (Win32Exception) {}
-            
+            catch (InvalidOperationException)
+            {
+            }
+            catch (Win32Exception)
+            {
+            }
+
             return ret;
         }
 

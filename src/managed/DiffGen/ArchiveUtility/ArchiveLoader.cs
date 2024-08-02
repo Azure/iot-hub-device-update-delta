@@ -4,30 +4,19 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using System.Threading;
-using Microsoft.Extensions.Logging;
-
 namespace ArchiveUtility
 {
-    public class ArchiveLoaderContext
-    {
-        public Stream Stream;
-        public string WorkingFolder;
-        public Dictionary<Type, ArchiveTokenization> TokenCache = new();
-        public ILogger Logger;
-        public CancellationToken CancellationToken = CancellationToken.None;
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Threading;
 
-        public ArchiveLoaderContext(Stream stream, string workingFolder)
-        {
-            Stream = stream;
-            WorkingFolder = workingFolder;
-        }
-    }
+    using Microsoft.Extensions.Logging;
 
+    [SuppressMessage("Microsoft.StyleCop.CSharp.ReadabilityRules", "SA1121", Justification = "We want to be explicit about bit-width using these aliases.")]
     public class ArchiveLoader
     {
         public static void RegisterArchiveType(Type type, int priority)
@@ -48,14 +37,69 @@ namespace ArchiveUtility
                 typesWithPriorityByName.Add(type.Name, type);
             }
         }
+
         private static SortedDictionary<int, SortedDictionary<string, Type>> ArchiveTypesByPriority = new();
 
-        public static void LoadArchive(Stream stream, string workingFolder, out ArchiveTokenization tokens, params string[] typesToTry)
+        public static bool TryLoadArchive(ArchiveLoaderContext context, out ArchiveTokenization tokens, IArchive archive)
         {
-            LoadArchive(new ArchiveLoaderContext(stream, workingFolder), out tokens, typesToTry);
+            var type = archive.GetType();
+
+            context.Logger.Log(context.LogLevel, "Testing if archive is format: {0}", type.FullName);
+
+            if (context.TokenCache.ContainsKey(type))
+            {
+                tokens = context.TokenCache[type];
+                context.Logger.Log(context.LogLevel, "Found previously loaded tokens for type: {0}. ArchiveItem: {1}", type.FullName, tokens.ArchiveItem.GetSha256HashString());
+
+                return true;
+            }
+
+            if (!archive.IsMatchingFormat())
+            {
+                context.Logger.Log(context.LogLevel, "Archive is not of format: {0}", type.FullName);
+                tokens = null;
+                return false;
+            }
+            else
+            {
+                context.Logger.Log(context.LogLevel, "Archive is of format: {0}", type.FullName);
+            }
+
+            // We may have already gotten tokens from determing if this was the same type
+            if (context.TokenCache.ContainsKey(type))
+            {
+                tokens = context.TokenCache[type];
+                return true;
+            }
+
+            if (context.CancellationToken != CancellationToken.None)
+            {
+                context.CancellationToken.ThrowIfCancellationRequested();
+            }
+
+            try
+            {
+                tokens = archive.Tokenize();
+
+                context.TokenCache[type] = tokens;
+                context.Logger.Log(context.LogLevel, "Setting into Token Cache: ArchiveItem: {0}", tokens.ArchiveItem.GetSha256HashString());
+
+                return true;
+            }
+            catch (FatalException)
+            {
+                throw;
+            }
+            catch (Exception e)
+            {
+                context.Logger.LogError("Exception occurred while processing format: {0}", type.FullName);
+                context.Logger.LogError("Exception: {0}", e.ToString());
+                tokens = null;
+                return false;
+            }
         }
 
-        public static void LoadArchive(ArchiveLoaderContext context, out ArchiveTokenization tokens, params string[] typesToTry)
+        public static bool TryLoadArchive(ArchiveLoaderContext context, out ArchiveTokenization tokens, params string[] typesToTry)
         {
             foreach (var typesWithPriorityByName in ArchiveTypesByPriority.Values)
             {
@@ -70,7 +114,7 @@ namespace ArchiveUtility
                     var archive = (IArchive)ctor.Invoke(new object[] { context });
 
                     // Allows for selective loading of classes of archives only - this way we can look
-                    // for a basic type while trying to load a composite type such as a SWUpdate file which 
+                    // for a basic type while trying to load a composite type such as a SWUpdate file which
                     // is a cpio archive containing a specific layout.
                     // We can call ArchiveLoader(stream, "cpio", out tokens) in the SWUpdate Archive
                     // implementation to determine if a given stream is a cpio archive and then use
@@ -80,52 +124,11 @@ namespace ArchiveUtility
                         continue;
                     }
 
-                    if (archive.IsMatchingFormat())
+                    if (TryLoadArchive(context, out tokens, archive))
                     {
-                        if (context.CancellationToken != CancellationToken.None)
-                        {
-                            context.CancellationToken.ThrowIfCancellationRequested();
-                        }
-
-                        try
-                        {
-                            tokens = archive.Tokenize();
-
-                            //go through the archive again, to fill any gaps
-                            context.Stream.Seek(0, SeekOrigin.Begin);
-                            tokens.FillChunkGaps(context.Stream);
-
-                            return;
-                        }
-                        catch (FatalException)
-                        {
-                            throw;
-                        }
-                        catch (Exception)
-                        {
-                            continue;
-                        }
+                        return true;
                     }
                 }
-            }
-
-            throw new FormatException($"Couldn't load any format from stream.");
-        }
-
-        public static bool TryLoadArchive(Stream stream, string workingFolder, out ArchiveTokenization tokens, params string[] typesToTry)
-        {
-            return TryLoadArchive(new ArchiveLoaderContext(stream, workingFolder), out tokens, typesToTry);
-        }
-
-        public static bool TryLoadArchive(ArchiveLoaderContext context, out ArchiveTokenization tokens, params string[] typesToTry)
-        {
-            try
-            {
-                LoadArchive(context, out tokens, typesToTry);
-                return true;
-            }
-            catch (FormatException)
-            {
             }
 
             tokens = null;

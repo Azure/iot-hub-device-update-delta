@@ -1,16 +1,23 @@
-﻿namespace ArchiveUtility
+/**
+ * @file FileFromStream.cs
+ *
+ * @copyright Copyright (c) Microsoft Corporation.
+ * Licensed under the MIT License.
+ */
+namespace ArchiveUtility
 {
     using System;
     using System.IO;
 
     // This class lets a user get access to a file with the content of the stream.
-    // If the stream is a FileStream then we can use the backing file for that 
+    // If the stream is a FileStream then we can use the backing file for that
     // stream directly, otherwise we create a temp file and write the contents
-    // of the stream to the file and delete this temporary file when 
+    // of the stream to the file and delete this temporary file when
     // we are done.
     public class FileFromStream : IDisposable
     {
         public Stream Stream { get; private set; }
+
         public string Name { get; private set; }
 
         private bool usingTempFile = false;
@@ -19,9 +26,7 @@
         {
             Stream = stream;
 
-            var fileStream = stream as FileStream;
-
-            if (fileStream != null)
+            if (stream is FileStream fileStream)
             {
                 Name = fileStream.Name;
                 return;

@@ -1,7 +1,4 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
+# file: diffapi-windows.yml
 trigger:
   branches:
     include:
@@ -9,157 +6,37 @@ trigger:
   paths:
     include:
     - src
-    exclude:
-    - src/managed
+    - pipelines/ci/diffapi-windows-debug.yml
+    - pipelines/templates/build-native-windows.yml
+    - pipelines/templates/build-managed-windows.yml
+
+schedules:
+- cron: "0 8 * * *"
+  displayName: Midnight Build
+  branches:
+    include:
+    - main
+    - dev
+  always: true
 
 pool:
-  vmImage: 'windows-latest'
+  vmImage: windows-latest
 
 variables:
-- name: buildPlatform
-  value: 'x64'
-- name: buildConfiguration
-  value: 'Release'
-- name: vcpkg_dir
-  value: $(Agent.BuildDirectory)\VCPKG
-- name: diffapi_build_dir
-  value: $(Agent.BuildDirectory)\diffapi-build
-- name: diffapi_solution
-  value: $(diffapi_build_dir)\diffs.sln
-- name: cmakeToolchainFile
-  value: $(vcpkg_dir)/scripts/buildsystems/vcpkg.cmake
-- name: solution
-  value: $(diffapi_build_dir)/adu_diffs.sln
-- name: diffapi_output_dir
-  value: $(diffapi_build_dir)\diffs\api\$(buildConfiguration)
-- name: io_utility_gtest_dir
-  value: $(diffapi_build_dir)\io_utility\gtest\$(buildConfiguration)
-- name: diff_gtest_dir
-  value: $(diffapi_build_dir)\diffs\gtest\$(buildConfiguration)
-- name: test_data_root
-  value: $(Build.SourcesDirectory)\data
-- name: zstd_compress_file_dir
-  value: $(diffapi_build_dir)\tools\zstd_compress_file\$(buildConfiguration)
-- name: zstd_compress_file_binary
-  value: zstd_compress_file.exe
-- name: zstd_compress_file
-  value: $(zstd_compress_file_dir)\$(zstd_compress_file_binary)
-- name: applydiff_tool_output_dir
-  value: $(diffapi_build_dir)\tools\applydiff\$(buildConfiguration)\
-- name: dumpdiff_tool_output_dir
-  value: $(diffapi_build_dir)\tools\dumpdiff\$(buildConfiguration)\
-- name: notice_txt_file
-  value: $(Build.SourcesDirectory)\notice\NOTICE.txt
-- name: license_file
-  value: $(Build.SourcesDirectory)\LICENSE
-- name: vcpkg_triplet
-  value: $(buildPlatform)-windows
-- name: ms_gsl_dir
-  value: $(vcpkg_dir)\packages\ms-gsl-$(vcpkg_triplet)\share\Microsoft.GSL
-- name: zstd_dir
-  value: $(vcpkg_dir)\packages\zstd_$(vcpkg_triplet)\share\zstd
-- template: ../templates/version-variables.yml
+- template: /pipelines/variables/common-variables.yml@self
+- template: /pipelines/variables/diffgen-variables.yml@self
 
 steps:
-- task: CmdLine@2
-  displayName: 'Dump setup_vcpkg.cmd'
-  inputs:
-    script: |
-      type $(Build.Repository.LocalPath)\vcpkg\setup_vcpkg.cmd
+  - template: /pipelines/variables/show-version-variables.yml@self
 
-- task: CmdLine@2
-  displayName: 'Setup VCPKG'
-  inputs:
-    script: |
-      $(Build.Repository.LocalPath)\vcpkg\setup_vcpkg.cmd $(vcpkg_dir) $(Build.Repository.LocalPath)\vcpkg\ports $(vcpkg_triplet)
+  - template: /pipelines/templates/build-native-windows.yml@self
+    parameters:
+      build_platform: x64
+      build_configuration: Release
+      version_suffix: '-CI'
 
-- task: CmdLine@2
-  displayName: 'Show ms-gsl and zstd folders'
-  inputs:
-    script: |
-      dir $(ms_gsl_dir) /s
-      dir $(zstd_dir) /s
-
-- task: CMake@1
-  inputs:
-    cmakeArgs: -S $(Build.SourcesDirectory)/src -B $(diffapi_build_dir) -DCMAKE_TOOLCHAIN_FILE=$(cmakeToolchainFile) -DVER_ADUDIFFAPI_VERSION:STRING=$(semver_version_commas) -DVER_ADUDIFFAPI_VERSION_STRING:STRING=$(informational_version)-CI
-
-- task: CmdLine@2
-  displayName: 'Show diffapi_build_dir'
-  inputs:
-    script: |
-      dir $(diffapi_build_dir) /s
-
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
-    displayName: 'Restore diffapi'
-
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
-    displayName: 'Build diffapi'
-
-- task: CmdLine@2
-  displayName: Show diff api build contents
-  inputs:
-    script: dir /s $(diffapi_build_dir)
-
-- task: CmdLine@2
-  displayName: 'Copy Test Binaries'
-  inputs:
-    script: |
-        mkdir -p $(Build.ArtifactStagingDirectory)\Tests
-        copy /y $(io_utility_gtest_dir)\* $(Build.ArtifactStagingDirectory)\Tests
-        copy /y $(diff_gtest_dir)\* $(Build.ArtifactStagingDirectory)\Tests
-        copy /y $(zstd_compress_file) $(Build.ArtifactStagingDirectory)\Tests
-
-- task: PublishPipelineArtifact@1
-  displayName: 'Publish Test Binaries'
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)\Tests'
-    artifactType: 'pipeline'
-    artifactName: 'tests'
-
-- task: CmdLine@2
-  displayName: Run Tests
-  inputs:
-    script: $(diff_gtest_dir)\diffs_gtest.exe --test_data_root $(test_data_root) --zstd_compress_file $(zstd_compress_file)
-
-- task: CmdLine@2
-  displayName: 'Copy DiffApi Binaries'
-  inputs:
-    script: |
-        mkdir -p $(Build.ArtifactStagingDirectory)\DiffApi
-        copy /y $(diffapi_output_dir)\*.dll $(Build.ArtifactStagingDirectory)\DiffApi
-        copy /y $(diffapi_output_dir)\*.pdb $(Build.ArtifactStagingDirectory)\DiffApi
-        copy /y $(diffapi_output_dir)\*.lib $(Build.ArtifactStagingDirectory)\DiffApi
-        copy /y $(notice_txt_file) $(Build.ArtifactStagingDirectory)\DiffApi
-        copy /y $(license_file) $(Build.ArtifactStagingDirectory)\DiffApi
-
-- task: PublishPipelineArtifact@1
-  displayName: 'Publish diffapi'
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)\DiffApi'
-    artifactType: 'pipeline'
-    artifactName: 'drop'
-
-- task: CmdLine@2
-  displayName: 'Copy tools'
-  inputs:
-    script: |
-        mkdir -p $(Build.ArtifactStagingDirectory)\tools
-        copy /y $(zstd_compress_file) $(Build.ArtifactStagingDirectory)\tools
-        copy /y $(applydiff_tool_output_dir)\*.exe $(Build.ArtifactStagingDirectory)\tools
-        copy /y $(dumpdiff_tool_output_dir)\*.exe $(Build.ArtifactStagingDirectory)\tools
-        copy /y $(notice_txt_file) $(Build.ArtifactStagingDirectory)\tools
-        copy /y $(license_file) $(Build.ArtifactStagingDirectory)\tools
-
-- task: PublishPipelineArtifact@1
-  displayName: 'Publish tools'
-  inputs:
-    targetPath: '$(Build.ArtifactStagingDirectory)\tools'
-    artifactType: 'pipeline'
-    artifactName: 'tools'
+  - template: /pipelines/templates/build-managed-windows.yml@self
+    parameters:
+      build_platform: x64
+      build_configuration: Release
+      version_suffix: '-CI'

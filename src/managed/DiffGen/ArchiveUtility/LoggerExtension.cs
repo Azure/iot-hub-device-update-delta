@@ -15,12 +15,12 @@ namespace ArchiveUtility
 
     public static class LoggerExtension
     {
+        private static string currentProcessName = Process.GetCurrentProcess().ProcessName;
+
         public static void LogException(this ILogger logger, Exception e)
         {
             logger.LogException(e, LogLevel.Error);
         }
-
-        private static string currentProcessName = Process.GetCurrentProcess().ProcessName;
 
         private static void AppendLogLine(StringBuilder sb, LogLevel level, string line)
         {
@@ -58,7 +58,6 @@ namespace ArchiveUtility
             }
             else
             {
-
                 AppendLogLine(message, level, "STACKTRACE: The stack trace was null for this exception.");
             }
 
@@ -79,6 +78,5 @@ namespace ArchiveUtility
 
             return logLevelText[logLevel];
         }
-
     }
 }

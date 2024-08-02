@@ -1,0 +1,72 @@
+# File: test-managed.yml
+
+parameters:
+# Required Parameters
+- name: binaries_dir
+  type: string
+# Optional Parameters
+- name: platform
+  type: string
+  default: x64
+- name: configuration
+  type: string
+  default: Release
+- name: package_dir
+  type: string
+  default: ''
+
+steps:
+
+- pwsh: ls ${{ parameters.binaries_dir }}
+  displayName: Display Binary Files
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
+- pwsh: ls $(unittests_bin_dir) -Recurse
+  displayName: Display Unit Test Files
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
+- pwsh: copy ${{ parameters.binaries_dir }}\* $(unittests_bin_dir)\${{ parameters.configuration }}\$(diffgen_framework)
+  displayName: 'Copy Binary Files to UnitTests'
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+
+- task: VSTest@2
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  inputs:
+    platform: '${{ parameters.platform }}'
+    configuration: '${{ parameters.configuration }}'
+    testAssemblyVer2: |
+      $(unittests_bin_dir)\${{ parameters.configuration }}\$(diffgen_framework)\UnitTests.dll
+      $(archiveutilitytest_bin_dir)\${{ parameters.configuration }}\$(diffgen_framework)\ArchiveUtilityTest.dll
+
+- bash: |
+    mkdir -p $(unittests_bin_dir)/${{ parameters.platform }}/${{ parameters.configuration }}/$(diffgen_framework)
+    cp ${{ parameters.binaries_dir }}/lib/$(diffgen_framework)/* $(unittests_bin_dir)/${{ parameters.platform }}/${{ parameters.configuration }}/$(diffgen_framework)
+    echo "Unit Test Folder: $(unittests_bin_dir)/${{ parameters.platform }}/${{ parameters.configuration }}/$(diffgen_framework)"
+    chmod +x $(unittests_bin_dir)/${{ parameters.platform }}/${{ parameters.configuration }}/$(diffgen_framework)/dumpextfs
+    chmod +x $(unittests_bin_dir)/${{ parameters.platform }}/${{ parameters.configuration }}/$(diffgen_framework)/bsdiff
+    chmod +x $(unittests_bin_dir)/${{ parameters.platform }}/${{ parameters.configuration }}/$(diffgen_framework)/bspatch
+    chmod +x $(unittests_bin_dir)/${{ parameters.platform }}/${{ parameters.configuration }}/$(diffgen_framework)/zstd_compress_file
+    ls $(unittests_bin_dir)/${{ parameters.platform }}/${{ parameters.configuration }}/$(diffgen_framework)
+  displayName: 'Copy Binary Files to UnitTests (Linux)'
+  condition: eq( variables['Agent.OS'], 'Linux' )
+
+- task: CmdLine@2
+  inputs:
+    script: |
+      sudo apt install ${{ parameters.package_dir }}/*.deb
+  displayName: Install package (Linux)
+  condition: eq( variables['Agent.OS'], 'Linux' )
+
+- task: DotNetCoreCLI@2
+  condition: eq( variables['Agent.OS'], 'Linux' )
+  inputs:
+    command: 'test'
+    projects: '$(unittests_project)'
+    arguments: '--configuration ${{ parameters.configuration }}'
+
+- task: DotNetCoreCLI@2
+  condition: eq( variables['Agent.OS'], 'Linux' )
+  inputs:
+    command: 'test'
+    projects: '$(archiveutilitytest_project)'
+    arguments: '--configuration ${{ parameters.configuration }}'

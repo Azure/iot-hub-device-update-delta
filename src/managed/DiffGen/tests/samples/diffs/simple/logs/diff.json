@@ -45,6 +45,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 34
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 137848
             }
           }
         }
@@ -118,6 +122,10 @@
                       "Offset": {
                         "Type": "Number",
                         "Number": 137916
+                      },
+                      "Length": {
+                        "Type": "Number",
+                        "Number": 231224
                       }
                     }
                   }
@@ -145,6 +153,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 369140
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 38
             }
           }
         }

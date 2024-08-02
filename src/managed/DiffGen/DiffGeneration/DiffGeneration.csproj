@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>Microsoft.Azure.DeviceUpdate.Diffs</RootNamespace>
     <AssemblyName>Microsoft.Azure.DeviceUpdate.Diffs</AssemblyName>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
@@ -17,10 +16,18 @@
 
   <ItemGroup>
     <ProjectReference Include="..\archives\Ext4Archives\Ext4Archives.csproj" />
+    <ProjectReference Include="..\archives\ZipArchives\ZipArchives.csproj" />
     <ProjectReference Include="..\ArchiveUtility\ArchiveUtility.csproj" />
     <ProjectReference Include="..\archives\CpioArchives\CpioArchives.csproj" />
     <ProjectReference Include="..\archives\SWUpdateArchives\SWUpdateArchives.csproj" />
     <ProjectReference Include="..\archives\TarArchives\TarArchives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="StyleCop.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
 </Project>

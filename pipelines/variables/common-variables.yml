@@ -1,0 +1,10 @@
+# File: common-variables.yml
+variables:
+  - name: notice_txt_file
+    value: $(Build.SourcesDirectory)/notice/NOTICE.txt
+  - name: license_file
+    value: $(Build.SourcesDirectory)/LICENSE
+  - template: /pipelines/variables/version-variables.yml@self
+  - template: /pipelines/variables/vcpkg-variables.yml@self
+  - template: /pipelines/variables/cmake-variables.yml@self
+  - template: /pipelines/variables/payload-variables.yml@self

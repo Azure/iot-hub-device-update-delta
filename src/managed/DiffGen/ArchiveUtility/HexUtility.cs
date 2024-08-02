@@ -4,14 +4,12 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace ArchiveUtility
 {
+    using System;
+    using System.Linq;
+    using System.Text;
+
     public class HexUtility
     {
         public static byte[] HexStringToByteArray(string hex)
@@ -28,11 +26,13 @@ namespace ArchiveUtility
             {
                 return null;
             }
+
             StringBuilder builder = new();
             foreach (byte b in value)
             {
                 builder.AppendFormat("{0:X2}", b);
             }
+
             return builder.ToString();
         }
     }

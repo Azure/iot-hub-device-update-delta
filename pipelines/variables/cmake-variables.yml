@@ -1,0 +1,28 @@
+# File: cmake-variables.yml
+variables:
+  - name: cmake_src_dir
+    value: $(Build.SourcesDirectory)/src
+  - name: cmake_output_root_dir
+    value: $(Agent.BuildDirectory)/diffapi-cmake-output
+  - name: diffapi_solution
+    value: $(diffapi_build_dir)/diffs.sln
+  - name: solution
+    value: $(diffapi_build_dir)/adu_diffs.sln
+  - name: diffapi_output_dir
+    value: $(diffapi_build_dir)/diffs/api/$(buildConfiguration)
+  - name: io_utility_gtest_dir
+    value: $(diffapi_build_dir)/io_utility/gtest/$(buildConfiguration)
+  - name: diff_gtest_dir
+    value: $(diffapi_build_dir)/diffs/gtest/$(buildConfiguration)
+  - name: test_data_root
+    value: $(Build.SourcesDirectory)/data
+  - name: zstd_compress_file_dir
+    value: $(diffapi_build_dir)/tools/zstd_compress_file/$(buildConfiguration)
+  - name: zstd_compress_file_binary
+    value: zstd_compress_file.exe    
+  - name: zstd_compress_file
+    value: $(zstd_compress_file_dir)/$(zstd_compress_file_binary)
+  - name: applydiff_tool_output_dir
+    value: $(diffapi_build_dir)/tools/applydiff/$(buildConfiguration)/
+  - name: dumpdiff_tool_output_dir
+    value: $(diffapi_build_dir)/tools/dumpdiff/$(buildConfiguration)/

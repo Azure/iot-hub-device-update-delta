@@ -1,4 +1,4 @@
-﻿{
+{
   "Version": 0,
   "TargetSize": 13324288,
   "TargetHash": {
@@ -45,6 +45,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 34
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 73728
             }
           }
         }
@@ -118,6 +122,10 @@
                       "Offset": {
                         "Type": "Number",
                         "Number": 73796
+                      },
+                      "Length": {
+                        "Type": "Number",
+                        "Number": 18279
                       }
                     }
                   }
@@ -145,6 +153,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 92075
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 1
             }
           }
         }
@@ -184,6 +196,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 92124
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 6643712
             }
           }
         }
@@ -257,6 +273,10 @@
                       "Offset": {
                         "Type": "Number",
                         "Number": 6735888
+                      },
+                      "Length": {
+                        "Type": "Number",
+                        "Number": 6587904
                       }
                     }
                   }
@@ -284,6 +304,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 13323792
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 38
             }
           }
         }

@@ -1,0 +1,233 @@
+# File: build-nuget.yml
+
+parameters:
+# Required Parameters
+# Optional Parameters
+- name: platform
+  type: string
+  default: x64
+- name: configuration
+  type: string
+  default: Release
+- name: x64_windows_binaries_dir
+  type: string
+  default: $(Build.BinariesDirectory)/bin/x64-Windows
+- name: x64_linux_binaries_dir
+  type: string
+  default: $(Build.BinariesDirectory)/bin/x64-Linux
+- name: x64_linux_package_dir
+  type: string
+  default: $(Build.BinariesDirectory)/debian-package
+- name: x64_windows_diffgen_dir
+  type: string
+  default: $(Build.ArtifactStagingDirectory)/diffgen-x64-Windows
+- name: x64_linux_diffgen_dir
+  type: string
+  default: $(Build.ArtifactStagingDirectory)/diffgen-x64-Linux
+- name: nuget_files_dir
+  type: string
+  default: $(Build.BinariesDirectory)/nuget-files
+- name: nuget_build_dir
+  type: string
+  default: $(Build.BinariesDirectory)/nuget-build
+- name: nuget_dir
+  type: string
+  default: $(Build.ArtifactStagingDirectory)/nuget
+- name: binaries_drop_type
+  type: string
+  default: unsigned
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET Standard sdk'
+  inputs:
+    packageType: sdk
+    version: $(diffgen_sdk_version)
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: NuGetToolInstaller@1
+
+- task: CmdLine@2
+  inputs:
+    script: |
+      cat $(Build.SourcesDirectory)/nuget.config
+  displayName: Show nuget.config
+
+- task: NuGetCommand@2
+  inputs:
+    feedsToUse: config
+    includeNuGetOrg: false
+    nugetConfigPath: $(Build.SourcesDirectory)/nuget.config
+    restoreSolution: $(diffgen_solution)
+
+- task: VSBuild@1
+  inputs:
+    solution: '$(diffgen_solution)'
+    platform: '${{ parameters.platform }}'
+    configuration: '${{ parameters.configuration }}'
+    msbuildArgs: >-
+      /p:FileVersion="$(semver_version)"
+      /p:InformationalVersion="$(informational_version)"
+      /p:AssemblyVersion="$(semver_version)"
+      /p:Version="$(semver_version)"
+      /p:Copyright="$(copyright)"
+
+- task: DownloadPipelineArtifact@2
+  displayName: Download x64-Windows Binaries
+  inputs:
+    buildType: current
+    artifactName: ${{ parameters.binaries_drop_type }}-binaries-drop.${{ parameters.configuration }}.x64-Windows
+    targetPath: ${{ parameters.x64_windows_binaries_dir }}
+
+- template: /pipelines/templates/test-managed.yml@self
+  parameters:
+    binaries_dir: ${{ parameters.x64_windows_binaries_dir }}
+
+- task: DownloadPipelineArtifact@2
+  displayName: Download x64-Linux Binaries
+  inputs:
+    buildType: current
+    artifactName: ${{ parameters.binaries_drop_type }}-binaries-drop.${{ parameters.configuration }}.x64-Linux
+    targetPath: ${{ parameters.x64_linux_binaries_dir}}
+
+- task: DownloadPipelineArtifact@2
+  displayName: 'Download x64-linux debian package'
+  inputs:
+    artifactName: 'package-drop.${{ parameters.configuration }}.x64-linux'
+    targetPath: ${{ parameters.x64_linux_package_dir }}
+
+- task: PowerShell@2
+  displayName: 'List downloaded files.'
+  inputs:
+    targetType: inline
+    script: |
+      ls ${{ parameters.x64_windows_binaries_dir }}
+      ls ${{ parameters.x64_linux_binaries_dir }}
+      ls ${{ parameters.x64_linux_package_dir }}
+
+- task: NuGetAuthenticate@1
+  inputs:
+    forceReinstallCredentialProvider: true
+
+- task: PowerShell@2
+  displayName: 'Create Windows DiffGenTool drop'
+  inputs:
+    targetType: inline
+    script: |
+      dotnet publish $(diffgen_tool_project) --configuration ${{ parameters.configuration }} --framework $(diffgen_framework) --runtime win-x64 --self-contained false /p:FileVersion="$(semver_version)" /p:InformationalVersion="$(informational_version)" /p:AssemblyVersion="$(semver_version)" /p:Version="$(semver_version)" /p:Copyright="$(copyright)"
+      ls $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\${{ parameters.configuration }}\$(diffgen_framework)\win-x64\ -R
+      mkdir ${{ parameters.x64_windows_diffgen_dir }}
+
+      copy $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\${{ parameters.configuration }}\$(diffgen_framework)\win-x64\* ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/adudiffapi.dll ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/applydiff.exe ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/dumpdiff.exe ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/dumpextfs.exe ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/zstd_compress_file.exe ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/bsdiff.dll ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/bsdiff.exe ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/bspatch.exe ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/bz2.dll ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/jsoncpp.dll ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/zlib1.dll ${{ parameters.x64_windows_diffgen_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/zstd.dll ${{ parameters.x64_windows_diffgen_dir }}
+      copy $(notice_txt_file) ${{ parameters.x64_windows_diffgen_dir }}
+      copy $(license_file) ${{ parameters.x64_windows_diffgen_dir }}
+
+- task: PublishPipelineArtifact@1
+  displayName: Publish x64-Windows drop.
+  inputs:
+    targetPath: '${{ parameters.x64_windows_diffgen_dir }}'
+    artifactType: 'pipeline'
+    artifactName: 'diffgen-tool.${{ parameters.configuration }}.x64-Windows'
+
+- task: NuGetAuthenticate@1
+  inputs:
+    forceReinstallCredentialProvider: true
+
+- task: PowerShell@2
+  displayName: 'Create Linux DiffGenTool drop'
+  inputs:
+    targetType: inline
+    script: |
+      dotnet publish $(diffgen_tool_project) --configuration ${{ parameters.configuration }} --framework $(diffgen_framework) --runtime linux-x64 --self-contained false /p:FileVersion="$(semver_version)" /p:InformationalVersion="$(informational_version)" /p:AssemblyVersion="$(semver_version)" /p:Version="$(semver_version)" /p:Copyright="$(copyright)"
+      ls $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\ -R
+      mkdir ${{ parameters.x64_linux_diffgen_dir }}
+      copy $(Build.SourcesDirectory)\src\managed\DiffGen\tools\DiffGenTool\bin\${{ parameters.configuration }}\$(diffgen_framework)\linux-x64\* ${{ parameters.x64_linux_diffgen_dir }}
+      copy ${{ parameters.x64_linux_binaries_dir}}/bsdiff ${{ parameters.x64_linux_diffgen_dir }}
+      copy ${{ parameters.x64_linux_binaries_dir}}/bspatch ${{ parameters.x64_linux_diffgen_dir }}
+      copy ${{ parameters.x64_linux_binaries_dir}}/zstd_compress_file ${{ parameters.x64_linux_diffgen_dir }}
+      copy ${{ parameters.x64_linux_binaries_dir}}/applydiff ${{ parameters.x64_linux_diffgen_dir }}
+      copy ${{ parameters.x64_linux_binaries_dir}}/dumpdiff ${{ parameters.x64_linux_diffgen_dir }}
+      copy ${{ parameters.x64_linux_binaries_dir}}/dumpextfs ${{ parameters.x64_linux_diffgen_dir }}
+      copy ${{ parameters.x64_linux_binaries_dir}}/libadudiffapi.so ${{ parameters.x64_linux_diffgen_dir }}
+      copy $(notice_txt_file) ${{ parameters.x64_linux_diffgen_dir }}
+      copy $(license_file) ${{ parameters.x64_linux_diffgen_dir }}
+      copy ${{ parameters.x64_linux_package_dir }}/*.deb ${{ parameters.x64_linux_diffgen_dir }}
+
+- task: PublishPipelineArtifact@1
+  displayName: Publish x64-Linux drop.
+  inputs:
+    targetPath: '${{ parameters.x64_linux_diffgen_dir }}'
+    artifactType: 'pipeline'
+    artifactName: 'diffgen-tool.${{ parameters.configuration }}.x64-Linux'
+
+- task: PowerShell@2
+  displayName: 'Copy Binaries to Nuget Files.'
+  inputs:
+    targetType: inline
+    script: |
+      mkdir ${{ parameters.nuget_files_dir }}
+      copy ${{ parameters.x64_windows_binaries_dir }}/* ${{ parameters.nuget_files_dir }}
+      copy ${{ parameters.x64_linux_binaries_dir }}/* ${{ parameters.nuget_files_dir }}
+      copy $(notice_txt_file) ${{ parameters.nuget_files_dir }}
+      copy $(license_file) ${{ parameters.nuget_files_dir }}
+      copy $(diffgen_errors_md_file) ${{ parameters.nuget_files_dir }}
+      ls -Recurse ${{ parameters.nuget_files_dir }}
+      mkdir ${{ parameters.nuget_files_dir }}/bin/DiffGenTool/x64-Windows
+      copy ${{ parameters.x64_windows_diffgen_dir }}/* ${{ parameters.nuget_files_dir }}/bin/DiffGenTool/x64-Windows -Exclude publish
+      ls -Recurse ${{ parameters.nuget_files_dir }}/bin/DiffGenTool/x64-Windows
+      mkdir ${{ parameters.nuget_files_dir }}/bin/DiffGenTool/x64-Linux
+      copy ${{ parameters.x64_linux_diffgen_dir }}/* ${{ parameters.nuget_files_dir }}/bin/DiffGenTool/x64-Linux -Exclude publish
+      ls -Recurse ${{ parameters.nuget_files_dir }}/bin/DiffGenTool/x64-Linux
+
+- task: PowerShell@2
+  displayName: 'Show nuget command details'
+  inputs:
+    targetType: inline
+    script: |
+      echo "nuget pack $(diffgen_project) -NonInteractive -OutputDirectory ${{ parameters.nuget_build_dir }} -BasePath ${{ parameters.nuget_files_dir }} -Version $(semver_version) -IncludeReferencedProjects -Verbosity Detailed -Properties Version=$(semver_version) -Properties FileVersion=$(semver_version) -Properties InformationalVersion=$(informational_version) -Properties AssemblyVersion=$(semver_version) -Properties Configuration=${{ parameters.configuration }}"
+
+- task: NuGetCommand@2
+  inputs:
+    command: 'custom'
+    arguments: >-
+        pack $(diffgen_project)
+        -NonInteractive
+        -OutputDirectory ${{ parameters.nuget_build_dir }}
+        -BasePath ${{ parameters.nuget_files_dir }}
+        -Version $(semver_version)
+        -IncludeReferencedProjects
+        -Verbosity Detailed
+        -Properties Version="$(semver_version)"
+        -Properties FileVersion="$(semver_version)"
+        -Properties InformationalVersion="$(informational_version)"
+        -Properties AssemblyVersion="$(semver_version)"
+        -Properties Configuration=${{ parameters.configuration }}
+  env:
+    NUGET_ENABLE_LEGACY_CSPROJ_PACK: true
+
+- task: PowerShell@2
+  displayName: 'Copy nuget to final staging location'
+  inputs:
+    targetType: inline
+    script: |
+      mkdir ${{ parameters.nuget_dir }}
+      copy ${{ parameters.nuget_build_dir }}/*.nupkg ${{ parameters.nuget_dir }}
+
+- task: PublishPipelineArtifact@1
+  displayName: Publish nuget.
+  inputs:
+    targetPath: '${{ parameters.nuget_dir }}'
+    artifactType: 'pipeline'
+    artifactName: 'nuget'

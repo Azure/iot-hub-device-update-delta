@@ -4,30 +4,36 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ArchiveUtility;
-
 namespace CpioArchives
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
+    using System.Text;
+    using ArchiveUtility;
+
+    [SuppressMessage("Microsoft.StyleCop.CSharp.ReadabilityRules", "SA1121", Justification = "We want to be explicit about bit-width using these aliases.")]
     public class AsciiCpioArchive : CpioArchiveBase
     {
         public const int AsciiHeaderSize = 76;
-        public const string AsciiMagic = "070707";
-        public override string ArchiveSubtype { get { return "ascii.old"; } }
 
-        public AsciiCpioArchive(ArchiveLoaderContext context) : base(context)
+        public const string AsciiMagic = "070707";
+
+        public override string ArchiveSubtype
+        {
+            get { return "ascii.old"; }
+        }
+
+        public AsciiCpioArchive(ArchiveLoaderContext context)
+            : base(context)
         {
         }
 
-        protected override void ReadHeader(BinaryReader reader, UInt64 offset, out ArchiveItem chunk, out string payloadName, out UInt64 payloadLength)
+        protected override HeaderDetails ReadHeader(BinaryReader reader)
         {
             byte[] rawHeaderData = new byte[AsciiHeaderSize];
-            if (AsciiHeaderSize != reader.Read(rawHeaderData, 0, AsciiHeaderSize))
+            if (reader.Read(rawHeaderData, 0, AsciiHeaderSize) != AsciiHeaderSize)
             {
                 throw new FormatException("Not enough data for CPIO ascii header");
             }
@@ -52,12 +58,12 @@ namespace CpioArchives
             var filesize = AsciiData.FromOctalData(rawHeaderData, 65, 11);
 
             byte[] rawName = new byte[namesize];
-            if (namesize != (UInt64) reader.Read(rawName, 0, (int) namesize))
+            if (namesize != (UInt64)reader.Read(rawName, 0, (int)namesize))
             {
                 throw new FormatException("Not enough data for the name for CPIO ascii header");
             }
 
-            var name = AsciiData.FromNulPaddedString(rawName, 0, (int) namesize);
+            var name = AsciiData.FromNulPaddedString(rawName, 0, (int)namesize);
 
             var allData = new List<byte>();
             allData.AddRange(rawHeaderData);
@@ -65,17 +71,20 @@ namespace CpioArchives
 
             int allDataSize = allData.Count;
 
-            var chunkName = ArchiveItem.MakeHeaderChunkName(name);
-            chunk = ArchiveItem.FromByteSpan(chunkName, ArchiveItemType.Chunk, allData.ToArray(), (UInt64)offset);
-            payloadName = name;
-            payloadLength = filesize;
-
             if ((name.CompareTo(TrailerFileName) == 0) && (filesize == 0) && (uid == 0))
             {
                 TrailerDetected = true;
             }
+
+            var chunkName = ChunkNames.MakeHeaderChunkName(name);
+            var headerItem = ItemDefinition.FromByteSpan(allData.ToArray()).WithName(chunkName);
+
+            return new HeaderDetails(headerItem, null, name, filesize);
         }
 
-        protected override UInt64 AlignmentPadding { get { return 0; } }
+        protected override UInt64 AlignmentPadding
+        {
+            get { return 0; }
+        }
     }
 }

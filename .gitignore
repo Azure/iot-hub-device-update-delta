@@ -46,9 +46,16 @@ out
 build-dir
 out.*linux*
 out.*mingw*
+out.*ubuntu*
+out.*windows*
 _packages
 src/tools/dumpextfs/dumpextfs
 
 # SWU Sample files for tests
 *.compression-details.json
-*.swu
+
+# VS Code Folders
+.vscode
+
+# VS Code Folders
+.vscode

@@ -1,0 +1,112 @@
+# File: build_native_windows.yml
+parameters:
+# We could make this default to '', but then we could accidentally publish a standard package.
+# Better to require explicit setting to '' to elect for this behavior.
+- name: version_suffix
+  type: string
+
+# Optional Parameters
+- name: build_platform
+  type: string
+  default: x64
+- name: build_configuration
+  type: string
+  default: 'Release'
+- name: publish
+  type: boolean
+  default: true
+- name: copy_output
+  type: boolean
+  default: false
+- name: copy_output_binaries
+  type: string
+  default: ''
+- name: one_branch_signing
+  type: boolean
+  default: false
+
+steps:
+  - template: /pipelines/variables/show-version-variables.yml@self
+
+  - task: PowerShell@2
+    displayName: 'Setup VCPKG (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'
+    inputs:
+      filePath: $(Build.SourcesDirectory)\src\native\build.ps1
+      arguments: ${{ parameters.build_platform }}-Windows ${{ parameters.build_configuration }} vcpkg
+      workingDirectory: $(Build.SourcesDirectory)\src\native
+
+  - task: PowerShell@2
+    displayName: 'CMake (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'
+    inputs:
+      filePath: $(Build.SourcesDirectory)\src\native\build.ps1
+      arguments: ${{ parameters.build_platform }}-Windows ${{ parameters.build_configuration }} cmake
+      workingDirectory: $(Build.SourcesDirectory)\src\native
+
+  - task: PowerShell@2
+    displayName: 'Dump CMake Dir Before Build'
+    inputs:
+      targetType: inline
+      script: ls $(Build.SourcesDirectory)\src\native\out.windows\ -Recurse
+
+  - task: PowerShell@2
+    displayName: 'Build (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'
+    inputs:
+      filePath: $(Build.SourcesDirectory)\src\native\build.ps1
+      arguments: ${{ parameters.build_platform }}-Windows ${{ parameters.build_configuration }} build
+      workingDirectory: $(Build.SourcesDirectory)\src\native
+
+  - task: PowerShell@2
+    displayName: 'Dump CMake Dir After Build'
+    inputs:
+      targetType: inline
+      script: ls $(Build.SourcesDirectory)\src\native\out.windows\ -Recurse
+
+  - ${{ if parameters.one_branch_signing }}:
+    - task: onebranch.pipeline.signing@1 # https://aka.ms/obpipelines/signing
+      displayName: 'Sign Microsoft binaries (native)'
+      inputs:
+        signing_profile: external_distribution
+        command: 'sign'
+        signing_environment: 'azure-ado'
+        files_to_sign: 'adudiffapi.dll;applydiff.exe;dumpdiff.exe;dumpextfs.exe;makecpio.exe;recompress.exe;zstd_compress_file.exe'
+        search_root: '$(Build.SourcesDirectory)\src\native\out.windows\build\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
+
+  - ${{ if parameters.one_branch_signing }}:
+    - task: onebranch.pipeline.signing@1 # https://aka.ms/obpipelines/signing
+      displayName: 'Sign 3rd party binaries (native)'
+      inputs:
+        command: 'sign'
+        signing_profile: 135020002
+        signing_environment: 'azure-ado'
+        files_to_sign: 'bsdiff.dll;bsdiff.exe;bspatch.exe;jsoncpp.dll;libconfig++.dll;zlib*.dll;zstd*.dll'
+        search_root: '$(Build.SourcesDirectory)\src\native\out.windows\build\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
+
+  - ${{ if parameters.publish }}:
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)\src\native\out.windows\build\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
+        artifactType: 'pipeline'
+        artifactName: 'native-binaries.${{ parameters.build_platform }}-Windows.${{ parameters.build_configuration }}'
+      displayName: 'Publish Native Binaries ${{ parameters.build_platform }}-Windows ${{ parameters.build_configuration }}'
+
+  - ${{ if parameters.copy_output }}:
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)\src\native\out.windows\build\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
+        Contents: '*'
+        TargetFolder: ${{ parameters.copy_output_binaries }}
+
+  - ${{ if parameters.publish }}:
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)\src\native\out.windows\build\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\test\bin\${{ parameters.build_configuration }}'
+        artifactType: 'pipeline'
+        artifactName: 'native-test-binaries.${{ parameters.build_platform }}-Windows.${{ parameters.build_configuration }}'
+      displayName: 'Publish Native Test Binaries ${{ parameters.build_platform }}-Windows ${{ parameters.build_configuration }}'
+
+  - task: PowerShell@2
+    displayName: 'Run Tests (${{ parameters.build_configuration }})'
+    inputs:
+      filePath: $(Build.SourcesDirectory)\src\native\run_tests.ps1
+      arguments: msbuild ${{ parameters.build_configuration }} ${{ parameters.build_platform }}
+      workingDirectory: $(Build.SourcesDirectory)\src\native

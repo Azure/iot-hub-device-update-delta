@@ -6,8 +6,19 @@ trigger:
     include:
     - src
 
+schedules:
+- cron: "0 8 * * *"
+  displayName: Midnight Build
+  branches:
+    include:
+    - main
+    - dev
+  always: true
+
 variables:
-- template: ../templates/version-variables.yml
+- template: /pipelines/variables/version-variables.yml@self
+- template: /pipelines/variables/diffgen-variables.yml@self
+- template: /pipelines/variables/common-variables.yml@self
 
 stages:
   # We require heterogenous environments for these jobs, so they
@@ -19,26 +30,20 @@ stages:
       pool:
         vmImage: 'windows-latest'
       steps:
-        - template: ../templates/build-native-x64-windows.yml
+        - template: /pipelines/templates/build-native.yml@self
           parameters:
-            configuration: 'Release'
+            build_target_os: windows
             version_suffix: '-CI'
-
-    - job: CrossCompile_dumpextfs_x64_windows
-      displayName: 'Cross-Compile dumpextfs.exe - x64-windows'
-      pool:
-        vmImage: 'ubuntu-latest'
-      steps:
-        - template: ../templates/crosscompile-dumpextfs.yml
 
     - job: BuildLinuxNativeCodeRelease_x64
       displayName: 'Build Linux Native Code - x64-linux'
       pool:
-        vmImage: 'ubuntu-latest'
+        vmImage: 'ubuntu-20.04'
       steps:
-        - template: ../templates/all-native-linux.yml
+        - template: /pipelines/templates/build-native.yml@self
           parameters:
-            vcpkg_triplet: x64-linux
+            build_target_os: linux
+            version_suffix: '-CI'
 
   - stage: BuildManagedCodeAndPublish
     jobs:
@@ -46,10 +51,7 @@ stages:
       pool:
         vmImage: 'windows-latest'
       steps:
-        - template: ../templates/build-diffgen.yml
-          parameters:
-            build_nuget: false
-            enable_signing: false
+        - template: /pipelines/templates/build-nuget.yml@self
 
   - stage: EndToEndTests
     jobs:
@@ -57,26 +59,39 @@ stages:
       pool:
         vmImage: 'windows-latest'
       steps:
-        - template: ../templates/end-to-end-tests.yml
+        - template: /pipelines/templates/extract-nuget-files.yml@self
           parameters:
-            diffgentool_artifact_name: diffgen-tool.Release.x64-windows
+            nuget_files_extract_dir: $(Pipeline.Workspace)/drop/nuget/expanded
+        - template: /pipelines/templates/run-end-to-end-tests.yml@self
+          parameters:
+            nuget_files_dir: $(Pipeline.Workspace)/drop/nuget/expanded
 
     - job: EndToEndTestsUbuntuLatest
       pool:
         vmImage: 'ubuntu-latest'
       steps:
-        - template: ../templates/end-to-end-tests.yml
+        - template: /pipelines/templates/extract-nuget-files.yml@self
           parameters:
-            diffgentool_artifact_name: diffgen-tool.Release.x64-linux
-            install_dependencies_script: $(Build.SourcesDirectory)/build/install-diffgentool-x64-linux-deps.sh
-            post_download_artifact_script: $(Build.SourcesDirectory)/build/setup-diffgentool-x64-linux.sh
+            nuget_files_extract_dir: $(Pipeline.Workspace)/drop/nuget/expanded
+        - template: /pipelines/templates/download-package.yml@self
+          parameters:
+            package_dir: $(Pipeline.Workspace)/drop/package
+        - template: /pipelines/templates/run-end-to-end-tests.yml@self
+          parameters:
+            nuget_files_dir: $(Pipeline.Workspace)/drop/nuget/expanded
+            package_dir: $(Pipeline.Workspace)/drop/package
 
-    - job: EndToEndTestsUbuntu1804
+    - job: EndToEndTestsUbuntu2004
       pool:
-        vmImage: 'ubuntu-18.04'
+        vmImage: 'ubuntu-20.04'
       steps:
-        - template: ../templates/end-to-end-tests.yml
+        - template: /pipelines/templates/extract-nuget-files.yml@self
           parameters:
-            diffgentool_artifact_name: diffgen-tool.Release.x64-linux
-            install_dependencies_script: $(Build.SourcesDirectory)/build/install-diffgentool-x64-linux-deps.sh
-            post_download_artifact_script: $(Build.SourcesDirectory)/build/setup-diffgentool-x64-linux.sh
+            nuget_files_extract_dir: $(Pipeline.Workspace)/drop/nuget/expanded
+        - template: /pipelines/templates/download-package.yml@self
+          parameters:
+            package_dir: $(Pipeline.Workspace)/drop/package
+        - template: /pipelines/templates/run-end-to-end-tests.yml@self
+          parameters:
+            nuget_files_dir: $(Pipeline.Workspace)/drop/nuget/expanded
+            package_dir: $(Pipeline.Workspace)/drop/package
