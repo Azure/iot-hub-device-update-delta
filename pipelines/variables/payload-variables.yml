@@ -1,0 +1,8 @@
+# File: payload-variables.yml
+variables:
+  copy_native_binaries_script: '$(Build.SourcesDirectory)/build/scripts/copy_native_binaries'
+  copy_gtests_script: '$(Build.SourcesDirectory)/build/scripts/copy_native_gtests'
+  run_gtests_script: '$(Build.SourcesDirectory)/build/scripts/run_native_gtests'
+  native_binaries_drop_path: $(Build.ArtifactStagingDirectory)/drop
+  native_gtests_drop_path: $(Build.ArtifactStagingDirectory)/tests
+  package_publish_dir: $(Build.ArtifactStagingDirectory)/package

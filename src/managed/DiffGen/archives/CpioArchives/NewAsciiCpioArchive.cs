@@ -4,16 +4,17 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ArchiveUtility;
-
 namespace CpioArchives
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
+    using System.Text;
+
+    using ArchiveUtility;
+
+    [SuppressMessage("Microsoft.StyleCop.CSharp.ReadabilityRules", "SA1121", Justification = "We want to be explicit about bit-width using these aliases.")]
     public class NewAsciiCpioArchive : CpioArchiveBase
     {
         public const int NewAsciiFormatHeaderSize = 110;
@@ -21,15 +22,18 @@ namespace CpioArchives
         public const string NewcAsciiMagic = "070702";
 
         private string subtype;
-        public override string ArchiveSubtype { get { return subtype; } }
-        public NewAsciiCpioArchive(ArchiveLoaderContext context) : base(context)
+
+        public override string ArchiveSubtype { get => subtype; }
+
+        public NewAsciiCpioArchive(ArchiveLoaderContext context)
+            : base(context)
         {
         }
 
-        protected override void ReadHeader(BinaryReader reader, UInt64 offset, out ArchiveItem chunk, out string payloadName, out UInt64 payloadLength)
+        protected override HeaderDetails ReadHeader(BinaryReader reader)
         {
             byte[] rawHeaderData = new byte[NewAsciiFormatHeaderSize];
-            if (NewAsciiFormatHeaderSize != reader.Read(rawHeaderData, 0, NewAsciiFormatHeaderSize))
+            if (reader.Read(rawHeaderData, 0, NewAsciiFormatHeaderSize) != NewAsciiFormatHeaderSize)
             {
                 throw new FormatException("Not enough data for CPIO new ascii header");
             }
@@ -70,6 +74,7 @@ namespace CpioArchives
             {
                 rawNameSize++;
             }
+
             byte[] rawName = new byte[rawNameSize];
             if (rawNameSize != reader.Read(rawName, 0, rawNameSize))
             {
@@ -82,32 +87,33 @@ namespace CpioArchives
             allData.AddRange(rawHeaderData);
             allData.AddRange(rawName);
 
-            UInt64 allDataSize = (UInt64) allData.Count;
+            UInt64 allDataSize = (UInt64)allData.Count;
 
             UInt64 paddingNeeded = BinaryData.GetPaddingNeeded(allDataSize, 4);
 
             if (paddingNeeded != 0)
             {
                 byte[] padding = new byte[paddingNeeded];
-                if (paddingNeeded != (UInt64) reader.Read(padding, 0, (int) paddingNeeded))
+                if (paddingNeeded != (UInt64)reader.Read(padding, 0, (int)paddingNeeded))
                 {
                     throw new FormatException("Couldn't read padding for header.");
                 }
+
                 allData.AddRange(padding);
                 allDataSize += paddingNeeded;
             }
-
-            var chunkName = ArchiveItem.MakeHeaderChunkName(name);
-            chunk = ArchiveItem.FromByteSpan(chunkName, ArchiveItemType.Chunk, allData.ToArray(), (UInt64)offset);
-            payloadName = name;
-            payloadLength = filesize;
 
             if ((name.CompareTo(TrailerFileName) == 0) && (filesize == 0) && (uid == 0))
             {
                 TrailerDetected = true;
             }
+
+            var chunkName = ChunkNames.MakeHeaderChunkName(name);
+            var headerItem = ItemDefinition.FromByteSpan(allData.ToArray()).WithName(chunkName);
+
+            return new HeaderDetails(headerItem, null, name, filesize);
         }
 
-        protected override UInt64 AlignmentPadding { get { return 4; } }
+        protected override UInt64 AlignmentPadding { get => 4; }
     }
 }

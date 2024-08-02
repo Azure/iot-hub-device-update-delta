@@ -1,10 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PublishSingleFile>true</PublishSingleFile>
-    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <SelfContained>true</SelfContained>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <Platforms>AnyCPU;x64;x86</Platforms>
@@ -20,18 +18,25 @@
     <IncludeReferencedProjects>true</IncludeReferencedProjects>
   </PropertyGroup>
   <ItemGroup>
-    <Content Include="..\..\..\..\scripts\recompress_swu\src\*.py">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="..\..\..\..\scripts\compress_files\compress_files.py">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\..\archives\CpioArchives\CpioArchives.csproj" />
     <ProjectReference Include="..\..\archives\Ext4Archives\Ext4Archives.csproj" />
     <ProjectReference Include="..\..\archives\TarArchives\TarArchives.csproj" />
     <ProjectReference Include="..\..\ArchiveUtility\ArchiveUtility.csproj" />
     <ProjectReference Include="..\..\DiffGeneration\DiffGeneration.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="StyleCop.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <NativeBinaries Condition=" '$(OS)' == 'Windows_NT' " Include="$(SolutionDir)\..\..\native\out.windows\build\x64-windows\$(Configuration)\bin\$(Configuration)\*" />
+      <NativeBinaries Condition=" '$(OS)' != 'Windows_NT' " Include="$(SolutionDir)/../../native/out.linux/build/x64-linux/$(Configuration)/bin/*;$(SolutionDir)/../../native/build/x64-linux/$(Configuration)/lib/*.so" />
+    </ItemGroup>
+    <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)" />
+  </Target>
+
 </Project>

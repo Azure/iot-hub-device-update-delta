@@ -1,8 +1,7 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
@@ -12,5 +11,20 @@
     <ProjectReference Include="..\..\archives\TarArchives\TarArchives.csproj" />
     <ProjectReference Include="..\..\archives\Ext4Archives\Ext4Archives.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Update="StyleCop.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <ItemGroup>
+      <NativeBinaries Condition=" '$(OS)' == 'Windows_NT' " Include="$(SolutionDir)\..\..\native\out.windows\build\x64-windows\$(Configuration)\bin\$(Configuration)\*" />
+      <NativeBinaries Condition=" '$(OS)' != 'Windows_NT' " Include="$(SolutionDir)/../../native/out.linux/build/x64-linux/$(Configuration)/bin/*;$(SolutionDir)/../../native/build/x64-linux/$(Configuration)/lib/*.so" />
+    </ItemGroup>
+    <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)" />
+  </Target>
 
 </Project>

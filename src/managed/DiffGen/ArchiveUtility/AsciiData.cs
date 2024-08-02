@@ -7,17 +7,32 @@
 namespace ArchiveUtility
 {
     using System;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
     using System.Text;
 
+    [SuppressMessage("Microsoft.StyleCop.CSharp.ReadabilityRules", "SA1121", Justification = "We want to be explicit about bit-width using these aliases.")]
     public class AsciiData
     {
-        const byte NUL = 0;
-        const byte SPACE = 0x32;
+        private const byte NUL = 0;
+        private const byte SPACE = 0x32;
 
         public static bool IsAllNul(byte[] bytes)
         {
             return bytes.All(b => b == NUL);
+        }
+
+        public static bool IsAllNul(ReadOnlySpan<byte> bytes)
+        {
+            foreach (var b in bytes)
+            {
+                if (b != NUL)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public static UInt64 FromOctalData(byte[] bytes, int offset, int length)
@@ -29,6 +44,7 @@ namespace ArchiveUtility
         {
             return b == NUL || b == SPACE;
         }
+
         public static UInt64 FromOctalData(byte[] bytes, int offset, int length, bool detectTrailingCharacters)
         {
             UInt64 value = 0;
@@ -52,7 +68,7 @@ namespace ArchiveUtility
 
             for (int i = 0; i < length; i++)
             {
-                var span = new ReadOnlySpan<byte>(bytes, (int) (offset + i), 1);
+                var span = new ReadOnlySpan<byte>(bytes, (int)(offset + i), 1);
                 var octalDigit = Encoding.ASCII.GetString(span);
                 var significance = (UInt64)1 << ((length - (i + 1)) * 3);
                 var digitValue = Convert.ToUInt32(octalDigit, 8);

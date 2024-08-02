@@ -1,4 +1,4 @@
-﻿{
+{
   "Version": 0,
   "TargetSize": 6587904,
   "TargetHash": {
@@ -45,6 +45,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 34
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 6569472
             }
           }
         }
@@ -118,6 +122,10 @@
                       "Offset": {
                         "Type": "Number",
                         "Number": 6569540
+                      },
+                      "Length": {
+                        "Type": "Number",
+                        "Number": 18279
                       }
                     }
                   }
@@ -145,6 +153,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 6587819
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 1
             }
           }
         }
@@ -167,6 +179,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 6587820
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 38
             }
           }
         }

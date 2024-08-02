@@ -45,6 +45,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 34
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 53248
             }
           }
         }
@@ -118,6 +122,10 @@
                       "Offset": {
                         "Type": "Number",
                         "Number": 53316
+                      },
+                      "Length": {
+                        "Type": "Number",
+                        "Number": 4608
                       }
                     }
                   }
@@ -196,6 +204,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 57966
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 6623232
             }
           }
         }
@@ -269,6 +281,10 @@
                       "Offset": {
                         "Type": "Number",
                         "Number": 6681244
+                      },
+                      "Length": {
+                        "Type": "Number",
+                        "Number": 12247040
                       }
                     }
                   }
@@ -347,6 +363,10 @@
                       "Offset": {
                         "Type": "Number",
                         "Number": 18928326
+                      },
+                      "Length": {
+                        "Type": "Number",
+                        "Number": 58368
                       }
                     }
                   }
@@ -459,6 +479,10 @@
                       "Offset": {
                         "Type": "Number",
                         "Number": 18986738
+                      },
+                      "Length": {
+                        "Type": "Number",
+                        "Number": 13324288
                       }
                     }
                   }
@@ -486,6 +510,10 @@
             "Offset": {
               "Type": "Number",
               "Number": 32311026
+            },
+            "Length": {
+              "Type": "Number",
+              "Number": 38
             }
           }
         }

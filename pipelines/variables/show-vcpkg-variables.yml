@@ -1,0 +1,12 @@
+# File: show-version-variables.yml
+steps:
+- task: CmdLine@2
+  displayName: 'Show Vcpkg Variables'
+  inputs:
+    targetType: inline
+    script: |
+      echo "vcpkg_script: $(vcpkg_script)"
+      echo "vcpkg_port_root: $(vcpkg_port_root)"
+      echo "vcpkg_dir: $(vcpkg_dir)"
+      echo "ms_gsl_dir: $(ms_gsl_dir)"
+      echo "zstd_dir: $(zstd_dir)"

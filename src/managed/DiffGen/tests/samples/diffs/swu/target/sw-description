@@ -1,0 +1,31 @@
+software =
+{
+    version = "0.8.8641.1";
+    raspberrypi3 = {
+        hardware-compatibility: ["1.0"];
+        stable = {
+            copy1 : {
+                images: (
+                    {
+                        filename = "files.cpio.gz";
+                        sha256 = "FD2B69B3ED3E31D82FA6F62487DDAA2F57885F189E0056081E2DCD11DB1685A5";
+                        type = "raw";
+                        compressed = true;
+                        device = "/dev/mmcblk0p2";
+                    }
+                );
+            };
+            copy2 : {
+                images: (
+                    {
+                        filename = "files.cpio.gz";
+                        sha256 = "FD2B69B3ED3E31D82FA6F62487DDAA2F57885F189E0056081E2DCD11DB1685A5";
+                        type = "raw";
+                        compressed = true;
+                        device = "/dev/mmcblk0p3";
+                    }
+                );
+            };
+        }
+    }
+}

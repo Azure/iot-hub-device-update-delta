@@ -1,69 +1,143 @@
-# File: build-native-linux.yml
-# This template implements building the diff api on linux systems.
+# File: build_native_linux.yml
 parameters:
-- name: dependencies
+# We could make this default to '', but then we could accidentally publish a standard package.
+# Better to require explicit setting to '' to elect for this behavior.
+- name: version_suffix
   type: string
-- name: setup_vcpkg_script
+
+# Optional Parameters
+- name: build_platform
   type: string
-- name: vcpkg_dir
+  default: x64
+- name: build_configuration
   type: string
-- name: vcpkg_ports
+  default: 'Release'
+- name: publish
+  type: boolean
+  default: true
+- name: copy_output
+  type: boolean
+  default: false
+- name: copy_output_binaries
   type: string
-- name: vcpkg_triplet
+  default: ''
+- name: copy_output_packages
   type: string
-  default: x64-linux
-- name: source_location
-  type: string
-- name: build_location
-  type: string
-- name: cmake_c_compiler
-  type: string
-- name: cmake_cxx_compiler
-  type: string
-- name: package_location_dir
-  type: string
-  default:
+  default: ''
+- name: one_branch_signing
+  type: boolean
+  default: false
 
 steps:
-- bash: |
-    sudo apt update
-    sudo apt-get install -y ${{ parameters.dependencies }}
-    sudo apt-get install -y ninja-build
-    sudo apt-get install -y autoconf autopoint
-    apt list ${{ parameters.dependencies }}
-    apt list ninja-build autoconf autopoint
-    apt list | grep installed
-  displayName: 'Install Dependencies'
+  - template: /pipelines/variables/show-version-variables.yml@self
 
-- bash: |
-    cat ${{ parameters.setup_vcpkg_script }}
-  displayName: 'Dump vcpkg setup script.'
+  - task: Bash@3
+    displayName: 'Install Dependencies for ${{ parameters.build_platform }}'
+    inputs:
+      filePath: $(Build.SourcesDirectory)/src/native/install_dependencies.sh
+      arguments: ${{ parameters.build_platform }}-linux
+      workingDirectory: $(Build.SourcesDirectory)/src/native
 
-- bash: |
-    chmod +x ${{ parameters.setup_vcpkg_script }}
-    ${{ parameters.setup_vcpkg_script }} ${{ parameters.vcpkg_dir }} ${{ parameters.vcpkg_ports }} ${{ parameters.vcpkg_triplet }}
-  displayName: 'Setup VCPKG'
-  env:
-    VCPKG_ROOT: ${{ parameters.vcpkg_dir }}
+  - task: Bash@3
+    displayName: 'Setup VCPKG (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'
+    inputs:
+      filePath: $(Build.SourcesDirectory)/src/native/build.sh
+      arguments: ${{ parameters.build_platform }}-linux ${{ parameters.build_configuration }} vcpkg
+      workingDirectory: $(Build.SourcesDirectory)/src/native
 
-- task: CMake@1
-  inputs:
-    cmakeArgs: -S ${{ parameters.source_location }} -B ${{ parameters.build_location }} -DCMAKE_TOOLCHAIN_FILE=${{ parameters.vcpkg_dir }}/scripts/buildsystems/vcpkg.cmake -G "Unix Makefiles" -DVCPKG_TARGET_TRIPLET=${{ parameters.vcpkg_triplet }} -DCMAKE_C_COMPILER=${{ parameters.cmake_c_compiler }} -DCMAKE_CXX_COMPILER=${{ parameters.cmake_cxx_compiler }} --trace
-  displayName: 'CMake'
-  env:
-    VCPKG_ROOT: ${{ parameters.vcpkg_dir }}
+  - task: Bash@3
+    displayName: 'CMake (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'
+    inputs:
+      filePath: $(Build.SourcesDirectory)/src/native/build.sh
+      arguments: ${{ parameters.build_platform }}-linux ${{ parameters.build_configuration }} cmake
+      workingDirectory: $(Build.SourcesDirectory)/src/native
 
-- bash: |
-    cd ${{ parameters.build_location }}
-    make
-    ls -R ${{ parameters.build_location }}
-  displayName: 'Build diffapi'
-  env:
-    VCPKG_ROOT: ${{ parameters.vcpkg_dir }}
+  - task: Bash@3
+    displayName: 'Dump CMake Dir Before Build'
+    inputs:
+      targetType: inline
+      script: tree $(Build.SourcesDirectory)/src/native/out.linux/
 
-- ${{ if ne('${{ parameters.package_location_dir }}', '') }}:
-  - bash: |
-      cd ${{ parameters.build_location }}
-      cpack -G DEB
-      ls -R ${{ parameters.package_location_dir }}
+  - task: Bash@3
+    displayName: 'Build (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'
+    inputs:
+      filePath: $(Build.SourcesDirectory)/src/native/build.sh
+      arguments: ${{ parameters.build_platform }}-linux ${{ parameters.build_configuration }} build
+      workingDirectory: $(Build.SourcesDirectory)/src/native
+
+  - task: Bash@3
+    displayName: 'Dump CMake Dir After Build'
+    inputs:
+      targetType: inline
+      script: tree $(Build.SourcesDirectory)/src/native/out.linux/
+
+  - ${{ if parameters.publish }}:
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/bin'
+        artifactType: 'pipeline'
+        artifactName: 'native-binaries.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}'
+      displayName: 'Publish Native Binaries ${{ parameters.build_platform }}-linux ${{ parameters.build_configuration }}'
+
+  - ${{ if parameters.publish }}:
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/test/bin'
+        artifactType: 'pipeline'
+        artifactName: 'native-test-binaries.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}'
+      displayName: 'Publish Native Test Binaries ${{ parameters.build_platform }}-linux ${{ parameters.build_configuration }}'
+
+  - task: Bash@3
+    displayName: 'Run Tests (${{ parameters.build_configuration }})'
+    inputs:
+      filePath: $(Build.SourcesDirectory)/src/native/run_tests.sh
+      arguments: ${{ parameters.build_configuration }} ${{ parameters.build_platform }}
+      workingDirectory: $(Build.SourcesDirectory)/src/native
+
+  - ${{ if parameters.copy_output }}:
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/bin'
+        Contents: '*'
+        TargetFolder: ${{ parameters.copy_output_binaries }}
+
+  - task: Bash@3
     displayName: 'Create debian package'
+    inputs:
+      targetType: inline
+      script: |
+        cd $(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}
+        cpack --config CPackConfig.cmake -DVER_ADUDIFFAPI_VERSION:STRING=$(semver_version)
+
+  - ${{ if parameters.one_branch_signing }}:
+    - task: onebranch.pipeline.signing@1 # https://aka.ms/obpipelines/signing
+      displayName: 'Sign debian package'
+      inputs:
+        command: 'sign'
+        signing_profile: 'CP-459159-pgpdetached'
+        signing_environment: 'azure-ado'
+        files_to_sign: '**/*.deb'
+        SourceFolder: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/_packages'
+
+  - ${{ if parameters.copy_output }}:
+    - task: CopyFiles@2
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/_packages'
+        Contents: '*.deb'
+        TargetFolder: ${{ parameters.copy_output_packages }}
+
+  - ${{ if parameters.publish }}:
+    - task: CopyFiles@2
+      displayName: 'Copy Debian Package before publish'
+      inputs:
+        SourceFolder: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/_packages'
+        Contents: '*.deb'
+        TargetFolder: $(Build.ArtifactStagingDirectory)/debian-package
+
+  - ${{ if parameters.publish }}:
+    - task: PublishPipelineArtifact@1
+      inputs:
+        targetPath: $(Build.ArtifactStagingDirectory)/debian-package
+        artifactType: 'pipeline'
+        artifactName: 'native-debian-package.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}'
+      displayName: 'Publish Debian Package'

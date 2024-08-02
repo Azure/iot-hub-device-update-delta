@@ -14,26 +14,27 @@
     <tags></tags>
   </metadata>
   <files>
-    <file src="adudiffapi.dll" target="lib/net6.0" />
-    <file src="adudiffapi.lib" target="lib/net6.0" />
-    <file src="adudiffapi.pdb" target="lib/net6.0" />
-    <file src="bsdiff.exe" target="lib/net6.0" />
-    <file src="bspatch.exe" target="lib/net6.0" />
-    <file src="dumpextfs.exe" target="lib/net6.0" />
-    <file src="zstd_compress_file.exe" target="lib/net6.0" />
-    <file src="zlib1.dll" target="lib/net6.0" />
-    <file src="zstd.dll" target="lib/net6.0" />
-    <file src="libadudiffapi.so" target="lib/net6.0" />
-    <file src="bsdiff" target="lib/net6.0" />
-    <file src="bspatch" target="lib/net6.0" />
-    <file src="dumpextfs" target="lib/net6.0" />
-    <file src="zstd_compress_file" target="lib/net6.0" />
+    <file src="adudiffapi.dll" target="lib/net8.0" />
+    <file src="adudiffapi.lib" target="lib/net8.0" />
+    <file src="adudiffapi.pdb" target="lib/net8.0" />
+    <file src="bsdiff.exe" target="lib/net8.0" />
+    <file src="bspatch.exe" target="lib/net8.0" />
+    <file src="dumpextfs.exe" target="lib/net8.0" />
+    <file src="zstd_compress_file.exe" target="lib/net8.0" />
+    <file src="jsoncpp.dll" target="lib/net8.0" />
+    <file src="zlib1.dll" target="lib/net8.0" />
+    <file src="zstd.dll" target="lib/net8.0" />
+    <file src="libadudiffapi.so" target="lib/net8.0" />
+    <file src="bsdiff" target="lib/net8.0" />
+    <file src="bspatch" target="lib/net8.0" />
+    <file src="dumpextfs" target="lib/net8.0" />
+    <file src="zstd_compress_file" target="lib/net8.0" />
 
-    <file src="NOTICE.txt" target="lib/net6.0" />
-    <file src="LICENSE" target="lib/net6.0" />
+    <file src="NOTICE.txt" target="lib/net8.0" />
+    <file src="LICENSE" target="lib/net8.0" />
 
     <file src="ERRORS.md" target="." />
-    
+
     <file src="bin\**\*" target="bin" />
   </files>
 </package>

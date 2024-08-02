@@ -8,14 +8,25 @@ namespace ArchiveUtility
 {
     using System;
     using System.IO;
+    using System.Linq;
     using System.Security.Authentication;
     using System.Security.Cryptography;
 
-    public record Hash(HashAlgorithmType Type, byte[] Value)
+    public class Hash
     {
+        public HashAlgorithmType Type { get; init; }
+
+        public byte[] Value { get; init; }
+
+        public Hash(HashAlgorithmType type, byte[] value)
+        {
+            Type = type;
+            Value = value;
+        }
+
         public string ValueString()
         {
-            return HexUtility.ByteArrayToHexString(Value);
+            return HexUtility.ByteArrayToHexString(Value.ToArray());
         }
 
         public override string ToString()
@@ -27,6 +38,7 @@ namespace ArchiveUtility
         {
             return HexUtility.ByteArrayToHexString(Sha256File(path));
         }
+
         public static byte[] Sha256File(string path)
         {
             const int READ_BUFFER_SIZE = 4096;
@@ -42,12 +54,51 @@ namespace ArchiveUtility
                         hasher.AppendData(span);
                     }
                 }
+
                 return hasher.GetCurrentHash();
             }
         }
+
         public static Hash FromFile(string path)
         {
             return new Hash(HashAlgorithmType.Sha256, Sha256File(path));
+        }
+
+        public override int GetHashCode()
+        {
+            int result = Type.GetHashCode();
+
+            foreach (var b in Value)
+            {
+                result = HashCode.Combine(result, b.GetHashCode());
+            }
+
+            return result;
+        }
+
+        public static bool Equals(Hash x, Hash y)
+        {
+            if (x.Type != y.Type)
+            {
+                return false;
+            }
+
+            return Enumerable.SequenceEqual(x.Value, y.Value);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (obj is Hash)
+            {
+                return Equals(this, (Hash)obj);
+            }
+
+            return base.Equals(obj);
         }
     }
 }

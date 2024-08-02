@@ -1,0 +1,8 @@
+# File: vcpkg-variables.yml
+variables:
+  vcpkg_script: $(Build.SourcesDirectory)/vcpkg/setup_vcpkg
+  vcpkg_port_root: $(Build.SourcesDirectory)/vcpkg/ports
+  vcpkg_dir: $(Agent.BuildDirectory)/vcpkg
+  vcpkg_cmake_toolchain_file: $(vcpkg_dir)/scripts/buildsystems/vcpkg.cmake
+  ms_gsl_dir: $(vcpkg_dir)/packages/ms-gsl-$(vcpkg_triplet)/share/Microsoft.GSL
+  zstd_dir: $(vcpkg_dir)/packages/zstd_$(vcpkg_triplet)/share/zstd    

@@ -4,41 +4,44 @@
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
  */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.IO;
-using ArchiveUtility;
-
-// The format for tar used this link: https://www.systutorials.com/docs/linux/man/5-tar/
-
 namespace TarArchives
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
+    using System.IO;
+
+    using ArchiveUtility;
+
+    // The format for tar used this link: https://www.systutorials.com/docs/linux/man/5-tar/
+    [SuppressMessage("Microsoft.StyleCop.CSharp.ReadabilityRules", "SA1121", Justification = "We want to be explicit about bit-width using these aliases.")]
     public class OldStyleTarArchive : TarArchiveBase
     {
-        public OldStyleTarArchive(ArchiveLoaderContext context) : base(context)
+        public OldStyleTarArchive(ArchiveLoaderContext context)
+            : base(context)
         {
         }
-        public override string ArchiveSubtype { get { return "old"; } }
+
+        public override string ArchiveSubtype { get => "old"; }
+
         private const int HeaderSize = 512;
-        protected override void ReadHeader(BinaryReader reader, UInt64 offset, out ArchiveItem chunk, out string payloadName, out UInt64 payloadLength)
+
+        protected override HeaderDetails ReadHeader(BinaryReader reader)
         {
             byte[] rawHeaderData = new byte[HeaderSize];
-            if (HeaderSize != reader.Read(rawHeaderData, 0, HeaderSize))
+            if (reader.Read(rawHeaderData, 0, HeaderSize) != HeaderSize)
             {
                 throw new FormatException($"Couldn't find enough bytes for header (required at least {HeaderSize} for Old Style Tar.");
             }
 
             if (AsciiData.IsAllNul(rawHeaderData))
             {
-                chunk = ArchiveItem.FromByteSpan(ArchiveItem.MakeAllZeroChunkName(offset), ArchiveItemType.Chunk, rawHeaderData, (UInt64)offset);
-                chunk.Recipes.Add(new AllZeroRecipe(chunk.Length));
-                payloadName = null;
-                payloadLength = 0;
+                var allZeroHeaderItem = ItemDefinition.FromByteSpan(rawHeaderData);
+                List<UInt64> numbers = new() { allZeroHeaderItem.Length };
+                List<ItemDefinition> items = new();
+                var headerRecipe = new Recipe(RecipeType.AllZeros, allZeroHeaderItem, numbers, items);
                 EmptyBlocks++;
-                return;
+                return new HeaderDetails(allZeroHeaderItem, headerRecipe, null, 0);
             }
 
             EmptyBlocks = 0;
@@ -53,10 +56,10 @@ namespace TarArchives
             var linkflag = AsciiData.FromOctalData(rawHeaderData, 156, 1);
             var linkname = AsciiData.FromNulPaddedString(rawHeaderData, 157, 100);
 
-            var chunkName = ArchiveItem.MakeHeaderChunkName(name);
-            chunk = ArchiveItem.FromByteSpan(chunkName, ArchiveItemType.Chunk, rawHeaderData, (UInt64)offset);
-            payloadName = name;
-            payloadLength = size;
+            var chunkName = ChunkNames.MakeHeaderChunkName(name);
+            var headerItem = ItemDefinition.FromByteSpan(rawHeaderData).WithName(chunkName);
+
+            return new HeaderDetails(headerItem, null, name, size);
         }
     }
 }

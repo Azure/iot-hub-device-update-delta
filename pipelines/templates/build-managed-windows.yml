@@ -1,0 +1,90 @@
+# File: build_managed_windows.yml
+parameters:
+# We could make this default to '', but then we could accidentally publish a standard package.
+# Better to require explicit setting to '' to elect for this behavior.
+- name: version_suffix
+  type: string
+
+# Optional Parameters
+- name: build_platform
+  type: string
+  default: x64
+- name: build_configuration
+  type: string
+  default: 'Release'
+- name: publish
+  type: boolean
+  default: true
+- name: copy_output
+  type: boolean
+  default: false
+- name: copy_output_binaries
+  type: string
+  default: ''
+- name: one_branch_signing
+  type: boolean
+  default: false
+
+steps:
+- task: UseDotNet@2
+  displayName: 'Use .NET Standard sdk'
+  inputs:
+    packageType: sdk
+    version: 8.x
+    installationPath: $(Agent.ToolsDirectory)/dotnet
+
+- task: NuGetToolInstaller@1
+
+- task: PowerShell@2
+  displayName: 'Dump nuget.config'
+  inputs:
+    targetType: inline
+    script: cat $(Build.SourcesDirectory)/nuget.config
+
+- task: NuGetAuthenticate@1
+  inputs:
+    forceReinstallCredentialProvider: true
+
+- task: PowerShell@2
+  displayName: 'Build Managed (${{ parameters.build_configuration }})'
+  inputs:
+    filePath: $(Build.SourcesDirectory)/src/managed/build.ps1
+    arguments: ${{ parameters.build_configuration }}
+    workingDirectory: $(Build.SourcesDirectory)/src/managed
+
+- task: PowerShell@2
+  displayName: 'Show Managed Build Output (${{ parameters.build_configuration }})'
+  inputs:
+    targetType: inline
+    script: tree /f $(Build.SourcesDirectory)/src/managed
+
+- task: PowerShell@2
+  displayName: 'Run Managed Tests (${{ parameters.build_configuration }})'
+  inputs:
+    filePath: $(Build.SourcesDirectory)/src/managed/run_tests.ps1
+    arguments: ${{ parameters.build_configuration }}
+    workingDirectory: $(Build.SourcesDirectory)/src/managed
+
+- ${{ if parameters.one_branch_signing }}:
+  - task: onebranch.pipeline.signing@1 # https://aka.ms/obpipelines/signing
+    displayName: 'Sign output (managed)'
+    inputs:
+      command: 'sign'
+      signing_environment: 'azure-ado'
+      files_to_sign: '**/DiffGenTool.exe;**/DiffGenTool.dll;**/Microsoft.Azure.DeviceUpdate.Diffs.dll;**/ArchiveUtility.dll;**/CpioArchives.dll;**/Ext4Archives.dll;**/SWUpdateArchives.dll;**/TarArchives.dll;**/ZipArchives.dll'
+      search_root: '$(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/bin/${{ parameters.build_configuration }}/net8.0/win-x64'
+
+- ${{ if parameters.publish }}:
+  - task: PublishPipelineArtifact@1
+    inputs:
+      targetPath: '$(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/bin/${{ parameters.build_configuration }}/net8.0/win-x64'
+      artifactType: 'pipeline'
+      artifactName: 'DiffGenTool.${{ parameters.build_platform }}-windows.${{ parameters.build_configuration }}'
+    displayName: 'Publish DiffGenTool.${{ parameters.build_platform }}-windows.${{ parameters.build_configuration }}'
+
+- ${{ if parameters.copy_output }}:
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/bin/${{ parameters.build_configuration }}/net8.0/win-x64'
+      Contents: '*'
+      TargetFolder: ${{ parameters.copy_output_binaries }}
