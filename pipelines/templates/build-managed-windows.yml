@@ -18,6 +18,9 @@ parameters:
 - name: copy_output
   type: boolean
   default: false
+- name: copy_output_archives
+  type: string
+  default: ''
 - name: copy_output_binaries
   type: string
   default: ''
@@ -88,3 +91,47 @@ steps:
       SourceFolder: '$(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/bin/${{ parameters.build_configuration }}/net8.0/win-x64'
       Contents: '*'
       TargetFolder: ${{ parameters.copy_output_binaries }}
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/bin/${{ parameters.build_configuration }}/net8.0/win-x64'
+    archiveType: 7z
+    sevenZipCompression: ultra
+    archiveFile: '$(Build.ArtifactStagingDirectory)/archives/DiffGenTool.${{ parameters.build_platform }}-windows.${{ parameters.build_configuration }}.7z'
+    verbose: true
+
+- task: PowerShell@2
+  displayName: 'Show Archive'
+  inputs:
+    targetType: inline
+    script: tree /f $(Build.ArtifactStagingDirectory)/archives
+
+- ${{ if parameters.one_branch_signing }}:
+  - task: onebranch.pipeline.signing@1 # https://aka.ms/obpipelines/signing
+    displayName: 'Sign archive'
+    inputs:
+      command: 'sign'
+      signing_environment: 'azure-ado'
+      files_to_sign: '**/*.7z'
+      search_root: '$(Build.ArtifactStagingDirectory)/archives'
+
+- ${{ if parameters.one_branch_signing }}:
+  - task: PowerShell@2
+    displayName: 'Show Signed Archive'
+    inputs:
+      targetType: inline
+      script: tree /f $(Build.ArtifactStagingDirectory)/archives
+
+- ${{ if parameters.copy_output }}:
+  - task: CopyFiles@2
+    inputs:
+      SourceFolder: '$(Build.ArtifactStagingDirectory)/archives'
+      Contents: '*'
+      TargetFolder: ${{ parameters.copy_output_archives }}
+
+- ${{ if parameters.copy_output }}:
+  - task: PowerShell@2
+    displayName: 'Show Copied Archive'
+    inputs:
+      targetType: inline
+      script: tree /f ${{ parameters.copy_output_archives }}
