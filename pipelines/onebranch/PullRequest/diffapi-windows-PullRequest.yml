@@ -108,6 +108,7 @@ extends:
               publish: false
               copy_output: true
               copy_output_binaries: $(ob_outputDirectory)/managed
+              copy_output_archives: $(ob_outputDirectory)/archives
 
 # https://aka.ms/obpipelines/cloudtest
 # uncomment this section and edit parameters to enable CloudTest

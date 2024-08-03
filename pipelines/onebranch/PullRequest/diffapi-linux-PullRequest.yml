@@ -31,7 +31,7 @@ variables:
   system.debug: ${{ parameters.debug }}
   ROOT: $(Build.SourcesDirectory)
   REPOROOT: $(Build.SourcesDirectory)
-  OUTPUTROOT: $(REPOROOT)\out
+  OUTPUTROOT: $(REPOROOT)/out
   NUGET_XMLDOC_MODE: none
 
   LinuxContainerImage : 'onebranch.azurecr.io/linux/ubuntu-2204:latest' # Docker image which is used to build the project https://aka.ms/obpipelines/containers
@@ -74,7 +74,7 @@ extends:
         - template: /pipelines/variables/common-variables.yml@self
         - template: /pipelines/variables/diffgen-variables.yml@self
         - name: ob_outputDirectory
-          value: '$(REPOROOT)\out' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+          value: '$(REPOROOT)/out' # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
         - name: ob_sdl_binskim_break
           value: true # https://aka.ms/obpipelines/sdl
         - name: ob_sdl_codeSignValidation_excludes
@@ -109,6 +109,7 @@ extends:
               publish: false
               copy_output: true
               copy_output_binaries: $(ob_outputDirectory)/managed
+              copy_output_archives: $(ob_outputDirectory)/archives
 
 # https://aka.ms/obpipelines/cloudtest
 # uncomment this section and edit parameters to enable CloudTest
