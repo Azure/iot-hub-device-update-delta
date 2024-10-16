@@ -23,15 +23,4 @@ std::string data_to_hexstring(const char *data, size_t byte_count)
 	}
 	return hex_string;
 }
-
-std::string hash_to_hexstring(const char *hash, [[maybe_unused]]hashing::algorithm alg)
-{
-#ifdef WIN32
-	size_t hash_bytes = 0;
-#else
-	auto algo         = alg_to_gcrypt_algo(alg);
-	size_t hash_bytes = gcry_md_get_algo_dlen(algo);
-#endif
-	return data_to_hexstring(hash, hash_bytes);
-}
 } // namespace archive_diff::hashing

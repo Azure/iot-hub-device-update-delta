@@ -93,7 +93,7 @@ steps:
     rootFolderOrFile: '$(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/bin/${{ parameters.build_configuration }}/net8.0/linux-x64'
     archiveType: tar
     tarCompression: gz
-    archiveFile: '$(Build.ArtifactStagingDirectory)/archives/DiffGenTool.${{ parameters.build_platform }}-windows.${{ parameters.build_configuration }}.tar.gz'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/archives/DiffGenTool.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}.tar.gz'
     verbose: true
 
 - task: Bash@3
@@ -131,3 +131,4 @@ steps:
     inputs:
       targetType: inline
       script: tree ${{ parameters.copy_output_archives }}
+

@@ -29,7 +29,7 @@ parameters:
   default: false
 
 steps:
-  - template: /pipelines/variables/show-version-variables.yml@self
+  - template: /pipelines/variables/get-version-variables.yml@self
 
   - task: Bash@3
     displayName: 'Install Dependencies for ${{ parameters.build_platform }}'
@@ -37,6 +37,12 @@ steps:
       filePath: $(Build.SourcesDirectory)/src/native/install_dependencies.sh
       arguments: ${{ parameters.build_platform }}-linux
       workingDirectory: $(Build.SourcesDirectory)/src/native
+
+  - task: Bash@3
+    displayName: 'Show installed packages'
+    inputs:
+      targetType: inline
+      script: apt list --installed
 
   - task: Bash@3
     displayName: 'Setup VCPKG (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'
@@ -49,7 +55,7 @@ steps:
     displayName: 'CMake (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'
     inputs:
       filePath: $(Build.SourcesDirectory)/src/native/build.sh
-      arguments: ${{ parameters.build_platform }}-linux ${{ parameters.build_configuration }} cmake
+      arguments: ${{ parameters.build_platform }}-linux ${{ parameters.build_configuration }} cmake $(semver_version)
       workingDirectory: $(Build.SourcesDirectory)/src/native
 
   - task: Bash@3
@@ -107,7 +113,7 @@ steps:
       targetType: inline
       script: |
         cd $(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}
-        cpack --config CPackConfig.cmake -DVER_ADUDIFFAPI_VERSION:STRING=$(semver_version)
+        cpack --config CPackConfig.cmake
 
   - ${{ if parameters.one_branch_signing }}:
     - task: onebranch.pipeline.signing@1 # https://aka.ms/obpipelines/signing

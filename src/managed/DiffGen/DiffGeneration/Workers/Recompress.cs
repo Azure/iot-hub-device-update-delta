@@ -44,7 +44,7 @@ public class Recompress : Worker
                 arguments += $" \"{SigningCommand}\"";
             }
 
-            Logger.LogInformation($"Executing: {recompress_exe} with arguments: {arguments}");
+            Logger.LogInformation($"Executing: {recompress_exe} {arguments}");
 
             process.StartInfo.UseShellExecute = false;
             process.StartInfo.CreateNoWindow = true;

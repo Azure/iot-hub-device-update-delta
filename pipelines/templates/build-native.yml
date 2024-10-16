@@ -29,7 +29,7 @@ parameters:
   default: ''
 
 steps:
-  - template: /pipelines/variables/show-version-variables.yml@self
+  - template: /pipelines/variables/get-version-variables.yml@self
   - template: /pipelines/variables/show-vcpkg-variables.yml@self
   - template: /pipelines/variables/show-cmake-variables.yml@self
 

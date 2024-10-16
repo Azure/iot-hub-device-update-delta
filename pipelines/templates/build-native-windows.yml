@@ -26,7 +26,11 @@ parameters:
   default: false
 
 steps:
-  - template: /pipelines/variables/show-version-variables.yml@self
+  - template: /pipelines/variables/get-version-variables.yml@self
+
+  - task: NuGetAuthenticate@1
+    inputs:
+      forceReinstallCredentialProvider: true
 
   - task: PowerShell@2
     displayName: 'Setup VCPKG (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'

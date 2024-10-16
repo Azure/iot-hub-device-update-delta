@@ -52,7 +52,7 @@ public class CreateDeltas : Worker
 
     public bool KeepWorkingFolder { get; set; }
 
-    public Dictionary<ItemDefinition, HashSet<DeltaPlan>> DeltaPlans { get; set; }
+    public DeltaPlans DeltaPlans { get; set; }
 
     public CreateDeltas(ILogger logger, string workingFolder, CancellationToken cancellationToken)
         : base(logger, workingFolder, cancellationToken)
@@ -93,18 +93,20 @@ public class CreateDeltas : Worker
         var targetItemsRoot = TargetTokens.ItemFolder;
         var deltaRoot = DiffBuilder.GetDeltaRoot(WorkingFolder);
 
-        Logger.LogInformation("Delta Plan has {Count} entries.", DeltaPlans.Count);
+        Logger.LogInformation("Delta Plan has {Count} entries.", DeltaPlans.Entries.Count);
+
+        var deltaPlans = DeltaPlans.Entries.ToDictionary();
 
         ParallelOptions po = new() { CancellationToken = CancellationToken };
-        Parallel.ForEach(DeltaPlans.Keys, po, itemToDelta =>
+        Parallel.ForEach(deltaPlans.Keys, po, itemToDelta =>
         {
             int newProcessedCount = Interlocked.Increment(ref processedCount);
             if (newProcessedCount % 1000 == 0)
             {
-                Logger.LogInformation($"Processed: {newProcessedCount}/{DeltaPlans.Count}. Delta: {deltaRecipeSets.Count}");
+                Logger.LogInformation($"Processed: {newProcessedCount}/{deltaPlans.Count}. Delta: {deltaRecipeSets.Count}");
             }
 
-            var deltaPlansForItem = DeltaPlans[itemToDelta];
+            var deltaPlansForItem = deltaPlans[itemToDelta];
 
             foreach (var entry in deltaPlansForItem)
             {

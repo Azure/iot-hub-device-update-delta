@@ -10,9 +10,11 @@
 #include <string>
 #include <vector>
 
-#ifdef WIN32
+#ifdef USE_BCRYPT
 	#include <memory>
-#else
+#endif
+
+#ifdef USE_LIBGCRYPT
 	#include <gcrypt.h>
 #endif
 
@@ -27,7 +29,7 @@ enum class algorithm : uint32_t
 
 const algorithm all_algorithms[] = {algorithm::md5, algorithm::sha256};
 
-#ifndef WIN32
+#ifndef USE_BCRYPT
 int alg_to_gcrypt_algo(hashing::algorithm alg);
 #endif
 

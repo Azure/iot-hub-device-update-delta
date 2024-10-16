@@ -46,19 +46,27 @@ Write-Host "BuildType       : $BuildType"
 Write-Host "Stages          : $Stages"
 
 # Put our vcpkg repo as a sibling to this repo. We are at <adu delta repo>\src\native.
-$vcpkgRepo = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("..\..\..\vcpkg")
 
-Write-Host "Vcpkg Repo: $vcpkgRepo"
+$repoRoot = Resolve-Path("..\..")
+Write-Host "Repo Root: $repoRoot"
+
+if ($null -eq $env:VCPKG_ROOT) {
+	$vcpkgRepo = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath("..\..\..\vcpkg")
+	Write-Host "Vcpkg Repo: $vcpkgRepo"
+}
+else {
+	$vcpkgRepo = $env:VCPKG_ROOT
+}
+
 
 function RunSetupVCPkg {
 	Write-Output "Setting up VCPKG repo in ${vcpkgRepo}"
 
 	$setupVCPkgScript = Resolve-Path("..\..\vcpkg\setup_vcpkg.ps1")
-	$vcpkgOverlayRoot = Resolve-Path("..\..\vcpkg")
 
-	Write-Output "Calling ${setupVCPkgScript} $vcpkgRepo $vcpkgOverlayRoot $VcpkgTriplet"
+	Write-Output "Calling ${setupVCPkgScript} $vcpkgRepo $repoRoot $VcpkgTriplet"
 
-	&${setupVCPkgScript} $vcpkgRepo $vcpkgOverlayRoot $VcpkgTriplet
+	&${setupVCPkgScript} $vcpkgRepo $repoRoot $VcpkgTriplet
 	if ($LASTEXITCODE -ne 0) {
 		Write-Output "VCPKG Setup failed."
 		exit $LASTEXITCODE
@@ -113,8 +121,15 @@ function RunCMake {
 		Remove-Item $vcpkgCMakeCache
 	}
 
-	Write-Host "Calling: `"$cmake`" -S $cmakeSourceDir -B $cmakeBuildDir $cmakePlatformParameter -DCMAKE_TOOLCHAIN_FILE=`"$vcpkgCMakeToolChainFile`" -DCMAKE_BUILD_TYPE=`"$BuildType`" -DVCPKG_TARGET_TRIPLET=`"$VcpkgTriplet`""
-	& "$cmake" -S $cmakeSourceDir -B $cmakeBuildDir $cmakePlatformParameter -DCMAKE_TOOLCHAIN_FILE="$vcpkgCMakeToolChainFile" -DCMAKE_BUILD_TYPE="$BuildType" -DVCPKG_TARGET_TRIPLET="$VcpkgTriplet"
+	Push-Location ../..
+	$ADU_DIFFS_VERSION = $(./get_version.ps1)
+	Pop-Location
+
+	Write-Host "ADU_DIFFS_VERSION: $ADU_DIFFS_VERSION"
+
+	Write-Host "Calling: `"$cmake`" -S $cmakeSourceDir -B $cmakeBuildDir $cmakePlatformParameter -DCMAKE_TOOLCHAIN_FILE=`"$vcpkgCMakeToolChainFile`" -DCMAKE_BUILD_TYPE=`"$BuildType`" -DVCPKG_TARGET_TRIPLET=`"$VcpkgTriplet`" -DADU_DIFFS_VERSION=`"$ADU_DIFFS_VERSION`""
+
+	& "$cmake" -S $cmakeSourceDir -B $cmakeBuildDir $cmakePlatformParameter -DCMAKE_TOOLCHAIN_FILE="$vcpkgCMakeToolChainFile" -DCMAKE_BUILD_TYPE="$BuildType" -DVCPKG_TARGET_TRIPLET="$VcpkgTriplet" -DADU_DIFFS_VERSION="$ADU_DIFFS_VERSION"
 
 	if ($LASTEXITCODE -ne 0) {
 		Write-Output "CMake failed."
@@ -138,13 +153,26 @@ function CopyBsdiffBinaryFiles {
 	Move-Item $targetBin/bsdiff_patch.exe $targetBin/bspatch.exe -Force
 }
 
+$targetBin = "${cmakeBuildDir}\bin\$BuildType"
+$baseLicenseSource = "$repoRoot\licenses\LICENSE.windows"
+$baseLicenseTarget = "${targetBin}\NOTICE"
+
+function CopyBaseWindowsLicense {
+	Copy-Item $baseLicenseSource $baseLicenseTarget
+}
+
 function CopyVcpkgLicenseFile {
-	param([string]$PackageName)
+	param([string]$PackageName, [string]$LicenseFileName = "copyright")
 
-	$targetBin = "${cmakeBuildDir}\bin\$BuildType"
+	$licensePath = Resolve-Path("$vcpkgRepo/packages/${PackageName}_${VcpkgTriplet}/share/${PackageName}/${LicenseFileName}")
+	Copy-Item $licensePath $targetBin/LICENSE.${PackageName}
 
-	$copyrightFile = Resolve-Path("$vcpkgRepo/packages/${PackageName}_${VcpkgTriplet}/share/${PackageName}/copyright")
-	Copy-Item $copyrightFile $targetBin/LICENSE.${PackageName}
+	$headerText = "`r`n================ License for $PackageName ================`r`n"
+	$licenseText = Get-Content -Raw $licensePath
+
+	$encoding = New-Object System.Text.UTF8Encoding $False
+	[System.IO.File]::AppendAllText($baseLicenseTarget, $headerText, $encoding)
+	[System.IO.File]::AppendAllText($baseLicenseTarget, $licenseText, $encoding)
 }
 
 function RunMsBuild {
@@ -161,13 +189,15 @@ function RunMsBuild {
 	Write-Output "Copying VCPKG binaries and license files."
 	CopyBsdiffBinaryFiles
 
+	CopyBaseWindowsLicense
+
 	CopyVcpkgLicenseFile bsdiff
 	CopyVcpkgLicenseFile bzip2
 	CopyVcpkgLicenseFile e2fsprogs
 	CopyVcpkgLicenseFile jsoncpp
 	CopyVcpkgLicenseFile libconfig
 	CopyVcpkgLicenseFile zlib
-	CopyVcpkgLicenseFile zstd
+	CopyVcpkgLicenseFile zstd LICENSE
 
 	Write-Output "Build Output (binaries): " (Get-ChildItem ${cmakeBuildDir}\bin\$BuildType) | Out-Host
 

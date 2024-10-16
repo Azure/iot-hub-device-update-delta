@@ -665,7 +665,7 @@ namespace ArchiveUtility
 
             using var applySession = createSession.NewApplySession();
 
-            logger?.LogInformation("Trying to extract {toExtractCount} items from {archivePath} using {recipeCount} recipes.", toExtract.Count(), archivePath, recipeCount);
+            logger?.LogInformation("Trying to extract {toExtractCount:N0} items from {archivePath} using {recipeCount:N0} recipes.", toExtract.Count(), archivePath, recipeCount);
 
             foreach (var item in toExtract)
             {

@@ -1,16 +1,4 @@
 # File: version-variables.yml
 variables:
-  - name: major_version
-    value: 2
-  - name: minor_version
-    value: 0
-  - name: patch_version
-    value: 0
-  - name: semver_version
-    value: '$(major_version).$(minor_version).$(patch_version)'
-  - name: informational_version
-    value: '$(semver_version).$(Build.BuildNumber)'
-  - name: semver_version_commas
-    value: "$(major_version),$(minor_version),$(patch_version)"
   - name: copyright
     value: "© Microsoft Corporation. All rights reserved."
