@@ -15,21 +15,26 @@
 #include "hasher.h"
 #include "hexstring_convert.h"
 
-#ifdef WIN32
-
+#ifdef USE_BCRYPT
 	#define WINDOWS_ENABLE_CPLUSPLUS 1
 	#include <windows.h>
 	#include <wincrypt.h>
 
 	#undef max
-#else
+#endif
 
+#ifdef USE_LIBGCRYPT
 	#include <gpg-error.h>
+#endif
+
+#ifdef USE_OPENSSL
+	#include <openssl/evp.h>
+	#include <openssl/err.h>
 #endif
 
 namespace archive_diff::hashing
 {
-#ifdef WIN32
+#ifdef USE_BCRYPT
 
 ALG_ID alg_to_BCRYPT_ALG_ID(algorithm alg)
 {
@@ -66,7 +71,9 @@ void hasher::algorithm_provider_handle_deleter::operator()(void *ptr)
 
 void hasher::hash_handle_deleter::operator()(void *ptr) { BCryptDestroyHash(ptr); }
 
-#else
+#endif
+
+#ifdef USE_LIBGCRYPT
 hasher::libgcrypt_initializer hashing::hasher::m_libgcrypt_initializer;
 
 std::string get_libgcrypt_err_string(gcry_error_t err)
@@ -128,9 +135,26 @@ std::string gcrypt_algo_to_string(int algo)
 
 #endif
 
+#ifdef USE_OPENSSL
+const EVP_MD *algorithm_to_EVP_MP(algorithm alg)
+{ 
+	switch (alg)
+	{
+	case algorithm::md5:
+		return EVP_md5();
+
+	case algorithm::sha256:
+		return EVP_sha256();
+
+	default:
+		return nullptr;
+	}
+}
+#endif
+
 void hasher::reset()
 {
-#ifdef WIN32
+#ifdef USE_BCRYPT
 	#ifndef STATUS_SUCCESS
 		#define STATUS_SUCCESS ((NTSTATUS)0x00000000)
 	#endif
@@ -144,8 +168,9 @@ void hasher::reset()
 		throw errors::user_exception(errors::error_code::hash_initialization_failure, msg);
 	}
 	m_hash_handle.reset(hash_handle);
+#endif
 
-#else
+#ifdef USE_LIBGCRYPT
 	if (m_hd)
 	{
 		gcry_md_reset(m_hd);
@@ -163,11 +188,35 @@ void hasher::reset()
 		}
 	}
 #endif
+
+#ifdef USE_OPENSSL
+	auto evp_mp = algorithm_to_EVP_MP(m_alg);
+	if (evp_mp == nullptr)
+	{
+		std::string msg = "Couldn't get evp_mp for algorithm: " + std::to_string(static_cast<int>(m_alg));
+	 	throw errors::user_exception(errors::error_code::hash_initialization_failure, msg);
+	}
+
+	if (m_md_ctx == nullptr)
+	{
+		m_md_ctx = EVP_MD_CTX_new();
+	}
+	else
+	{
+	 	EVP_MD_CTX_reset(m_md_ctx);
+	}
+
+	if (!EVP_DigestInit_ex(m_md_ctx, evp_mp, NULL)) 
+	{
+		std::string msg = "EVP_DigestInit_ex() failed with err = " + std::to_string(static_cast<int>(ERR_get_error()));
+		throw errors::user_exception(errors::error_code::hash_initialization_failure, msg);
+	}
+#endif
 }
 
 hasher::hasher(algorithm alg) : m_alg(alg)
 {
-#ifdef WIN32
+#ifdef USE_BCRYPT
 	#ifndef STATUS_SUCCESS
 		#define STATUS_SUCCESS ((NTSTATUS)0x00000000)
 	#endif
@@ -189,14 +238,23 @@ hasher::hasher(algorithm alg) : m_alg(alg)
 
 hasher::~hasher()
 {
-#ifndef WIN32
+#ifdef USE_LIBGCRYPT
 	gcry_md_close(m_hd);
+#endif
+
+#ifdef USE_OPENSSL
+	if (m_md_ctx) 
+	{
+		EVP_MD_CTX_free(m_md_ctx);
+		m_md_ctx = nullptr;
+	}
 #endif
 }
 
+#ifdef USE_LIBGCRYPT
+
 #define MIN_GCRYPT_VERSION "1.10.1"
 
-#ifndef WIN32
 hasher::libgcrypt_initializer::libgcrypt_initializer()
 {
 	ADU_LOG("Initializing libgcrypt. Requiring version: %s", MIN_GCRYPT_VERSION);
@@ -217,7 +275,7 @@ hasher::libgcrypt_initializer::libgcrypt_initializer()
 
 int hasher::hash_data(const void *data, size_t bytes)
 {
-#ifdef WIN32
+#ifdef USE_BCRYPT
 	if (bytes > std::numeric_limits<ULONG>::max())
 	{
 		std::string msg = "Trying to hash more data than supported.";
@@ -233,16 +291,25 @@ int hasher::hash_data(const void *data, size_t bytes)
 		std::string msg = "BCryptHashData() returned: " + std::to_string(ntstatus);
 		throw errors::user_exception(errors::error_code::hash_data_failure, msg);
 	}
+#endif
 
-#else
+#ifdef USE_LIBGCRYPT
 	gcry_md_write(m_hd, data, bytes);
+#endif
+
+#ifdef USE_OPENSSL
+	if (!EVP_DigestUpdate(m_md_ctx, data, bytes))
+	{
+		std::string msg = "EVP_DigestUpdate() failed with err = " + std::to_string(static_cast<int>(ERR_get_error()));
+		throw errors::user_exception(errors::error_code::hash_data_failure, msg);
+	}
 #endif
 	return 0;
 }
 
 std::vector<char> hasher::get_hash_binary()
 {
-#ifdef WIN32
+#ifdef USE_BCRYPT
 	DWORD hash_byte_count;
 	DWORD result_byte_count;
 	NTSTATUS ntstatus = BCryptGetProperty(
@@ -271,12 +338,26 @@ std::vector<char> hasher::get_hash_binary()
 	auto start = reinterpret_cast<char *>(hash_result.data());
 	auto end   = &start[hash_byte_count];
 	return std::vector<char>{start, end};
-#else
+#endif
+
+#ifdef USE_LIBGCRYPT
 	auto algo         = alg_to_gcrypt_algo(m_alg);
 	auto start        = reinterpret_cast<char *>(gcry_md_read(m_hd, algo));
 	size_t hash_bytes = gcry_md_get_algo_dlen(algo);
 	auto end          = &start[hash_bytes];
 	return std::vector<char>{start, end};
+#endif
+
+#ifdef USE_OPENSSL
+	char hash_value[EVP_MAX_MD_SIZE];
+	unsigned int hash_length = sizeof(hash_value);
+	if (!EVP_DigestFinal_ex(m_md_ctx, reinterpret_cast<unsigned char *>(hash_value), &hash_length))
+	{
+		std::string msg = "EVP_DigestFinal_ex() failed with err = " + std::to_string(static_cast<int>(ERR_get_error()));
+		throw errors::user_exception(errors::error_code::hash_get_value, msg);
+	}
+
+	return std::vector<char>{hash_value, hash_value + hash_length};
 #endif
 }
 

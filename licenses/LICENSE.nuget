@@ -32,17 +32,15 @@ Open Source used in 1st party linux binaries:
 1) dumpextfs
     a) com_err MIT-style license (it is an lib/et library): See LICENSE.e2fsprogs
     b) ext2fs GNU Library General Public License Version 2: See LICENSE.e2fsprogs
-    c) libgcrypt GNU LESSER GENERAL PUBLIC LICENSE: See LICENSE.libgcrypt
-    d) libgpg-error GNU LESSER GENERAL PUBLIC LICENSE: See LICENSE.libgpg-error
+    c) openssl: Apache License - LICENSE.openssl
 2) zstd_compress_file Uses zstd which is BSD licensed
-3) adudiffapi.dll Uses several libraries
+3) adudiffapi.so Uses several libraries
     a) bsdiff: LICENSE.bsdiff
     b) bzip2: LICENSE.bzip2
-    c) libgcrypt GNU LESSER GENERAL PUBLIC LICENSE: See LICENSE.libgcrypt
-    d) libgpg-error GNU LESSER GENERAL PUBLIC LICENSE: See LICENSE.libgpg-error
-    e) ms-gsl: LICENSE.ms-gsl
-    f) zlib: LICENSE.zlib
-    g) zstd: LICENSE.zstd
+    c) openssl: Apache License - LICENSE.openssl
+    d) ms-gsl: LICENSE.ms-gsl
+    e) zlib: LICENSE.zlib
+    f) zstd: LICENSE.zstd
 ===============================================================================
 Open Source used in 1st party Windows binaries:
 1) dumpextfs.exe Uses libraries from e2fsprogs (license details in LICENSE.e2fsprogs)

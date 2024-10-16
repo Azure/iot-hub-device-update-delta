@@ -1,0 +1,111 @@
+# File: show-version-variables.yml
+steps:
+- task: Bash@3
+  condition: eq( variables['Agent.OS'], 'Linux' )  
+  displayName: 'Enable execution of get_version script'
+  inputs:
+    targetType: inline
+    script: chmod +x $(Build.SourcesDirectory)/get_version.sh
+
+- task: Bash@3
+  condition: eq( variables['Agent.OS'], 'Linux' )  
+  displayName: 'Get major_version'
+  inputs:
+    filePath: $(Build.SourcesDirectory)/get_version.sh
+    arguments: major ado
+    workingDirectory: $(Build.SourcesDirectory)
+
+- task: Bash@3
+  condition: eq( variables['Agent.OS'], 'Linux' )  
+  displayName: 'Get minor_version'
+  inputs:
+    filePath: $(Build.SourcesDirectory)/get_version.sh
+    arguments: minor ado
+    workingDirectory: $(Build.SourcesDirectory)
+
+- task: Bash@3
+  condition: eq( variables['Agent.OS'], 'Linux' )  
+  displayName: 'Get patch_version'
+  inputs:
+    filePath: $(Build.SourcesDirectory)/get_version.sh
+    arguments: patch ado
+    workingDirectory: $(Build.SourcesDirectory)
+
+- task: Bash@3
+  condition: eq( variables['Agent.OS'], 'Linux' )  
+  displayName: 'Construct semver_version'
+  inputs:
+    targetType: inline
+    script: echo "##vso[task.setvariable variable=semver_version]$(major_version).$(minor_version).$(patch_version)"
+
+- task: Bash@3
+  condition: eq( variables['Agent.OS'], 'Linux' )  
+  displayName: 'Construct semver_version_commas'
+  inputs:
+    targetType: inline
+    script: echo "##vso[task.setvariable variable=semver_version_commas]$(major_version),$(minor_version),$(patch_version)"    
+
+- task: Bash@3
+  condition: eq( variables['Agent.OS'], 'Linux' )  
+  displayName: 'Construct informational_version'
+  inputs:
+    targetType: inline
+    script: echo "##vso[task.setvariable variable=informational_version]$(semver_version).$(Build.BuildNumber)"
+
+- task: PowerShell@2
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: 'Get major_version'
+  inputs:
+    filePath: $(Build.SourcesDirectory)/get_version.ps1
+    arguments: major ado
+    workingDirectory: $(Build.SourcesDirectory)
+
+- task: PowerShell@2
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: 'Get minor_version'
+  inputs:
+    filePath: $(Build.SourcesDirectory)/get_version.ps1
+    arguments: minor ado
+    workingDirectory: $(Build.SourcesDirectory)
+
+- task: PowerShell@2
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: 'Get patch_version'
+  inputs:
+    filePath: $(Build.SourcesDirectory)/get_version.ps1
+    arguments: patch ado
+    workingDirectory: $(Build.SourcesDirectory)
+
+- task: PowerShell@2
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: 'Construct semver_version'
+  inputs:
+    targetType: inline
+    script: Write-Host "##vso[task.setvariable variable=semver_version]$(major_version).$(minor_version).$(patch_version)"
+
+- task: PowerShell@2
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: 'Construct semver_version_commas'
+  inputs:
+    targetType: inline
+    script: Write-Host "##vso[task.setvariable variable=semver_version_commas]$(major_version),$(minor_version),$(patch_version)"    
+
+- task: PowerShell@2
+  condition: eq( variables['Agent.OS'], 'Windows_NT' )
+  displayName: 'Construct informational_version'
+  inputs:
+    targetType: inline
+    script: Write-Host "##vso[task.setvariable variable=informational_version]$(semver_version).$(Build.BuildNumber)"
+
+- task: CmdLine@2
+  displayName: 'Show Version Variables'
+  inputs:
+    targetType: inline
+    script: |
+      echo "major_version: $(major_version)"
+      echo "minor_version: $(minor_version)"
+      echo "patch_version: $(patch_version)"
+      echo "semver_version: $(semver_version)"
+      echo "informational_version: $(informational_version)"
+      echo "semver_version_commas: $(semver_version_commas)"
+      echo "copyright: $(copyright)"

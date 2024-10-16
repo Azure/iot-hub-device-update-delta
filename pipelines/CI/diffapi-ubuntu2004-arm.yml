@@ -27,7 +27,7 @@ variables:
 - template: /pipelines/variables/common-variables.yml@self
 
 steps:
-  - template: /pipelines/variables/show-version-variables.yml@self
+  - template: /pipelines/variables/get-version-variables.yml@self
 
   - template: /pipelines/templates/build-native-linux.yml@self
     parameters:

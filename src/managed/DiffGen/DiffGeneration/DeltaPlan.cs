@@ -14,9 +14,15 @@ public class DeltaPlan
 
     public ItemDefinition TargetItem { get; init; }
 
-    public DeltaPlan(ItemDefinition sourceItem, ItemDefinition targetItem)
+    public string PayloadPath { get; init; }
+
+    public bool IsWildcardMatch { get; init; }
+
+    public DeltaPlan(ItemDefinition sourceItem, ItemDefinition targetItem, string payloadPath, bool isWildcardMatch)
     {
         SourceItem = sourceItem;
         TargetItem = targetItem;
+        PayloadPath = payloadPath;
+        IsWildcardMatch = isWildcardMatch;
     }
 }

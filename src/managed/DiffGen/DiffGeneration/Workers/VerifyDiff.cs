@@ -40,39 +40,39 @@ public class VerifyDiff : Worker
 
         int successfulInlineAssetItems = 0;
         var inlineAssetRecipes = Diff.Tokens.GetInlineAssetRecipes();
-        Logger.LogInformation("Verifying {0} inline asset recipes.", inlineAssetRecipes.Count());
+        Logger.LogInformation("Verifying {inlineAssetRecipesCount:N0} inline asset recipes.", inlineAssetRecipes.Count());
         foreach (var recipe in inlineAssetRecipes)
         {
             session.ClearRequestedItems();
             session.RequestItem(recipe.Result);
             if (!session.ProcessRequestedItems())
             {
-                Logger.LogError("Couldn't process inline asset item: {0}. Offset: {1}", recipe.Result, recipe.NumberIngredients[0]);
+                Logger.LogError("Couldn't process inline asset item: {recipeResult}. Offset: {recipeOffset:N0}", recipe.Result, recipe.NumberIngredients[0]);
                 continue;
             }
 
             successfulInlineAssetItems++;
         }
 
-        Logger.LogInformation("Successfully processed {0} inline asset items.", successfulInlineAssetItems);
+        Logger.LogInformation("Successfully processed {successfulInlineAssetItems:N0} inline asset items.", successfulInlineAssetItems);
 
         int successfulRemainderItems = 0;
         var remainderRecipes = Diff.Tokens.GetRemainderRecipes();
-        Logger.LogInformation("Verifying {0} remainder recipes.", remainderRecipes.Count());
+        Logger.LogInformation("Verifying {remainderRecipesCount:N0} remainder recipes.", remainderRecipes.Count());
         foreach (var recipe in remainderRecipes)
         {
             session.ClearRequestedItems();
             session.RequestItem(recipe.Result);
             if (!session.ProcessRequestedItems())
             {
-                Logger.LogError("Couldn't process remainder item: {0}. Offset: {1}", recipe.Result, recipe.NumberIngredients[0]);
+                Logger.LogError("Couldn't process remainder item: {recipeResult}. Offset: {recipeOffset:N0}", recipe.Result, recipe.NumberIngredients[0]);
                 continue;
             }
 
             successfulRemainderItems++;
         }
 
-        Logger.LogInformation("Successfully processed {0} remainder items.", successfulRemainderItems);
+        Logger.LogInformation("Successfully processed {successfulRemainderItems:N0} remainder items.", successfulRemainderItems);
 
         session.AddItemToPantry(SourceFile);
 
@@ -87,22 +87,22 @@ public class VerifyDiff : Worker
             throw new Exception("Couldn't verify diff. Archive Item failed to process.");
         }
 
-        Logger.LogInformation("Successfully processed diff result item: {0}", Diff.Tokens.ArchiveItem);
+        Logger.LogInformation("Successfully processed diff result item: {diffTokensArchiveItem}", Diff.Tokens.ArchiveItem);
 
         session.ResumeSlicing();
 
         var resultExtractPath = Diff.Tokens.ArchiveItem.GetExtractionPath(extractRoot);
-        Logger.LogInformation("Extracting diff result item to: {0}", resultExtractPath);
+        Logger.LogInformation("Extracting diff result item to: {resultExtractPath}", resultExtractPath);
         session.ExtractItemToPath(Diff.Tokens.ArchiveItem, resultExtractPath);
 
         var testResult = ItemDefinition.FromFile(resultExtractPath);
         if (!testResult.Equals(Diff.Tokens.ArchiveItem))
         {
-            Logger.LogError("Extracted file at {0} didn't match expected Archive Item: {1}", resultExtractPath, Diff.Tokens.ArchiveItem);
+            Logger.LogError("Extracted file at {resultExtractPath} didn't match expected Archive Item: {Diff.Tokens.ArchiveItem}", resultExtractPath, Diff.Tokens.ArchiveItem);
             throw new Exception("Extracted file does not match expectded item.");
         }
 
-        Logger.LogInformation("Extracted file at {0} matched Archive Item: {1}", resultExtractPath, Diff.Tokens.ArchiveItem);
+        Logger.LogInformation("Extracted file at {resultExtractPath} matched Archive Item: {diffTokensArchiveItem}", resultExtractPath, Diff.Tokens.ArchiveItem);
 
         session.CancelSlicing();
     }

@@ -1,7 +1,7 @@
 # !/bin/bash
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
-VCPKG_ROOT=$1
+INSTALL_VCPKG_ROOT=$1
 PORT_ROOT=$2
 TRIPLET=$3
 
@@ -20,8 +20,17 @@ then
     TRIPLET="x64-linux"
 fi
 
+if [ -z "$VCPKG_ROOT" ]
+then
+    echo "No VCPKG_ROOT environment variable specified. Using $INSTALL_VCPKG_ROOT."
+    VCPKG_ROOT=$INSTALL_VCPKG_ROOT
+else
+    echo "vcpkg root specified. Using $VCPKG_ROOT and ignoring user input."
+fi
+
 echo Configuring VCPKG at $VCPKG_ROOT using ports at $PORT_ROOT for TRIPLET $TRIPLET
 
+# If we have a directory setup already, use it.
 if [ ! -d "$VCPKG_ROOT" ]
 then
 	git clone https://github.com/microsoft/vcpkg $VCPKG_ROOT
@@ -32,10 +41,11 @@ then
 		exit $exit_code
 	fi
 	echo "exit_code: $exit_code"
-fi
 
-pushd $VCPKG_ROOT
-git pull
+    pushd $VCPKG_ROOT
+    git pull
+    popd
+fi
 
 $VCPKG_ROOT/bootstrap-vcpkg.sh
 
@@ -50,7 +60,7 @@ then
     cat $VCPKG_ROOT/TRIPLETs/community/$TRIPLET.cmake
 
 else
-    echo "Couldn't find TRIPLET in TRIPLETs or TRIPLETs/community!"
+    echo "Couldn't find $TRIPLET in TRIPLETs or TRIPLETs/community!"
 fi
 
 function vcpkg_install()
@@ -70,8 +80,7 @@ vcpkg_install zstd
 vcpkg_install bzip2
 vcpkg_install bsdiff
 vcpkg_install gtest
-vcpkg_install libgpg-error
-vcpkg_install libgcrypt
+vcpkg_install openssl
 vcpkg_install e2fsprogs
 vcpkg_install vcpkg-cmake-config
 vcpkg_install vcpkg-cmake

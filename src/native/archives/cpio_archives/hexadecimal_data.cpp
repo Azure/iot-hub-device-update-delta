@@ -1,3 +1,5 @@
+#include <exception>
+
 #include "hexadecimal_data.h"
 
 uint32_t hexadecimal_characters_to_uint32(std::string_view data, size_t offset, size_t length)

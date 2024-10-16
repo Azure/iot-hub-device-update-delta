@@ -1,4 +1,4 @@
-# File: show-version-variables.yml
+# File: show-vcpkg-variables.yml
 steps:
 - task: CmdLine@2
   displayName: 'Show Vcpkg Variables'

@@ -8,7 +8,7 @@
 
 #include <errors/user_exception.h>
 
-#ifndef WIN32
+#ifndef USE_BCRYPT
 #endif
 
 namespace archive_diff::hashing
@@ -28,7 +28,7 @@ size_t get_byte_count_for_algorithm(algorithm algo)
 	}
 }
 
-#ifndef WIN32
+#ifdef USE_LIBGCRYPT
 int alg_to_gcrypt_algo(hashing::algorithm alg)
 {
 	switch (alg)

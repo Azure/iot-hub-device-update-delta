@@ -1,5 +1,7 @@
 cmake_minimum_required (VERSION 3.15.0)
-project(adu_diffs VERSION 2.0.0)
+
+set(ADU_DIFFS_VERSION, "2.0.0")
+project(adu_diffs VERSION ${ADU_DIFFS_VERSION})
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 

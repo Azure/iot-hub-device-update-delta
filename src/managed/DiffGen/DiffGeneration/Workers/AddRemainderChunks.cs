@@ -42,7 +42,7 @@ public class AddRemainderChunks : Worker
 
         var sortedRemainderItems = remainderItems.OrderByDescending(x => x.Length).ToList();
 
-        Logger.LogInformation("Found {count} dependencies for recipes with no recipes. Total size of remainder items: {totalSize}", remainderItems.Count(), totalSize);
+        Logger.LogInformation("Found {count} dependencies for recipes with no recipes. Total size of remainder items: {totalSize:N0}", remainderItems.Count(), totalSize);
 
         if (!TargetTokens.TryExtractItems(Logger, TargetFile, remainderItems))
         {

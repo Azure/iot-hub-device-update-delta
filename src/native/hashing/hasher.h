@@ -12,10 +12,16 @@
 
 #include <span>
 
-#ifdef WIN32
+#ifdef USE_BCRYPT
 	#include <memory>
-#else
+#endif
+
+#ifdef USE_LIBGCRYPT
 	#include <gcrypt.h>
+#endif
+
+#ifdef USE_OPENSSL
+	#include <openssl/evp.h>
 #endif
 
 #include "algorithm.h"
@@ -44,7 +50,7 @@ class hasher
 
 	private:
 	algorithm m_alg;
-#ifdef WIN32
+#ifdef USE_BCRYPT
 	struct algorithm_provider_handle_deleter
 	{
 		void operator()(void *ptr);
@@ -60,8 +66,9 @@ class hasher
 
 	unique_algorithm_provider_handle m_algorithm_provider_handle;
 	unique_hash_handle m_hash_handle;
-#else
+#endif
 
+#ifdef USE_LIBGCRYPT
 	class libgcrypt_initializer
 	{
 		public:
@@ -71,7 +78,10 @@ class hasher
 	static libgcrypt_initializer m_libgcrypt_initializer;
 
 	gcry_md_hd_t m_hd{0};
+#endif
 
+#ifdef USE_OPENSSL
+	EVP_MD_CTX *m_md_ctx{nullptr};
 #endif
 };
 } // namespace archive_diff::hashing

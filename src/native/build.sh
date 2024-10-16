@@ -69,40 +69,29 @@ echo "THIS_REPO_ROOT_DIR: ${THIS_REPO_ROOT_DIR}"
 
 VCPKG_TOOLS_DIR="${THIS_REPO_ROOT_DIR}/vcpkg"
 echo "VCPKG_TOOLS_DIR: ${VCPKG_TOOLS_DIR}"
-VCPKG_REPO_ROOT_DIR=$( realpath -m "${THIS_REPO_ROOT_DIR}/../vcpkg" )
-if [ -z "$VCPKG_REPO_ROOT_DIR" ] ; then
-    echo "Couldn't determine VCPKG_REPO_ROOT_DIR."
-    exit 1
+
+if [ -z "$VCPKG_ROOT" ] ; then
+    VCPKG_REPO_ROOT_DIR=$( realpath -m "${THIS_REPO_ROOT_DIR}/../vcpkg" )
+    if [ -z "$VCPKG_REPO_ROOT_DIR" ] ; then
+        echo "Couldn't determine VCPKG_REPO_ROOT_DIR."
+        exit 1
+    fi
+else
+    VCPKG_REPO_ROOT_DIR=$VCPKG_ROOT
 fi
+
 echo "VCPKG_REPO_ROOT_DIR: ${VCPKG_REPO_ROOT_DIR}"
 
 SetupVcpkg() {
-    LOG_LEVEL=$1
 
     echo "Setting up VCPKG..."
 
     chmod +x ${VCPKG_TOOLS_DIR}/setup_vcpkg.sh
 
-    if [ "$LOG_LEVEL" == "verbose" ]; then
-        if ${VCPKG_TOOLS_DIR}/setup_vcpkg.sh ${VCPKG_REPO_ROOT_DIR} ${VCPKG_TOOLS_DIR}/ports ${VCPKG_TRIPLET} ; then
-            echo "Finished setting up vcpkg."
-        else
-            echo "VCPKG failed."
-            cat $SETUP_VCPKG_LOG
-            exit 1
-        fi
-
-    elif [ "$LOG_LEVEL" = "quiet" ]; then
-        SETUP_VCPKG_LOG="${CMAKE_BUILD_DIR}/setup_vcpkg_${VCPKG_TRIPLET}.log"
-        if ${VCPKG_TOOLS_DIR}/setup_vcpkg.sh ${VCPKG_REPO_ROOT_DIR} ${VCPKG_TOOLS_DIR}/ports ${VCPKG_TRIPLET} &> $SETUP_VCPKG_LOG ; then
-            echo "Finished setting up vcpkg."
-        else
-            echo "VCPKG failed."
-            cat $SETUP_VCPKG_LOG
-            exit 1
-        fi
+    if ${VCPKG_TOOLS_DIR}/setup_vcpkg.sh ${VCPKG_REPO_ROOT_DIR} ${VCPKG_TOOLS_DIR}/ports ${VCPKG_TRIPLET} ; then
+        echo "Finished setting up vcpkg."
     else
-        echo "SetupVcpkg: Invalid LOG_LEVEL parameter: $LOG_LEVEL"
+        echo "VCPKG failed."
         exit 1
     fi
 }
@@ -110,12 +99,15 @@ SetupVcpkg() {
 if [ "$VCPKG_TRIPLET" == "x64-linux" ] ; then
     C_COMPILER="/usr/bin/gcc"
     CXX_COMPILER="/usr/bin/g++"
+    PACKAGE_TARGET_ARCHITECTURE="x86_64"
 elif [ "$VCPKG_TRIPLET" == "arm-linux" ] ; then
     C_COMPILER="/usr/bin/arm-linux-gnueabihf-gcc"
     CXX_COMPILER="/usr/bin/arm-linux-gnueabihf-g++"
+    PACKAGE_TARGET_ARCHITECTURE="arm"
 elif [ "$VCPKG_TRIPLET" == "arm64-linux" ] ; then
     C_COMPILER="/usr/bin/aarch64-linux-gnu-gcc"
     CXX_COMPILER="/usr/bin/aarch64-linux-gnu-g++"
+    PACKAGE_TARGET_ARCHITECTURE="arm64"
 fi
 
 RunCMake() {
@@ -123,8 +115,6 @@ RunCMake() {
         echo "Creating $CMAKE_BUILD_DIR"
         mkdir -p $CMAKE_BUILD_DIR
     fi
-
-    LOG_LEVEL=$1
 
     VCPKG_TOOLCHAIN_FILE=${VCPKG_REPO_ROOT_DIR}/scripts/buildsystems/vcpkg.cmake
 
@@ -143,25 +133,17 @@ RunCMake() {
     echo "Using C Compiler: ${C_COMPILER}"
     echo "Using C++ Compiler: ${CXX_COMPILER}"
 
-    if [ "$LOG_LEVEL" == "verbose" ]; then
-        if cmake -S $CMAKE_SOURCE_DIR -B $CMAKE_BUILD_DIR -G "${CMAKE_GENERATOR}" -DCMAKE_TOOLCHAIN_FILE=${VCPKG_TOOLCHAIN_FILE} -DVCPKG_TARGET_TRIPLET=${VCPKG_TRIPLET} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${CXX_COMPILER} ; then
-            echo "Finished setting up build folders with cmake."
-        else
-            echo "Cmake failed."
-            exit 1
-        fi
+    pushd ../..
+    chmod +x get_version.sh
+    ADU_DIFFS_VERSION=$(./get_version.sh)
+    popd
 
-    elif [ "$LOG_LEVEL" = "quiet" ]; then
-        CMAKE_LOG="$CMAKE_BUILD_DIR/run_cmake.log"
-        if cmake -S $CMAKE_SOURCE_DIR -B $CMAKE_BUILD_DIR -G "${CMAKE_GENERATOR}" -DCMAKE_TOOLCHAIN_FILE=${VCPKG_TOOLCHAIN_FILE} -DVCPKG_TARGET_TRIPLET=${VCPKG_TRIPLET} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${CXX_COMPILER} &> $CMAKE_LOG ; then
-            echo "Finished setting up build folders with cmake."
-        else
-            echo "Cmake failed."
-            cat $CMAKE_LOG
-            exit 1
-        fi
+    echo "ADU_DIFFS_VERSION: ${ADU_DIFFS_VERSION}"
+
+    if cmake -S $CMAKE_SOURCE_DIR -B $CMAKE_BUILD_DIR -G "${CMAKE_GENERATOR}" -DCMAKE_TOOLCHAIN_FILE=${VCPKG_TOOLCHAIN_FILE} -DVCPKG_TARGET_TRIPLET=${VCPKG_TRIPLET} -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DCMAKE_C_COMPILER=${C_COMPILER} -DCMAKE_CXX_COMPILER=${CXX_COMPILER} -DPACKAGE_TARGET_ARCHITECTURE=${PACKAGE_TARGET_ARCHITECTURE} -DADU_DIFFS_VERSION=${ADU_DIFFS_VERSION} ; then
+        echo "Finished setting up build folders with cmake."
     else
-        echo "RunCMake: Invalid LOG_LEVEL parameter: $LOG_LEVEL"
+        echo "Cmake failed."
         exit 1
     fi
 }
@@ -189,11 +171,26 @@ CopyBsdiffBinaryFiles() {
     cp $BSDIFF_PACKAGE_BINARIES/bsdiff_patch $BIN_TARGET/bspatch
 }
 
+BASE_LICENSE_SOURCE="$THIS_REPO_ROOT_DIR/licenses/LICENSE.linux"
+BASE_LICENSE_TARGET="$BIN_TARGET/NOTICE"
+
+function CopyBaseLinuxLicense {
+	cp $BASE_LICENSE_SOURCE $BASE_LICENSE_TARGET
+}
+
 function CopyVcpkgLicenseFile {
     PACKAGE_NAME=$1
+    LICENSE_FILE=$2
 
-    COPYRIGHT_FILE=$( realpath -e "$VCPKG_REPO_ROOT_DIR/packages/${PACKAGE_NAME}_${VCPKG_TRIPLET}/share/${PACKAGE_NAME}/copyright" )
+    if [[ -z "$LICENSE_FILE" ]] ; then
+        LICENSE_FILE="copyright"
+    fi
+
+    COPYRIGHT_FILE=$( realpath -e "$VCPKG_REPO_ROOT_DIR/packages/${PACKAGE_NAME}_${VCPKG_TRIPLET}/share/${PACKAGE_NAME}/${LICENSE_FILE}" )
     cp $COPYRIGHT_FILE $BIN_TARGET/LICENSE.${PACKAGE_NAME}
+
+    echo "================ License for $PACKAGE_NAME ================" >> $BASE_LICENSE_TARGET
+    cat $COPYRIGHT_FILE >> $BASE_LICENSE_TARGET
 }
 
 Build() {
@@ -210,13 +207,16 @@ Build() {
     echo "Copying VCPKG binaries and license files."
     CopyBsdiffBinaryFiles
 
+    CopyBaseLinuxLicense
+
     CopyVcpkgLicenseFile bsdiff
     CopyVcpkgLicenseFile bzip2
     CopyVcpkgLicenseFile e2fsprogs
     CopyVcpkgLicenseFile jsoncpp
     CopyVcpkgLicenseFile libconfig
     CopyVcpkgLicenseFile zlib
-    CopyVcpkgLicenseFile zstd
+    CopyVcpkgLicenseFile zstd LICENSE
+    CopyVcpkgLicenseFile openssl
 
     echo "Binaries ($CMAKE_BUILD_DIR):"
     ls $CMAKE_BUILD_DIR/bin
@@ -227,17 +227,17 @@ Build() {
 
 case $STAGES in
     vcpkg)
-        SetupVcpkg "verbose"
+        SetupVcpkg
     ;;
     cmake)
-        RunCMake "verbose"
+        RunCMake
     ;;
     build)
         Build
     ;;
     all)
-        SetupVcpkg "quiet"
-        RunCMake "quiet"
+        SetupVcpkg
+        RunCMake
         Build
     ;;
 esac

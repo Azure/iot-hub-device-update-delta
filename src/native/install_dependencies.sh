@@ -16,7 +16,7 @@ then
     exit 1
 fi
 
-COMMON_DEPENDENCIES="gcc gcc-10 g++ g++-10 autoconf autopoint ninja-build tree"
+COMMON_DEPENDENCIES="gcc gcc-10 g++ g++-10 autoconf autopoint ninja-build tree linux-libc-dev build-essential checkinstall zlib1g-dev"
 QEMU_COMMON_DEPENDENCIES="qemu-utils qemu-user"
 
 if [ "$VCPKG_TRIPLET" == "x64-linux" ] ; then

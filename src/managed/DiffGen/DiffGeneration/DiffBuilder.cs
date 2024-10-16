@@ -303,7 +303,7 @@ public class DiffBuilder : Worker
 
     public int ChunkCountFromDeltaBasedRecipes { get; private set; }
 
-    public Dictionary<ItemDefinition, HashSet<DeltaPlan>> DeltaPlans { get; set; }
+    public DeltaPlans DeltaPlans { get; private set; }
 
     public IEnumerable<ItemDefinition> SourceItemsNeeded { get; private set; }
 
