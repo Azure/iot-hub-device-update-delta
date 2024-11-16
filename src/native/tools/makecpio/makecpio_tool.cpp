@@ -48,6 +48,13 @@ int main(int argc, char **argv)
 		for (int i = 3; i < argc; i++)
 		{
 			auto file_path = std::string(argv[i]);
+
+			if (!std::filesystem::exists(file_path))
+			{
+				printf("File %s does not exist.\n", file_path.c_str());
+				return -1;
+			}
+
 			auto reader    = archive_diff::io::file::io_device::make_reader(file_path);
 			uint32_t inode = cpio_file::get_inode(file_path) & 0xFFFFFFFF;
 

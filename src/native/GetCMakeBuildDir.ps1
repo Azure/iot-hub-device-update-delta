@@ -1,5 +1,5 @@
 param([string]$VcpkgTriplet, [string]$BuildType)
-$cmakeBuildDir="out.windows\build\$VcpkgTriplet\$BuildType"
+$cmakeBuildDir = "..\out\native\$VcpkgTriplet\$BuildType"
 if (-not (Test-Path $cmakeBuildDir)) {
 	mkdir $cmakeBuildDir | Out-Null
 }

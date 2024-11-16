@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputPath>$(OutputPathBase)\EndToEndTests</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -30,13 +34,17 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <ItemGroup>
-      <NativeBinaries Condition=" '$(OS)' == 'Windows_NT' " Include="$(SolutionDir)\..\..\native\out.windows\build\x64-windows\$(Configuration)\bin\$(Configuration)\*" />
-      <NativeBinaries Condition=" '$(OS)' != 'Windows_NT' " Include="$(SolutionDir)/../../native/out.linux/build/x64-linux/$(Configuration)/bin/*;$(SolutionDir)/../../native/build/x64-linux/$(Configuration)/lib/*.so" />
-      <DiffGenToolBinaries Condition=" '$(OS)' == 'Windows_NT' " Include="$(SolutionDir)/tools/DiffGenTool/bin/$(Configuration)/net8.0/win-x64/*" />
-      <DiffGenToolBinaries Condition=" '$(OS)' != 'Windows_NT' " Include="$(SolutionDir)/tools/DiffGenTool/bin/$(Configuration)/net8.0/linux-x64/*" />
-    </ItemGroup>
+    <PropertyGroup>
+      <DiffGenToolPath Condition=" '$(OS)' == 'Windows_NT' ">$(OutputPathBase)\DiffGenTool\net8.0\win-x64</DiffGenToolPath>
+      <DiffGenToolPath Condition=" '$(OS)' != 'Windows_NT' ">$(OutputPathBase)/DiffGenTool/net8.0/linux-x64</DiffGenToolPath>
+    </PropertyGroup>
+    
     <MakeDir Directories="$(OutputPath)/bin" />
+
+    <ItemGroup>
+      <DiffGenToolBinaries Include="$(DiffGenToolPath)/*" />
+    </ItemGroup>
+
     <Copy SourceFiles="@(DiffGenToolBinaries)" DestinationFolder="$(OutputPath)/bin" />
     <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)/bin" />
   </Target>

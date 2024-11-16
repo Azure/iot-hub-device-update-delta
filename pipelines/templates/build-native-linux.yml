@@ -62,7 +62,7 @@ steps:
     displayName: 'Dump CMake Dir Before Build'
     inputs:
       targetType: inline
-      script: tree $(Build.SourcesDirectory)/src/native/out.linux/
+      script: tree $(Build.SourcesDirectory)/src/out/native/${{ parameters.build_platform }}-linux
 
   - task: Bash@3
     displayName: 'Build (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'
@@ -75,12 +75,12 @@ steps:
     displayName: 'Dump CMake Dir After Build'
     inputs:
       targetType: inline
-      script: tree $(Build.SourcesDirectory)/src/native/out.linux/
+      script: tree $(Build.SourcesDirectory)/src/out/native/${{ parameters.build_platform }}-linux
 
   - ${{ if parameters.publish }}:
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/bin'
+        targetPath: '$(Build.SourcesDirectory)/src/out/native/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/bin'
         artifactType: 'pipeline'
         artifactName: 'native-binaries.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}'
       displayName: 'Publish Native Binaries ${{ parameters.build_platform }}-linux ${{ parameters.build_configuration }}'
@@ -88,7 +88,7 @@ steps:
   - ${{ if parameters.publish }}:
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/test/bin'
+        targetPath: '$(Build.SourcesDirectory)/src/out/native/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/test/bin'
         artifactType: 'pipeline'
         artifactName: 'native-test-binaries.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}'
       displayName: 'Publish Native Test Binaries ${{ parameters.build_platform }}-linux ${{ parameters.build_configuration }}'
@@ -103,7 +103,7 @@ steps:
   - ${{ if parameters.copy_output }}:
     - task: CopyFiles@2
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/bin'
+        SourceFolder: '$(Build.SourcesDirectory)/src/out/native/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/bin'
         Contents: '*'
         TargetFolder: ${{ parameters.copy_output_binaries }}
 
@@ -112,7 +112,7 @@ steps:
     inputs:
       targetType: inline
       script: |
-        cd $(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}
+        cd '$(Build.SourcesDirectory)/src/out/native/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}'
         cpack --config CPackConfig.cmake
 
   - ${{ if parameters.one_branch_signing }}:
@@ -123,12 +123,12 @@ steps:
         signing_profile: 'CP-459159-pgpdetached'
         signing_environment: 'azure-ado'
         files_to_sign: '**/*.deb'
-        SourceFolder: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/_packages'
+        SourceFolder: '$(Build.SourcesDirectory)/src/out/native/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/_packages'
 
   - ${{ if parameters.copy_output }}:
     - task: CopyFiles@2
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/_packages'
+        SourceFolder: '$(Build.SourcesDirectory)/src/out/native/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/_packages'
         Contents: '*.deb'
         TargetFolder: ${{ parameters.copy_output_packages }}
 
@@ -136,7 +136,7 @@ steps:
     - task: CopyFiles@2
       displayName: 'Copy Debian Package before publish'
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)/src/native/out.linux/build/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/_packages'
+        SourceFolder: '$(Build.SourcesDirectory)/src/out/native/${{ parameters.build_platform }}-linux/${{ parameters.build_configuration }}/_packages'
         Contents: '*.deb'
         TargetFolder: $(Build.ArtifactStagingDirectory)/debian-package
 

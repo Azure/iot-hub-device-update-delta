@@ -76,7 +76,7 @@ steps:
 - ${{ if parameters.publish }}:
   - task: PublishPipelineArtifact@1
     inputs:
-      targetPath: '$(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/bin/${{ parameters.build_configuration }}/net8.0/linux-x64'
+      targetPath: '$(Build.SourcesDirectory)/src/out/managed/${{ parameters.build_configuration }}/DiffGenTool/net8.0/linux-x64'
       artifactType: 'pipeline'
       artifactName: 'DiffGenTool.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}'
     displayName: 'Publish DiffGenTool.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}'
@@ -84,13 +84,13 @@ steps:
 - ${{ if parameters.copy_output }}:
   - task: CopyFiles@2
     inputs:
-      SourceFolder: '$(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/bin/${{ parameters.build_configuration }}/net8.0/linux-x64'
+      SourceFolder: '$(Build.SourcesDirectory)/src/out/managed/${{ parameters.build_configuration }}/DiffGenTool/net8.0/linux-x64'
       Contents: '*'
       TargetFolder: ${{ parameters.copy_output_binaries }}
 
 - task: ArchiveFiles@2
   inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)/src/managed/DiffGen/tools/DiffGenTool/bin/${{ parameters.build_configuration }}/net8.0/linux-x64'
+    rootFolderOrFile: '$(Build.SourcesDirectory)/src/out/managed/${{ parameters.build_configuration }}/DiffGenTool/net8.0/linux-x64'
     archiveType: tar
     tarCompression: gz
     archiveFile: '$(Build.ArtifactStagingDirectory)/archives/DiffGenTool.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}.tar.gz'

@@ -25,21 +25,39 @@ public class Program
         Console.WriteLine("Platform: {0}", RuntimeInformation.OSDescription);
         Console.WriteLine("Running Directory: {0}", ProcessHelper.RunningDirectory);
 
-        if (args.Length < 5 || args.Length > 7)
+        if (args.Length < 4 || args.Length > 5)
         {
             Console.WriteLine("Usage: DiffGenTool <source archive> <target archive> <output path> <log folder> <working folder>");
-            Console.WriteLine("       DiffGenTool <source archive> <target archive> <output path> <log folder> <working folder> <recompressed target archive>");
-            Console.WriteLine("       DiffGenTool <source archive> <target archive> <output path> <log folder> <working folder> <recompressed target archive> \"<signing command>\"");
+            Console.WriteLine("Usage: DiffGenTool <source archive> <target archive> <output path> <working folder>");
             Environment.Exit(1);
         }
 
         string sourceFile = args[0];
         string targetFile = args[1];
         string outputFile = args[2];
-        string logFolder = args[3];
-        string workingFolder = args[4];
-        string recompressedTargetFile = args.Length >= 6 ? args[5] : string.Empty;
-        string signingCommand = args.Length == 7 ? args[6] : string.Empty;
+
+        string workingFolder;
+        string logFolder;
+
+        if (args.Length == 4)
+        {
+            workingFolder = args[3];
+            try
+            {
+                logFolder = MakeLogFolder(workingFolder);
+            }
+            catch (Exception e)
+            {
+                WriteErrorMessage(e.Message);
+                Environment.Exit(1);
+                return;
+            }
+        }
+        else
+        {
+            logFolder = args[3];
+            workingFolder = args[4];
+        }
 
         CancellationTokenSource cancellationTokenSource = new();
         DiffBuilder.Parameters parameters = new()
@@ -49,8 +67,6 @@ public class Program
             OutputFile = outputFile,
             LogFolder = logFolder,
             WorkingFolder = workingFolder,
-            RecompressedTargetFile = recompressedTargetFile,
-            SigningCommand = signingCommand,
             KeepWorkingFolder = true,
             CancellationToken = cancellationTokenSource.Token,
         };
@@ -67,6 +83,7 @@ public class Program
             }
 
             Environment.Exit(1);
+            return;
         }
 
         bool caughtException = false;
@@ -144,5 +161,33 @@ public class Program
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine("Error: {0}", message);
         Console.ForegroundColor = oldColor;
+    }
+
+    private static string MakeLogFolder(string workingFolder)
+    {
+        if (!Directory.Exists(workingFolder))
+        {
+            Directory.CreateDirectory(workingFolder);
+        }
+
+        var baseLogFolder = Path.Combine(workingFolder, "logs");
+        if (!Directory.Exists(baseLogFolder))
+        {
+            Directory.CreateDirectory(baseLogFolder);
+        }
+
+        const int MAX_LOG_FILES = 1000;
+
+        for (int i = 0; i < MAX_LOG_FILES; i++)
+        {
+            var logFolder = Path.Combine(baseLogFolder, i.ToString());
+            if (!Directory.Exists(logFolder))
+            {
+                Directory.CreateDirectory(logFolder);
+                return logFolder;
+            }
+        }
+
+        throw new Exception($"Could not create a log folder under {baseLogFolder} with {MAX_LOG_FILES} attempts.");
     }
 }

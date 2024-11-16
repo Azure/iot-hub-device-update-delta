@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <OutputPath>$(OutputPathBase)\DiffGeneration</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <RootNamespace>Microsoft.Azure.DeviceUpdate.Diffs</RootNamespace>
     <AssemblyName>Microsoft.Azure.DeviceUpdate.Diffs</AssemblyName>
     <GeneratePackageOnBuild>False</GeneratePackageOnBuild>

@@ -12,7 +12,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-
+using Microsoft.VisualStudio.TestPlatform.CoreUtilities.Extensions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 [TestClass]
@@ -111,7 +111,7 @@ public class EndToEndTests
         return hash.ComputeHash(stream);
     }
 
-    private static void RunTest(string tempFolder, string sourceFile, string targetFile, string recompressedTargetFile, int maxDiffSize)
+    private static void RunTest(string tempFolder, string sourceFile, string targetFile, int maxDiffSize)
     {
         var logFolder = Path.Combine(tempFolder, "logs");
         var workingFolder = Path.Combine(tempFolder, "working");
@@ -122,7 +122,7 @@ public class EndToEndTests
         Trace.TraceInformation("Source Size: {0}", sourceSize);
         Trace.TraceInformation("Target Size: {0}", targetSize);
 
-        string allArguments = $"{sourceFile} {targetFile} {diffFile} {logFolder} {workingFolder} {recompressedTargetFile}";
+        string allArguments = $"{sourceFile} {targetFile} {diffFile} {logFolder} {workingFolder}";
 
         int ret = LaunchProcess("bin/DiffGenTool", allArguments);
         Assert.AreEqual(0, ret);
@@ -134,11 +134,6 @@ public class EndToEndTests
         Assert.IsTrue(diffSize < targetSize);
         Assert.IsTrue(diffSize < maxDiffSize);
 
-        if (!string.IsNullOrEmpty(recompressedTargetFile))
-        {
-            Assert.IsTrue(File.Exists(recompressedTargetFile));
-        }
-
         Console.WriteLine("Trying to apply diff.");
 
         var appliedDiffFile = Path.Combine(tempFolder, $"diff.applied");
@@ -149,16 +144,8 @@ public class EndToEndTests
 
         var appliedHash = GetFileHash(appliedDiffFile);
 
-        if (string.IsNullOrEmpty(recompressedTargetFile))
-        {
-            var targetHash = GetFileHash(targetFile);
-            Assert.IsTrue(targetHash.SequenceEqual(appliedHash));
-        }
-        else
-        {
-            var recompressedTargetHash = GetFileHash(recompressedTargetFile);
-            Assert.IsTrue(recompressedTargetHash.SequenceEqual(appliedHash));
-        }
+        var targetHash = GetFileHash(targetFile);
+        Assert.IsTrue(targetHash.SequenceEqual(appliedHash));
     }
 
     [DataRow("simple", "samples/diffs/simple/source.cpio", "samples/diffs/simple/target.cpio", 1_300_000)]
@@ -168,7 +155,7 @@ public class EndToEndTests
     public void Test_DiffGeneration(string name, string sourceFile, string targetFile, int maxDiffSize)
     {
         var baseTestFolder = Path.Combine(TempFolder, "Test_DiffGeneration", name);
-        RunTest(baseTestFolder, Path.GetFullPath(sourceFile), Path.GetFullPath(targetFile), string.Empty, maxDiffSize);
+        RunTest(baseTestFolder, Path.GetFullPath(sourceFile), Path.GetFullPath(targetFile), maxDiffSize);
     }
 
     [DataRow("swu-recompressed", "samples/diffs/swu/source.swu", "samples/diffs/swu/target.swu", 850_000)]
@@ -178,6 +165,14 @@ public class EndToEndTests
         var baseTestFolder = Path.Combine(TempFolder, "Test_DiffGeneration_Recompressed", name);
         var recompressedTargetFile = Path.Combine(baseTestFolder, "target.recompressed");
 
-        RunTest(baseTestFolder, sourceFile, targetFile, recompressedTargetFile, maxDiffSize);
+        Process recompress = new();
+        recompress.StartInfo.FileName = "bin/recompress";
+        recompress.StartInfo.Arguments = $"swu {targetFile} {recompressedTargetFile}";
+        recompress.Start();
+        recompress.WaitForExit();
+
+        Assert.AreEqual(0, recompress.ExitCode);
+
+        RunTest(baseTestFolder, sourceFile, recompressedTargetFile, maxDiffSize);
     }
 }
