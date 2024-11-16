@@ -15,6 +15,7 @@ public enum FailureType
     TargetPackageInvalid,
     DiffGeneration,
     BadWorkingFolder,
+    UndiffableTarget,
 }
 
 public class DiffBuilderException : Exception

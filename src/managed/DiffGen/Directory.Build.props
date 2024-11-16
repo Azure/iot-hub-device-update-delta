@@ -14,12 +14,21 @@
     <SolutionRoot>$(MSBuildThisFileDirectory)</SolutionRoot>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <OutputPathBase>$(SolutionRoot)\..\..\out\managed\$(Configuration)</OutputPathBase>
+  </PropertyGroup>
+
   <!-- Common package references -->
   <ItemGroup>
     <PackageReference Include="StyleCop.Analyzers">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <NativeBinaries Condition=" '$(OS)' == 'Windows_NT' " Include="$(SolutionRoot)\..\..\out\native/x64-windows\$(Configuration)\bin\$(Configuration)\*" />
+    <NativeBinaries Condition=" '$(OS)' != 'Windows_NT' " Include="$(SolutionRoot)/../../out/native/x64-linux/$(Configuration)/bin/*;$(SolutionDir)/../../native/x64-linux/$(Configuration)/lib/*.so" />
   </ItemGroup>
 
   <!-- Style cop settings -->

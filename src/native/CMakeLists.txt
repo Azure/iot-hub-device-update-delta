@@ -63,7 +63,6 @@ add_subdirectory(tools/makecpio)
 add_subdirectory(tools/recompress)
 add_subdirectory(tools/zstd_compress_file)
 
-
 if (UNIX)
     add_subdirectory(packaging/debian)
 endif()

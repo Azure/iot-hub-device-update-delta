@@ -7,11 +7,15 @@
 namespace UnitTests;
 
 using System;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 
 using ArchiveUtility;
 using CpioArchives;
 using Ext4Archives;
+using Microsoft.Azure.DeviceUpdate.Diffs;
+using Microsoft.Azure.DeviceUpdate.Diffs.Utility;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using SWUpdateArchives;
 using TarArchives;
@@ -69,96 +73,73 @@ public class DiffTests
         }
     }
 
-    // [DataRow("samples/diffs/simple/source.cpio", "samples/diffs/simple/target.cpio", "samples/diffs/simple/logs")]
-    // [DataRow("samples/diffs/nested/source.cpio", "samples/diffs/nested/target.cpio", "samples/diffs/nested/logs")]
-    // [DataRow("samples/diffs/complex/source.cpio", "samples/diffs/complex/target.cpio", "samples/diffs/complex/logs")]
-    // [DataTestMethod]
-    // public void Test_DiffGeneration(string sourceFile, string targetFile, string expectedLogFolder)
-    // {
-        // if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        // {
-            // //in the nested test case, the cpio inside the cpio has its remainder deflated differently in Windows and Linux.
-            // if (expectedLogFolder.Contains("nested"))
-            // {
-                // expectedLogFolder += "_linux";
-            // }
-        // }
-        // else
-        // {
-            // AddNativeCodeToPath();
-        // }
+    [DataRow("samples/diffs/simple/source.cpio", "samples/diffs/simple/target.cpio")]
+    [DataRow("samples/diffs/nested/source.cpio", "samples/diffs/nested/target.cpio")]
+    [DataRow("samples/diffs/complex/source.cpio", "samples/diffs/complex/target.cpio")]
+    [DataTestMethod]
+    public void Test_DiffGeneration(string sourceFile, string targetFile)
+    {
+        string outputFile = Path.Combine(TempFolder, "output.file");
+        string logFolder = Path.Combine(TempFolder, "log");
+        string workingFolder = Path.Combine(TempFolder, "working");
 
-        // string outputFile = Path.Combine(TempFolder, "output.file");
-        // string logFolder = Path.Combine(TempFolder, "log");
-        // string workingFolder = Path.Combine(TempFolder, "working");
+        if (Directory.Exists(logFolder))
+        {
+            Directory.Delete(logFolder);
+        }
 
-        // if (Directory.Exists(logFolder))
-        // {
-            // Directory.Delete(logFolder);
-        // }
+        if (Directory.Exists(workingFolder))
+        {
+            Directory.Delete(workingFolder);
+        }
 
-        // if (Directory.Exists(workingFolder))
-        // {
-            // Directory.Delete(workingFolder);
-        // }
+        DiffBuilder.Execute(new DiffBuilder.Parameters()
+        {
+            SourceFile = sourceFile,
+            TargetFile = targetFile,
+            OutputFile = outputFile,
+            LogFolder = logFolder,
+            WorkingFolder = workingFolder,
+            KeepWorkingFolder = true,
+        });
+    }
 
-        // DiffBuilder.Execute(new DiffBuilder.Parameters()
-        // {
-            // SourceFile = sourceFile,
-            // TargetFile = targetFile,
-            // OutputFile = outputFile,
-            // LogFolder = logFolder,
-            // WorkingFolder = workingFolder,
-            // KeepWorkingFolder = true
-        // });
+    [DataRow("samples/diffs/swu/source.swu", "samples/diffs/swu/target.swu")]
+    [DataTestMethod]
+    public void Test_DiffGeneration_Undiffable(string sourceFile, string targetFile)
+    {
+        string outputFile = Path.Combine(TempFolder, "output.file");
+        string logFolder = Path.Combine(TempFolder, "log");
+        string workingFolder = Path.Combine(TempFolder, "working");
 
-        // TestUtility.DumpFolderHash(expectedLogFolder);
+        if (Directory.Exists(logFolder))
+        {
+            Directory.Delete(logFolder);
+        }
 
-        // string diffFileName = "diff.json";
-        // var expectedFiles = Directory.GetFiles(expectedLogFolder, diffFileName, SearchOption.AllDirectories).OrderBy(f => f).ToArray();
-        // var actualFiles = Directory.GetFiles(logFolder, diffFileName, SearchOption.AllDirectories).OrderBy(f => f).ToArray();
+        if (Directory.Exists(workingFolder))
+        {
+            Directory.Delete(workingFolder);
+        }
 
-        // Assert.AreEqual(expectedFiles.Length, actualFiles.Length);
-        // for (int i = 0; i < expectedFiles.Length; i++)
-        // {
-            // string expectedFile = expectedFiles[i];
-            // string actualFile = actualFiles[i];
+        bool caughtException = false;
+        try
+        {
+            DiffBuilder.Execute(new DiffBuilder.Parameters()
+            {
+                SourceFile = sourceFile,
+                TargetFile = targetFile,
+                OutputFile = outputFile,
+                LogFolder = logFolder,
+                WorkingFolder = workingFolder,
+                KeepWorkingFolder = true,
+            });
+        }
+        catch (DiffBuilderException e)
+        {
+            caughtException = e.FailureType == FailureType.UndiffableTarget;
+        }
 
-            // var expectedFileReplaced = expectedFile.Replace(expectedLogFolder, string.Empty);
-            // var actualFileReplaced = actualFile.Replace(logFolder, string.Empty);
-
-            // TestUtility.CompareMultilineStrings(expectedFileReplaced, actualFileReplaced);
-
-            // string expectedJson = File.ReadAllText(expectedFile);
-            // string actualJson = File.ReadAllText(actualFile);
-
-            // if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            // {
-                // expectedJson = expectedJson
-                    // .Replace("\r\n", "\n")
-                    // .Replace("\\\\", "/");
-            // }
-
-            // // Because the expected and actual working folders are different paths, need to remove all working folder string
-            // // instances from the json produced in the test code
-            // string doubleBackslashedWorkingFolder = workingFolder.Replace(@"\", @"\\");
-            // actualJson = actualJson.Replace(doubleBackslashedWorkingFolder, string.Empty);
-
-            // var differences = TestUtility.GetLineDifferences(expectedJson, actualJson);
-
-            // if (differences.Count > 0)
-            // {
-                // Console.WriteLine($"Differences detected between expecter: {expectedFile} and actual: {actualFile}");
-
-                // for (int diffIndex = 0; diffIndex < differences.Count; diffIndex++)
-                // {
-                    // Console.WriteLine($"{diffIndex})");
-                    // Console.WriteLine($"\tExpected: {differences[diffIndex].Expected}");
-                    // Console.WriteLine($"\tActual  : {differences[diffIndex].Actual}");
-                // }
-            // }
-
-            // Assert.AreEqual(0, differences.Count, $"Files are different. Expected: {expectedFile}, Actual: {actualFile}");
-        // }
-    // }
+        Assert.IsTrue(caughtException);
+    }
 }

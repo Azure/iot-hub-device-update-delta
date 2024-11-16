@@ -50,7 +50,7 @@ steps:
     displayName: 'Dump CMake Dir Before Build'
     inputs:
       targetType: inline
-      script: ls $(Build.SourcesDirectory)\src\native\out.windows\ -Recurse
+      script: ls $(Build.SourcesDirectory)\src\out\native\${{ parameters.build_platform }}-windows -Recurse
 
   - task: PowerShell@2
     displayName: 'Build (${{ parameters.build_platform }}-${{ parameters.build_configuration }})'
@@ -63,7 +63,7 @@ steps:
     displayName: 'Dump CMake Dir After Build'
     inputs:
       targetType: inline
-      script: ls $(Build.SourcesDirectory)\src\native\out.windows\ -Recurse
+      script: ls $(Build.SourcesDirectory)\src\out\native\${{ parameters.build_platform }}-windows -Recurse
 
   - ${{ if parameters.one_branch_signing }}:
     - task: onebranch.pipeline.signing@1 # https://aka.ms/obpipelines/signing
@@ -73,7 +73,7 @@ steps:
         command: 'sign'
         signing_environment: 'azure-ado'
         files_to_sign: 'adudiffapi.dll;applydiff.exe;dumpdiff.exe;dumpextfs.exe;makecpio.exe;recompress.exe;zstd_compress_file.exe'
-        search_root: '$(Build.SourcesDirectory)\src\native\out.windows\build\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
+        search_root: '$(Build.SourcesDirectory)\src\out\native\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
 
   - ${{ if parameters.one_branch_signing }}:
     - task: onebranch.pipeline.signing@1 # https://aka.ms/obpipelines/signing
@@ -83,12 +83,12 @@ steps:
         signing_profile: 135020002
         signing_environment: 'azure-ado'
         files_to_sign: 'bsdiff.dll;bsdiff.exe;bspatch.exe;jsoncpp.dll;libconfig++.dll;zlib*.dll;zstd*.dll'
-        search_root: '$(Build.SourcesDirectory)\src\native\out.windows\build\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
+        search_root: '$(Build.SourcesDirectory)\src\out\native\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
 
   - ${{ if parameters.publish }}:
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Build.SourcesDirectory)\src\native\out.windows\build\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
+        targetPath: '$(Build.SourcesDirectory)\src\out\native\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
         artifactType: 'pipeline'
         artifactName: 'native-binaries.${{ parameters.build_platform }}-Windows.${{ parameters.build_configuration }}'
       displayName: 'Publish Native Binaries ${{ parameters.build_platform }}-Windows ${{ parameters.build_configuration }}'
@@ -96,14 +96,14 @@ steps:
   - ${{ if parameters.copy_output }}:
     - task: CopyFiles@2
       inputs:
-        SourceFolder: '$(Build.SourcesDirectory)\src\native\out.windows\build\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
+        SourceFolder: '$(Build.SourcesDirectory)\src\out\native\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\bin\${{ parameters.build_configuration }}'
         Contents: '*'
         TargetFolder: ${{ parameters.copy_output_binaries }}
 
   - ${{ if parameters.publish }}:
     - task: PublishPipelineArtifact@1
       inputs:
-        targetPath: '$(Build.SourcesDirectory)\src\native\out.windows\build\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\test\bin\${{ parameters.build_configuration }}'
+        targetPath: '$(Build.SourcesDirectory)\src\out\native\${{ parameters.build_platform }}-windows\${{ parameters.build_configuration }}\test\bin\${{ parameters.build_configuration }}'
         artifactType: 'pipeline'
         artifactName: 'native-test-binaries.${{ parameters.build_platform }}-Windows.${{ parameters.build_configuration }}'
       displayName: 'Publish Native Test Binaries ${{ parameters.build_platform }}-Windows ${{ parameters.build_configuration }}'

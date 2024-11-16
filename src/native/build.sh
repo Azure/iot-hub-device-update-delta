@@ -148,6 +148,8 @@ RunCMake() {
     fi
 }
 
+BIN_TARGET=$( realpath -m "${CMAKE_BUILD_DIR}/bin" )
+
 CopyBsdiffBinaryFiles() {
     if [ "$BUILD_TYPE" == "Release" ] ; then
         BSDIFF_PACKAGE_BINARIES=$( realpath -m "${VCPKG_REPO_ROOT_DIR}/packages/bsdiff_${VCPKG_TRIPLET}/bin" )
@@ -156,8 +158,6 @@ CopyBsdiffBinaryFiles() {
     if [ "$BUILD_TYPE" == "Debug" ] ; then
         BSDIFF_PACKAGE_BINARIES=$( realpath -m "${VCPKG_REPO_ROOT_DIR}/packages/bsdiff_${VCPKG_TRIPLET}/debug/bin" )
     fi
-
-    BIN_TARGET=$( realpath -m "${CMAKE_BUILD_DIR}/bin" )
 
     if [ -f "$BIN_TARGET/bsdiff" ] ; then
         rm $BIN_TARGET/bsdiff
@@ -175,6 +175,7 @@ BASE_LICENSE_SOURCE="$THIS_REPO_ROOT_DIR/licenses/LICENSE.linux"
 BASE_LICENSE_TARGET="$BIN_TARGET/NOTICE"
 
 function CopyBaseLinuxLicense {
+    echo "Copying base license file: $BASE_LICENSE_SOURCE to $BASE_LICENSE_TARGET"
 	cp $BASE_LICENSE_SOURCE $BASE_LICENSE_TARGET
 }
 

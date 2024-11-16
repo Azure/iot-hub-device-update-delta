@@ -60,14 +60,18 @@
                 return false;
             }
 
-            ItemDefinition zippedItem;
-            string unzippedPath;
-            ItemDefinition unzippedItem;
+            ItemDefinition zippedItem = GetItemFromStream(Context.Stream);
 
-            zippedItem = GetItemFromStream(Context.Stream);
+            if (!string.IsNullOrEmpty(Context.OriginalArchiveFileName))
+            {
+                zippedItem = zippedItem.WithName(Context.OriginalArchiveFileName);
+            }
 
             var newTokens = new ArchiveTokenization("zip", "gz");
             newTokens.ArchiveItem = zippedItem;
+
+            string unzippedPath;
+            ItemDefinition unzippedItem;
 
             try
             {

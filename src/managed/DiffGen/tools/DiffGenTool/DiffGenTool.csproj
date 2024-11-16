@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <OutputPath>$(OutputPathBase)\DiffGenTool</OutputPath>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <OutputType>Exe</OutputType>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PublishSingleFile>true</PublishSingleFile>
@@ -32,10 +36,6 @@
   </ItemGroup>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <ItemGroup>
-      <NativeBinaries Condition=" '$(OS)' == 'Windows_NT' " Include="$(SolutionDir)\..\..\native\out.windows\build\x64-windows\$(Configuration)\bin\$(Configuration)\*" />
-      <NativeBinaries Condition=" '$(OS)' != 'Windows_NT' " Include="$(SolutionDir)/../../native/out.linux/build/x64-linux/$(Configuration)/bin/*;$(SolutionDir)/../../native/build/x64-linux/$(Configuration)/lib/*.so" />
-    </ItemGroup>
     <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)" />
   </Target>
 

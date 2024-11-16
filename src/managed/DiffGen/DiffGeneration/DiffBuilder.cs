@@ -48,8 +48,6 @@ public class DiffBuilder : Worker
 
         public string WorkingFolder { get; set; }
 
-        public string RecompressedTargetFile { get; set; }
-
         public string SigningCommand { get; set; }
 
         public bool KeepWorkingFolder { get; set; } = false;
@@ -247,7 +245,6 @@ public class DiffBuilder : Worker
             TargetTokens = parameters.TargetTokens,
             OutputFile = parameters.OutputFile,
             LogFolder = parameters.LogFolder,
-            RecompressedTargetFile = parameters.RecompressedTargetFile,
             SigningCommand = parameters.SigningCommand,
             KeepWorkingFolder = parameters.KeepWorkingFolder,
             UseCopyTargetRecipes = parameters.UseCopyTargetRecipes,
@@ -266,8 +263,6 @@ public class DiffBuilder : Worker
     public string LogFolder { get; private set; }
 
     public bool KeepWorkingFolder { get; set; }
-
-    public string RecompressedTargetFile { get; private set; }
 
     public string SigningCommand { get; private set; }
 
@@ -329,11 +324,6 @@ public class DiffBuilder : Worker
         Logger.LogInformation($"WorkingFolder: {WorkingFolder}");
         Logger.LogInformation($"LogFolder: {LogFolder}");
 
-        if (!string.IsNullOrEmpty(RecompressedTargetFile))
-        {
-            Logger.LogInformation($"RecompressedTargetFile: {RecompressedTargetFile}");
-        }
-
         if (!string.IsNullOrEmpty(SigningCommand))
         {
             Logger.LogInformation($"SigningCommand: {SigningCommand}");
@@ -360,32 +350,6 @@ public class DiffBuilder : Worker
     #endregion
 
     #region("Worker Calls")
-    private void Recompress()
-    {
-        if (string.IsNullOrEmpty(RecompressedTargetFile))
-        {
-            return;
-        }
-
-        Recompress worker = new(Logger, WorkingFolder, CancellationToken)
-        {
-            OriginalFile = TargetFile,
-            RecompressedFile = RecompressedTargetFile,
-            SigningCommand = SigningCommand,
-        };
-        worker.Execute();
-
-        WriteToLogFile(worker.StdOut, "recompression.stdout.txt");
-        WriteToLogFile(worker.StdErr, "recompression.stderr.txt");
-
-        if (!File.Exists(RecompressedTargetFile))
-        {
-            throw new Exception($"Failed to create file {RecompressedTargetFile}\nError Message:\n{worker.StdErr}");
-        }
-
-        TargetFile = RecompressedTargetFile;
-    }
-
     private void TokenizeArchives()
     {
         TokenizeArchives worker = new(Logger, WorkingFolder, CancellationToken)
@@ -398,6 +362,23 @@ public class DiffBuilder : Worker
 
         SourceTokens = worker.SourceTokens;
         TargetTokens = worker.TargetTokens;
+    }
+
+    private void AnalyzeArchiveTokens()
+    {
+        AnalyzeArchiveTokens worker = new(Logger, WorkingFolder, CancellationToken)
+        {
+            SourceTokens = SourceTokens,
+            TargetTokens = TargetTokens,
+            UndiffableThreshold = TargetTokens.ArchiveItem.Length / 2,
+        };
+
+        worker.Execute();
+
+        if (!worker.IsDiffable)
+        {
+            throw new DiffBuilderException("Target archive is not diffable.", FailureType.UndiffableTarget);
+        }
     }
 
     private void CreateDeltas()
@@ -571,11 +552,11 @@ public class DiffBuilder : Worker
                 EnsureWorkingFolder();
             },
 
-            // Decompress image files in source/target archives and recompress them with zstd_compress_file.
-            Recompress,
-
             // Create archive tokenization for target and source
             TokenizeArchives,
+
+            // Analyze archives
+            AnalyzeArchiveTokens,
 
             // Create a diff with all of the target chunks, but no recipes (except for all-zero chunks).
             CreateDiff,
