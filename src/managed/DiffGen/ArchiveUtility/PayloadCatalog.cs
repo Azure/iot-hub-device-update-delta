@@ -62,7 +62,7 @@
 
             _payload[payload].Add(item);
 
-            string wildcardName = NamePatterns.ReplaceNumbersWithWildCards(payload.Name);
+            string wildcardName = Payload.GetWildcardPayloadName(payload.Name);
 
             if (!_payloadWildcardMatches.ContainsKey(wildcardName))
             {

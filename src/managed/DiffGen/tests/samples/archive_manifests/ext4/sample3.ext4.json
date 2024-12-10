@@ -417,27 +417,6 @@
           ]
         },
         {
-          "Name": "all_zeros",
-          "Result": {
-            "Length": 1023,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "5724796860BAA23469B3118EFF2567C96A0B64B7DADAF99EAFB7BA3C65B9AA56"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "EE4325C998D610499EF9749837313581"
-              }
-            },
-            "Names": [
-              "Chunk.Gap=282625,1023"
-            ]
-          },
-          "NumberIngredients": [],
-          "ItemIngredients": []
-        },
-        {
           "Name": "slice",
           "Result": {
             "Length": 1023,
@@ -474,27 +453,6 @@
               "Names": []
             }
           ]
-        },
-        {
-          "Name": "all_zeros",
-          "Result": {
-            "Length": 1023,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "5724796860BAA23469B3118EFF2567C96A0B64B7DADAF99EAFB7BA3C65B9AA56"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "EE4325C998D610499EF9749837313581"
-              }
-            },
-            "Names": [
-              "Chunk.Gap=286721,1023"
-            ]
-          },
-          "NumberIngredients": [],
-          "ItemIngredients": []
         },
         {
           "Name": "slice",
@@ -610,27 +568,6 @@
               "Names": []
             }
           ]
-        },
-        {
-          "Name": "all_zeros",
-          "Result": {
-            "Length": 3072,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "E80232B4D18D0BB7E794BE263BA937626F383F9917D4B8A737BA893A8F752293"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "D2A70550489DE356A2CD6BFC40711204"
-              }
-            },
-            "Names": [
-              "Chunk.Gap=283648,3072"
-            ]
-          },
-          "NumberIngredients": [],
-          "ItemIngredients": []
         },
         {
           "Name": "slice",

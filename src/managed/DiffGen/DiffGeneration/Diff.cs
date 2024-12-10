@@ -199,10 +199,13 @@ public class Diff
                 {
                     if (parentList.Contains(item))
                     {
-                        parentList.Remove(dep);
+                        parentList.Remove(item);
                     }
 
-//                    UnsetItemNeeded(dep);
+                    if (parentList.Count() == 0)
+                    {
+                        UnsetItemNeeded(dep);
+                    }
                 }
             }
         }
