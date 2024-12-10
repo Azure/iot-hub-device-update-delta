@@ -27,14 +27,14 @@ if ($null -ne $env:VCPKG_ROOT) {
     $vcpkgRoot = $env:VCPKG_ROOT
 }
 else {
-    if (Test-Path "$vcpkgRoot\.git") {
-        Push-Location $vcpkgRoot
-        git pull
-        Pop-Location
-    }
-    else {
+    if (-not (Test-Path "$vcpkgRoot\.git")) {
         git clone https://github.com/microsoft/vcpkg $vcpkgRoot
     }
+
+    Push-Location $vcpkgRoot
+        $mostRecentVcpkgTag=git describe --tags --abbrev=0
+        git checkout $mostRecentVcpkgTag
+    Pop-Location
 }
 
 function SetupTerrapin() {

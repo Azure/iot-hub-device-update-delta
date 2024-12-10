@@ -6,6 +6,7 @@
  */
 namespace UnitTests;
 
+using System;
 using System.IO;
 using System.Runtime.InteropServices;
 
@@ -35,6 +36,10 @@ public class SerializationTests
         }
 
         string reserializedJson = ArchiveTokenization.FromJson(originalJson).ToJson(true);
+
+        var actualManifestPath = Path.GetFullPath(jsonManifestPath + ".actual");
+        Console.WriteLine($"Saving actual results to: {actualManifestPath}");
+        File.WriteAllText(actualManifestPath, reserializedJson);
 
         Assert.AreEqual(originalJson, reserializedJson);
     }

@@ -109,9 +109,8 @@ public class LoadArchivesTest
 
         var expectedJson = File.ReadAllText(expectedJsonFile);
         var actualJsonFile = Path.GetFullPath(expectedJsonFile + ".actual");
-        File.WriteAllText(actualJsonFile, actualJson);
-
         Logger.LogInformation("Saving actual results to: {actualJsonFile}", actualJsonFile);
+        File.WriteAllText(actualJsonFile, actualJson);
 
         Assert.AreEqual(expectedJson, actualJson);
 
