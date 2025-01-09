@@ -399,14 +399,12 @@ public class DiffBuilder : Worker
         DeltaCatalog = worker.DeltaCatalog;
     }
 
-    private void AddRecipesToDiff()
+    private void SelectDeltasFromCatalog()
     {
-        var worker = new AddRecipesToDiff(Logger, WorkingFolder, CancellationToken)
+        var worker = new SelectDeltasFromCatalog(Logger, WorkingFolder, CancellationToken)
         {
-            SourceTokens = SourceTokens,
-            TargetTokens = TargetTokens,
-            DeltaCatalog = DeltaCatalog,
             Diff = diff,
+            DeltaCatalog = DeltaCatalog,
         };
 
         worker.Execute();
@@ -417,20 +415,6 @@ public class DiffBuilder : Worker
         diff = new(SourceTokens, TargetTokens);
 
         diff.Version = 1;
-    }
-
-    private void UseRecipesFromSource()
-    {
-        var worker = new UseRecipesFromSource(Logger, WorkingFolder, CancellationToken)
-        {
-            SourceTokens = SourceTokens,
-            TargetTokens = TargetTokens,
-            Diff = diff,
-        };
-
-        Logger.LogInformation("Before UseRecipesFromSource: diff.Tokens has {0} recipes.", diff.Tokens.Recipes.Count);
-        worker.Execute();
-        Logger.LogInformation("After UseRecipesFromSource: diff.Tokens has {0} recipes.", diff.Tokens.Recipes.Count);
     }
 
     private void SelectItemsForDelta()
@@ -498,15 +482,21 @@ public class DiffBuilder : Worker
         worker.Execute();
     }
 
+    private void VerifyDiffObject()
+    {
+        var worker = new VerifyDiffObject(Logger, WorkingFolder, CancellationToken) { Diff = diff, SourceTokens = SourceTokens, TargetTokens = TargetTokens };
+        worker.Execute();
+    }
+
     private void WriteDiffToDisk()
     {
         var worker = new WriteDiffToDisk(Logger, WorkingFolder, CancellationToken) { OutputFile = OutputFile, Diff = diff };
         worker.Execute();
     }
 
-    private void VerifyDiff()
+    private void VerifyDiffOutput()
     {
-        var worker = new VerifyDiff(Logger, WorkingFolder, CancellationToken) { OutputFile = OutputFile, Diff = diff, SourceFile = SourceFile };
+        var worker = new VerifyDiffOutput(Logger, WorkingFolder, CancellationToken) { OutputFile = OutputFile, Diff = diff, SourceFile = SourceFile };
         worker.Execute();
     }
     #endregion
@@ -558,11 +548,8 @@ public class DiffBuilder : Worker
             // Analyze archives
             AnalyzeArchiveTokens,
 
-            // Create a diff with all of the target chunks, but no recipes (except for all-zero chunks).
+            // Create a diff with all of the target chunks
             CreateDiff,
-
-            // Add recipes for content that is based off of payload we can find in the source
-            UseRecipesFromSource,
 
             // Select items for delta
             SelectItemsForDelta,
@@ -574,11 +561,11 @@ public class DiffBuilder : Worker
             // would be helpful. We don't create a delta if it's not going to be used in a chunk's recipe.
             CreateDeltas,
 
+            // Choose which deltas to use in our diff
+            SelectDeltasFromCatalog,
+
             // Create Inline Assets file and recipes for entries
             CreateInlineAssets,
-
-            // Add recipes from deltas or forward recipes from target
-            AddRecipesToDiff,
 
             // Create a basic recipe using the raw bits of the chunk and put that data into the "remainder"
             AddRemainderChunks,
@@ -586,11 +573,14 @@ public class DiffBuilder : Worker
             // Write a JSON file for the diff
             DumpDiff,
 
+            // Verify the diff object
+            VerifyDiffObject,
+
             // Write the diff as a binary file
             WriteDiffToDisk,
 
-            // Verify the diff contents
-            VerifyDiff,
+            // Verify the diff output
+            VerifyDiffOutput,
         };
 
         foreach (var action in diffBuildingActions)

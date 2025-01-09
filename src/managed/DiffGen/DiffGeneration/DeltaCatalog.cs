@@ -16,11 +16,11 @@ using ArchiveUtility;
 
 public class DeltaCatalog
 {
-    private Dictionary<ItemDefinition, HashSet<Recipe>> _recipes = new();
+    private Dictionary<ItemDefinition, Recipe> _recipes = new();
 
     public void ClearRecipes() => _recipes.Clear();
 
-    public List<KeyValuePair<ItemDefinition, HashSet<Recipe>>> Recipes
+    public List<KeyValuePair<ItemDefinition, Recipe>> Recipes
     {
         get { return _recipes.ToList(); }
         set { _recipes = value.ToDictionary(x => x.Key, x => x.Value); }
@@ -28,20 +28,12 @@ public class DeltaCatalog
 
     public void AddRecipe(ItemDefinition item, Recipe recipe)
     {
-        var itemKey = item.WithoutNames();
-
-        if (!_recipes.ContainsKey(itemKey))
-        {
-            _recipes.Add(itemKey, new());
-        }
-
-        _recipes[itemKey].Add(recipe);
+        _recipes[item] = recipe;
     }
 
-    public bool TryGetRecipes(ItemDefinition item, out HashSet<Recipe> recipes)
+    public bool TryGetRecipe(ItemDefinition item, out Recipe recipes)
     {
-        var itemKey = item.WithoutNames();
-        return _recipes.TryGetValue(itemKey, out recipes);
+        return _recipes.TryGetValue(item, out recipes);
     }
 
     private Dictionary<ItemDefinition, ItemDefinition> _targetItemToDeltaMap = new();
@@ -56,9 +48,7 @@ public class DeltaCatalog
 
     public void AddTargetItemDeltaEntry(ItemDefinition targetItem, ItemDefinition deltaItem)
     {
-        var itemKey = targetItem.WithoutNames();
-
-        _targetItemToDeltaMap.Add(itemKey, deltaItem);
+        _targetItemToDeltaMap.Add(targetItem, deltaItem);
     }
 
     private Dictionary<ItemDefinition, string> _deltaItemToDeltaFileMap = new();

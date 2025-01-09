@@ -34,7 +34,7 @@ public class CreateInlineAssets : Worker
     {
         Diff.InlineAssetsPath = GetInlineAssetsPath(WorkingFolder);
 
-        var items = DeltaCatalog.GetSortedDeltaItems();
+        var items = Diff.GetSortedDeltaItems();
 
         using (var inlineAssetsFileWriter = File.Create(Diff.InlineAssetsPath))
         {

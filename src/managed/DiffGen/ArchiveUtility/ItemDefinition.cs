@@ -204,7 +204,7 @@ namespace ArchiveUtility
                 result = HashCode.Combine(result, entry.Key.GetHashCode(), entry.Value.GetHashCode());
             }
 
-            if (Names.Count == 0)
+            if (Hashes.Count == 0)
             {
                 foreach (var name in Names)
                 {

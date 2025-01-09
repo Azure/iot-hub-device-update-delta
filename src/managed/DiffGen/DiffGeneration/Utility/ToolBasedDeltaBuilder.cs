@@ -41,11 +41,8 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
         }
     }
 
-    public List<Recipe> CreateDecompressionRecipes(ItemDefinition result, ItemDefinition deltaItem, ItemDefinition sourceItem)
-    {
-        Recipe recipe = new(DecompressionRecipeName, result, new(), new() { deltaItem, sourceItem });
-        return new() { recipe };
-    }
+    public Recipe CreateDecompressionRecipe(ItemDefinition result, ItemDefinition deltaItem, ItemDefinition sourceItem) =>
+        new(DecompressionRecipeName, result, new(), new() { deltaItem, sourceItem });
 
     public override bool Call(
         ILogger logger,
@@ -56,7 +53,7 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
         string baseDeltaFile,
         out ItemDefinition deltaItem,
         out string deltaFile,
-        out List<Recipe> recipes)
+        out Recipe recipe)
     {
         deltaFile = GetDecoratedPath(baseDeltaFile);
 
@@ -66,7 +63,7 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
         if (File.Exists(badDiff))
         {
             logger.LogInformation($"{GetType().Name}: Skipping file, detected bad delta: {badDiff}");
-            recipes = null;
+            recipe = null;
             deltaItem = null;
             return false;
         }
@@ -84,13 +81,13 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
                 Worker.CreateCookie(badDiff);
 
                 logger.LogInformation("Skipping delta - length of {0} >= the target length of {1}", deltaItem.Length, targetItem.Length);
-                recipes = null;
+                recipe = null;
                 deltaItem = null;
                 return false;
             }
             else
             {
-                recipes = CreateDecompressionRecipes(targetItem, deltaItem, sourceItem);
+                recipe = CreateDecompressionRecipe(targetItem, deltaItem, sourceItem);
                 return true;
             }
         }
@@ -125,12 +122,12 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
                     Worker.CreateCookie(badDiff);
 
                     logger.LogInformation("Skipping delta - length of {0} >= the target length of {1}", deltaItem.Length, targetItem.Length);
-                    recipes = null;
+                    recipe = null;
                     deltaItem = null;
                     return false;
                 }
 
-                recipes = CreateDecompressionRecipes(targetItem, deltaItem, sourceItem);
+                recipe = CreateDecompressionRecipe(targetItem, deltaItem, sourceItem);
                 return true;
             }
 
@@ -148,7 +145,7 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
                 File.Delete(tempDelta);
             }
 
-            recipes = null;
+            recipe = null;
             deltaItem = null;
             return false;
         }

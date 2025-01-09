@@ -36,7 +36,7 @@ public class AddRemainderChunks : Worker
     {
         Logger.LogInformation("Determining remaining chunks.");
 
-        var remainderItems = Diff.NeededItems.Select(x => x.Key).Where(x => !Diff.Tokens.HasAnyRecipes(x)).ToList();
+        var remainderItems = Diff.GetRemainderItems();
 
         var totalSize = remainderItems.Sum(x => (long)x.Length);
 
@@ -58,7 +58,7 @@ public class AddRemainderChunks : Worker
         VerifyRemainderItems(remainderItems);
     }
 
-    private void WriteRemainderFile(List<ItemDefinition> remainderItems)
+    private void WriteRemainderFile(IEnumerable<ItemDefinition> remainderItems)
     {
         Diff.RemainderPath = Path.Combine(WorkingFolder, "remainder.dat");
         int offsetInRemainderBlob = 0;
@@ -93,12 +93,12 @@ public class AddRemainderChunks : Worker
         Diff.Tokens.RemainderItem = ItemDefinition.FromBinaryReader(reader, (ulong)stream.Length).WithName("remainder.uncompressed");
     }
 
-    private void CreateRemainderRecipes(List<ItemDefinition> remainderItems)
+    private void CreateRemainderRecipes(IEnumerable<ItemDefinition> remainderItems)
     {
         ulong offsetInRemainderBlob = 0;
         List<ItemDefinition> items = new() { Diff.Tokens.RemainderItem };
 
-        if (remainderItems.Count <= 1)
+        if (remainderItems.Count() <= 1)
         {
             return;
         }
@@ -114,7 +114,7 @@ public class AddRemainderChunks : Worker
         }
     }
 
-    private void WriteRemainderItemsToJsonFile(List<ItemDefinition> items)
+    private void WriteRemainderItemsToJsonFile(IEnumerable<ItemDefinition> items)
     {
         var path = Path.Combine(WorkingFolder, "remainder.json");
         var json = ToJson(items, true);
@@ -122,7 +122,7 @@ public class AddRemainderChunks : Worker
         File.WriteAllText(path, json);
     }
 
-    private static string ToJson(List<ItemDefinition> items, bool indented)
+    private static string ToJson(IEnumerable<ItemDefinition> items, bool indented)
     {
         var options = ArchiveTokenization.GetStandardJsonSerializerOptions();
         options.WriteIndented = indented;
@@ -130,7 +130,7 @@ public class AddRemainderChunks : Worker
         return JsonSerializer.Serialize(items, options);
     }
 
-    private void VerifyRemainderItems(List<ItemDefinition> items)
+    private void VerifyRemainderItems(IEnumerable<ItemDefinition> items)
     {
         long offset = 0;
         using (var remainderStream = File.OpenRead(Diff.RemainderPath))

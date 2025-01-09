@@ -24,7 +24,8 @@ const char *SW_DESCRPTION_FILE_NAME = "sw-description";
 
 void usage();
 void folder_cmd(fs::path &source, fs::path &dest);
-void swu_cmd(fs::path &source, fs::path &dest, std::string *signing_cmd);
+bool swu_cmd(fs::path &source, fs::path &dest, std::string *signing_cmd);
+bool generate_description_sig(fs::path &file_path, std::string &signing_cmd, archive_diff::cpio_archive &archive);
 
 int main(int argc, char **argv)
 {
@@ -55,11 +56,19 @@ int main(int argc, char **argv)
 			{
 				std::string signing_cmd = argv[4];
 
-				swu_cmd(source, dest, &signing_cmd);
+				if (!swu_cmd(source, dest, &signing_cmd))
+				{
+					printf("Failed to recompress.");
+					return -1;
+				}
 			}
 			else
 			{
-				swu_cmd(source, dest, nullptr);
+				if (!swu_cmd(source, dest, nullptr)) 
+				{
+					printf("Failed to recompress.");
+					return -1;
+				}
 			}
 
 			printf("Finished successfully.\n");
@@ -191,20 +200,22 @@ archive_diff::hashing::hash hash_reader(archive_diff::io::reader &reader)
 	return hasher.get_hash();
 }
 
-void swu_cmd(fs::path &source, fs::path &dest, std::string *signing_cmd)
+const char *SIG_FILE_NAME = "sw-description.sig";
+
+bool swu_cmd(fs::path &source, fs::path &dest, std::string *signing_cmd)
 {
 	{
 		archive_diff::cpio_archive archive;
 		if (!fs::is_regular_file(source))
 		{
 			printf("No such file exists: %s\n", source.string().c_str());
-			return;
+			return false;
 		}
 
 		auto reader = archive_diff::io::file::io_device::make_reader(source.string());
 		if (!archive.try_read(reader))
 		{
-			return;
+			return false;
 		}
 
 		printf("Writing new swu to %s\n", dest.string().c_str());
@@ -269,8 +280,6 @@ void swu_cmd(fs::path &source, fs::path &dest, std::string *signing_cmd)
 		auto description_reader = archive_diff::io::file::io_device::make_reader(description_path.string());
 		archive.set_payload_reader("sw-description", description_reader);
 
-		const char *SIG_FILE_NAME = "sw-description.sig";
-
 		if (signing_cmd == nullptr)
 		{
 			if (archive.has_file(SIG_FILE_NAME))
@@ -281,28 +290,170 @@ void swu_cmd(fs::path &source, fs::path &dest, std::string *signing_cmd)
 		}
 		else
 		{
-			fs::path sig_path = description_path.string() + ".sig";
-
-			std::string signing_cmd_with_args =
-				fmt::format("{} {} {}", *signing_cmd, description_path.string().c_str(), sig_path.string());
-
-			::system(signing_cmd_with_args.c_str());
-
-			auto sig_reader = archive_diff::io::file::io_device::make_reader(sig_path.string());
-
-			if (archive.has_file(SIG_FILE_NAME))
+			if (!generate_description_sig(description_path, *signing_cmd, archive))
 			{
-				archive.set_payload_reader(SIG_FILE_NAME, sig_reader);
-			}
-			else
-			{
-				auto index            = archive.get_file_index(SW_DESCRPTION_FILE_NAME);
-				auto sig_inode        = archive_diff::cpio_file::get_inode(sig_path);
-				uint32_t sig_inode_32 = sig_inode & 0xFFFFFFFF;
-				archive.insert_file_at(index, SIG_FILE_NAME, sig_inode_32, sig_reader);
+				return false;
 			}
 		}
 
 		archive.write(wrapper);
+	}
+
+	return true;
+}
+
+#ifdef WIN32
+	#define POPEN  _popen
+	#define PCLOSE _pclose
+#else
+	#define POPEN  popen
+	#define PCLOSE pclose
+#endif
+
+static bool contains_space(const std::string& str)
+{
+	return str.find(' ') != std::string::npos; 
+}
+
+static bool ends_with(const std::string& str, const std::string& ending)
+{
+	if (ending.length() > str.length())
+	{
+		return false; 
+	}
+
+	return str.compare(str.length() - ending.length(), ending.length(), ending) == 0;
+}
+
+bool sign_file(const std::string &cmd, const std::string &file_path, const std::string &sig_path)
+{
+	char buffer[128];
+
+	std::string cmd_with_args = fmt::format("{} {} {}", cmd, file_path, sig_path);
+
+	printf("Signing with command: %s\n", cmd.c_str());
+	printf("File: %s\n", file_path.c_str());
+	printf("Sig File: %s\n", sig_path.c_str());
+
+	FILE *pipe;
+	if ((pipe = POPEN(cmd_with_args.c_str(), "rt")) == nullptr)
+	{
+		return false;
+	}
+
+	while (fgets(buffer, sizeof(buffer), pipe))
+	{
+		puts(buffer);
+	}
+
+	int end_of_file = feof(pipe);
+	int ret_val     = PCLOSE(pipe);
+
+	return end_of_file != 0;
+}
+
+#ifdef WIN32
+
+bool get_wsl_path(const std::string& path, std::string* wsl_path)
+{
+	char buffer[128];
+	std::string new_wsl_path;
+
+	std::filesystem::path absolute = std::filesystem::absolute(path);
+
+	std::string cmd = "wsl wslpath \"" + absolute.string() + "\"";
+
+	printf("Determining wsl path by calling: %s\n", cmd.c_str());
+	FILE *pipe;
+	if ((pipe = POPEN(cmd.c_str(), "rt")) == nullptr)
+	{
+		return false;
+	}
+
+	while (fgets(buffer, sizeof(buffer), pipe))
+	{
+		puts(buffer);
+		new_wsl_path += std::string(buffer);
+	}
+
+	int end_of_file = feof(pipe);
+	int ret_val     = PCLOSE(pipe);
+
+	*wsl_path = new_wsl_path.substr(0, new_wsl_path.length() -1);
+	printf("Determined wsl path: %s\n", wsl_path->c_str());
+
+	return end_of_file != 0;
+}
+
+bool sign_file_using_wsl(
+	const std::string &cmd, const std::string &file_path, const std::string &sig_path)
+{
+	std::string wsl_cmd_path;
+
+	if (!get_wsl_path(cmd, &wsl_cmd_path))
+	{
+		return false;
+	}
+
+	std::string wsl_file_path;
+	if (!get_wsl_path(file_path, &wsl_file_path))
+	{
+		return false;
+	}
+
+	std::string wsl_sig_path;
+	if (!get_wsl_path(sig_path, &wsl_sig_path))
+	{
+		return false;
+	}
+
+	std::string wsl_cmd = "wsl " + wsl_cmd_path;
+
+	return sign_file(wsl_cmd, wsl_file_path, wsl_sig_path);
+}
+#endif
+
+bool generate_description_sig(fs::path &file_path, std::string &signing_cmd, archive_diff::cpio_archive& archive)
+{
+	fs::path sig_path = file_path.string() + ".sig";
+
+	std::string output;
+
+#ifdef WIN32
+	if (!contains_space(signing_cmd) && ends_with(signing_cmd, ".sh"))
+	{
+		printf("Signing using WSL.\n");
+		if (!sign_file_using_wsl(signing_cmd, file_path.string(), sig_path.string()))
+		{
+			return false;
+		}
+	}
+	else
+#endif
+	{
+		printf("Signing.\n");
+		if (!sign_file(signing_cmd, file_path.string(), sig_path.string()))
+		{
+			return false;
+		}
+	}
+
+	auto sig_reader = archive_diff::io::file::io_device::make_reader(sig_path.string());
+
+	printf("Setting %s as %s in SWU.\n", sig_path.string().c_str(), SIG_FILE_NAME);
+	if (archive.has_file(SIG_FILE_NAME))
+	{
+		printf("Overriding existing...");
+		archive.set_payload_reader(SIG_FILE_NAME, sig_reader);
+		printf("done.\n");
+	}
+	else
+	{
+		printf("Adding new entry...");
+		auto index            = archive.get_file_index(SW_DESCRPTION_FILE_NAME);
+		auto sig_inode        = archive_diff::cpio_file::get_inode(sig_path);
+		uint32_t sig_inode_32 = sig_inode & 0xFFFFFFFF;
+		archive.insert_file_at(index, SIG_FILE_NAME, sig_inode_32, sig_reader);
+		printf("done.\n");
 	}
 }
