@@ -15,7 +15,7 @@ using ArchiveUtility;
 using Microsoft.Azure.DeviceUpdate.Diffs.Utility;
 using Microsoft.Extensions.Logging;
 
-public class VerifyDiff : Worker
+public class VerifyDiffOutput : Worker
 {
     public string OutputFile { get; set; }
 
@@ -23,7 +23,7 @@ public class VerifyDiff : Worker
 
     public Diff Diff { get; set; }
 
-    public VerifyDiff(ILogger logger, string workingFolder, CancellationToken cancellationToken)
+    public VerifyDiffOutput(ILogger logger, string workingFolder, CancellationToken cancellationToken)
         : base(logger, workingFolder, cancellationToken)
     {
     }
@@ -32,12 +32,23 @@ public class VerifyDiff : Worker
     {
         CheckForCancellation();
 
-        Logger.LogInformation("Verifying diff at: {0}", OutputFile);
+        Logger.LogInformation("Verifying Diff Output at: {0}", OutputFile);
 
         using var session = new DiffApi.DiffaSession();
 
         session.AddArchive(OutputFile);
 
+        VerifyInlineAssetProcessing(session);
+
+        VerifyRemainderProcessing(session);
+
+        VerifyArchiveItemProcessing(session);
+
+        VerifyArchiveItemExtraction(session);
+    }
+
+    private void VerifyInlineAssetProcessing(DiffApi.DiffaSession session)
+    {
         int successfulInlineAssetItems = 0;
         var inlineAssetRecipes = Diff.Tokens.GetInlineAssetRecipes();
         Logger.LogInformation("Verifying {inlineAssetRecipesCount:N0} inline asset recipes.", inlineAssetRecipes.Count());
@@ -55,7 +66,10 @@ public class VerifyDiff : Worker
         }
 
         Logger.LogInformation("Successfully processed {successfulInlineAssetItems:N0} inline asset items.", successfulInlineAssetItems);
+    }
 
+    private void VerifyRemainderProcessing(DiffApi.DiffaSession session)
+    {
         int successfulRemainderItems = 0;
         var remainderRecipes = Diff.Tokens.GetRemainderRecipes();
         Logger.LogInformation("Verifying {remainderRecipesCount:N0} remainder recipes.", remainderRecipes.Count());
@@ -73,11 +87,11 @@ public class VerifyDiff : Worker
         }
 
         Logger.LogInformation("Successfully processed {successfulRemainderItems:N0} remainder items.", successfulRemainderItems);
+    }
 
+    private void VerifyArchiveItemProcessing(DiffApi.DiffaSession session)
+    {
         session.AddItemToPantry(SourceFile);
-
-        var extractRoot = Path.Combine(WorkingFolder, "VerifyDiff");
-        Directory.CreateDirectory(extractRoot);
 
         session.ClearRequestedItems();
         session.RequestItem(Diff.Tokens.ArchiveItem);
@@ -88,9 +102,15 @@ public class VerifyDiff : Worker
         }
 
         Logger.LogInformation("Successfully processed diff result item: {diffTokensArchiveItem}", Diff.Tokens.ArchiveItem);
+    }
 
+    private void VerifyArchiveItemExtraction(DiffApi.DiffaSession session)
+    {
         session.ResumeSlicing();
 
+        var extractRoot = Path.Combine(WorkingFolder, "VerifyDiff");
+
+        Directory.CreateDirectory(extractRoot);
         var resultExtractPath = Diff.Tokens.ArchiveItem.GetExtractionPath(extractRoot);
         Logger.LogInformation("Extracting diff result item to: {resultExtractPath}", resultExtractPath);
         session.ExtractItemToPath(Diff.Tokens.ArchiveItem, resultExtractPath);

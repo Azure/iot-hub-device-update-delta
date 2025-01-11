@@ -25,7 +25,7 @@ public abstract class DeltaBuilder
         string baseDeltaFile,
         out ItemDefinition deltaItem,
         out string deltaFile,
-        out List<Recipe> recipes);
+        out Recipe recipe);
 
     // Decorates a delta file path for this delta type (bsdiff, zstd, etc)
     public abstract string GetDecoratedFileName(string path);

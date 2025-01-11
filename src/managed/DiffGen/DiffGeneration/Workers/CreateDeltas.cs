@@ -85,7 +85,7 @@ public class CreateDeltas : Worker
 
         int processedCount = 0;
 
-        ConcurrentBag<List<Recipe>> deltaRecipeSets = new();
+        ConcurrentBag<Recipe> deltaRecipes = new();
         ConcurrentDictionary<ItemDefinition, ItemDefinition> targetItemToDeltaItemMap = new();
         ConcurrentDictionary<ItemDefinition, string> deltaFiles = new();
 
@@ -103,7 +103,7 @@ public class CreateDeltas : Worker
             int newProcessedCount = Interlocked.Increment(ref processedCount);
             if (newProcessedCount % 1000 == 0)
             {
-                Logger.LogInformation($"Processed: {newProcessedCount}/{deltaPlans.Count}. Delta: {deltaRecipeSets.Count}");
+                Logger.LogInformation($"Processed: {newProcessedCount}/{deltaPlans.Count}. Delta: {deltaRecipes.Count}");
             }
 
             var deltaPlansForItem = deltaPlans[itemToDelta];
@@ -136,9 +136,9 @@ public class CreateDeltas : Worker
                     baseDeltaFilePath,
                     out ItemDefinition deltaItem,
                     out string deltaFilePath,
-                    out List<Recipe> recipes))
+                    out Recipe recipe))
                 {
-                    deltaRecipeSets.Add(recipes);
+                    deltaRecipes.Add(recipe);
                     targetItemToDeltaItemMap.TryAdd(targetItem, deltaItem);
                     deltaFiles.TryAdd(deltaItem, deltaFilePath);
 
@@ -161,12 +161,9 @@ public class CreateDeltas : Worker
 
         CheckForCancellation();
 
-        foreach (var recipes in deltaRecipeSets)
+        foreach (var recipe in deltaRecipes)
         {
-            foreach (var recipe in recipes)
-            {
-                DeltaCatalog.AddRecipe(recipe.Result, recipe);
-            }
+            DeltaCatalog.AddRecipe(recipe.Result, recipe);
         }
 
         foreach (var entry in targetItemToDeltaItemMap)
@@ -205,9 +202,9 @@ public class CreateDeltas : Worker
         string baseDeltaFile,
         out ItemDefinition deltaItem,
         out string deltaFile,
-        out List<Recipe> recipes)
+        out Recipe recipe)
     {
-        List<Recipe> bestRecipes = null;
+        Recipe bestRecipe = null;
         string bestDeltaFile = null;
         ItemDefinition bestDeltaItem = targetItem;
 
@@ -215,7 +212,7 @@ public class CreateDeltas : Worker
         {
             deltaItem = null;
             deltaFile = null;
-            recipes = null;
+            recipe = null;
             return false;
         }
 
@@ -237,7 +234,7 @@ public class CreateDeltas : Worker
                 baseDeltaFile,
                 out ItemDefinition newDeltaItem,
                 out string newDeltaFile,
-                out List<Recipe> newRecipes))
+                out Recipe newRecipe))
             {
                 continue;
             }
@@ -256,13 +253,13 @@ public class CreateDeltas : Worker
 
             bestDeltaFile = newDeltaFile;
             bestDeltaItem = newDeltaItem;
-            bestRecipes = newRecipes;
+            bestRecipe = newRecipe;
         }
 
-        recipes = bestRecipes;
+        recipe = bestRecipe;
         deltaFile = bestDeltaFile;
         deltaItem = bestDeltaItem.Length < targetItem.Length ? bestDeltaItem : null;
-        return deltaItem != null;
+        return deltaItem is not null;
     }
 
     protected static bool IsSmallFileSize(long length)

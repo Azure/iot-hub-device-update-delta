@@ -8,6 +8,7 @@ namespace Microsoft.Azure.DeviceUpdate.Diffs;
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -17,12 +18,6 @@ using ArchiveUtility;
 
 public class Diff
 {
-    // For a given needed item, what parents depend on it?
-    private Dictionary<ItemDefinition, HashSet<ItemDefinition>> _needItemParentMap = new();
-
-    // For a given needed item, what dependencies does it have?
-    private Dictionary<ItemDefinition, HashSet<ItemDefinition>> _neededItemDependencyMap = new();
-
     public ulong Version { get; set; } = 0;
 
     public ArchiveTokenization Tokens { get; set; } = new("Diff", "Standard");
@@ -31,65 +26,204 @@ public class Diff
 
     public string InlineAssetsPath { get; set; }
 
-    public List<KeyValuePair<ItemDefinition, HashSet<ItemDefinition>>> NeededItems
-    {
-        get => _needItemParentMap.ToList();
-        set
-        {
-            foreach (var entry in value)
-            {
-                var item = entry.Key;
-                var parents = entry.Value;
+    public List<Recipe> DeltaRecipes { get; set; } = new();
 
-                foreach (var parent in parents)
-                {
-                    SetParentNeedsItem(parent, item);
-                }
-            }
-        }
-    }
+    private HashSet<ItemDefinition> _neededItems = new();
+    private HashSet<ItemDefinition> _solvedItems = new();
 
-    public HashSet<ItemDefinition> SolvedItems { get; set; } = new();
+    private ArchiveTokenization _sourceTokens;
+    private ArchiveTokenization _targetTokens;
 
     public Diff(ArchiveTokenization sourceTokens, ArchiveTokenization targetTokens)
     {
         Tokens.SourceItem = sourceTokens.ArchiveItem;
         Tokens.ArchiveItem = targetTokens.ArchiveItem;
 
-        HashSet<ItemDefinition> needed = new();
-        HashSet<ItemDefinition> solved = new();
-        CheckSolutions(targetTokens, targetTokens.ArchiveItem, targetTokens.ArchiveItem);
+        _sourceTokens = sourceTokens;
+        _targetTokens = targetTokens;
+
+        CheckForSolutions(null, targetTokens.ArchiveItem);
     }
 
-    private bool CheckSolutions(ArchiveTokenization tokens, ItemDefinition parent, ItemDefinition item)
+    public void SelectDeltasFromCatalog(DeltaCatalog deltaCatalog)
     {
-        bool solved = true;
+        _neededItems.Clear();
+        CheckForSolutions(deltaCatalog, Tokens.ArchiveItem);
+    }
 
-        var itemKey = item.WithoutNames();
-        if (tokens.ForwardRecipes.TryGetValue(itemKey, out var recipe))
+    public IEnumerable<ItemDefinition> GetRemainderItems()
+    {
+        return _neededItems.Where(x => !Tokens.HasAnyRecipes(x));
+    }
+
+    public IEnumerable<ItemDefinition> GetSortedDeltaItems() => DeltaRecipes.Select(x => x.ItemIngredients.First()).Order();
+
+    public bool IsNeededItem(ItemDefinition item) => _neededItems.Contains(item);
+
+    private bool CheckForSolutions(DeltaCatalog deltaCatalog, ItemDefinition item)
+    {
+        if (_solvedItems.Contains(item))
         {
-            foreach (var ingredient in recipe.ItemIngredients)
-            {
-                if (!CheckSolutions(tokens, itemKey, ingredient))
-                {
-                    solved = false;
-                }
-            }
-
-            if (!solved)
-            {
-                SetParentNeedsItem(parent, itemKey);
-            }
-            else
-            {
-                Tokens.AddRecipe(recipe);
-                SolvedItems.Add(itemKey);
-            }
-
-            return solved;
+            return true;
         }
 
-        SetParentNeedsItem(parent, item);
+        if (deltaCatalog is null)
+        {
+            if (CheckForTrivialSolutions(item))
+            {
+                return true;
+            }
+        }
+        else
+        {
+            if (CheckForDeltaSolutions(deltaCatalog, item))
+            {
+                return true;
+            }
+        }
+
+        return UseTargetForwardRecipe(deltaCatalog, item);
+    }
+
+    private bool UseTargetForwardRecipe(DeltaCatalog deltaCatalog, ItemDefinition item)
+    {
+        // Otherwise, look at the recipes for the target and see check for solutions for the ingredients
+        if (!_targetTokens.ForwardRecipes.TryGetValue(item, out var forwardRecipe))
+        {
+            _neededItems.Add(item);
+            return false;
+        }
+
+        bool solved = true;
+
+        foreach (var ingredient in forwardRecipe.ItemIngredients)
+        {
+            solved = CheckForSolutions(deltaCatalog, ingredient) && solved;
+        }
+
+        Tokens.AddForwardRecipe(forwardRecipe);
+
+        if (solved)
+        {
+            _solvedItems.Add(item);
+        }
+        else
+        {
+            _neededItems.Add(item);
+        }
+
+        return solved;
+    }
+
+    private bool CheckForDeltaSolutions(DeltaCatalog deltaCatalog, ItemDefinition item)
+    {
+        List<Recipe> recipesToAdd = new();
+
+        if (!deltaCatalog.TryGetRecipe(item, out var deltaRecipe))
+        {
+            return false;
+        }
+
+        recipesToAdd.Add(deltaRecipe);
+
+        for (int iIngredient = 1; iIngredient < deltaRecipe.ItemIngredients.Count; iIngredient++)
+        {
+            var ingredient = deltaRecipe.ItemIngredients[iIngredient];
+
+            if (!TryGetReverseSolution(ingredient, out var reverseSolution))
+            {
+                return false;
+            }
+
+            recipesToAdd.AddRange(reverseSolution);
+        }
+
+        DeltaRecipes.Add(deltaRecipe);
+
+        foreach (var recipe in recipesToAdd)
+        {
+            Tokens.AddRecipe(recipe);
+            _solvedItems.Add(recipe.Result);
+        }
+
+        return true;
+    }
+
+    private bool CheckForTrivialSolutions(ItemDefinition item)
+    {
+        // First, check if we have any context free solutions from the target for this item
+        var targetRecipes = _targetTokens.GetRecipes(item);
+        foreach (var recipe in targetRecipes)
+        {
+            if (recipe.ItemIngredients.Count == 0)
+            {
+                _solvedItems.Add(item);
+                Tokens.AddRecipe(recipe);
+                return true;
+            }
+        }
+
+        // Next, try to get a recipe from the source
+        var sourceRecipes = _sourceTokens.GetRecipes(item);
+        foreach (var recipe in sourceRecipes)
+        {
+            if (recipe.ItemIngredients.Count == 0)
+            {
+                if (recipe.Result.CompareTo(item) != 0)
+                {
+                    throw new Exception("Found a recipe from the source for item, but result of recipe doesn't match item!");
+                }
+
+                Tokens.AddRecipe(recipe);
+                _solvedItems.Add(item);
+                return true;
+            }
+        }
+
+        // Next, try getting a reverse recipe from the source!
+        if (_sourceTokens.ReverseRecipes.TryGetValue(item, out var reverseRecipe))
+        {
+            if (TryGetReverseSolution(item, out var reverseSolution))
+            {
+                foreach (var solutionRecipe in reverseSolution)
+                {
+                    Tokens.AddRecipe(solutionRecipe);
+                    _solvedItems.Add(solutionRecipe.Result);
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool TryGetReverseSolution(ItemDefinition item, out HashSet<Recipe> solution)
+    {
+        solution = new();
+
+        if (_sourceTokens.ReverseRecipes.TryGetValue(item, out var reverseRecipe))
+        {
+            solution.Add(reverseRecipe);
+
+            foreach (var ingredient in reverseRecipe.ItemIngredients)
+            {
+                if (ingredient.CompareTo(_sourceTokens.ArchiveItem) == 0)
+                {
+                    continue;
+                }
+
+                if (!TryGetReverseSolution(ingredient, out var ingredientSolution))
+                {
+                    return false;
+                }
+
+                solution.UnionWith(ingredientSolution);
+            }
+
+            return true;
+        }
+
         return false;
     }
 
@@ -109,199 +243,5 @@ public class Diff
         options.WriteIndented = writeIndented;
 
         return JsonSerializer.Serialize(this, options);
-    }
-
-    public IEnumerable<ItemDefinition> GetMissingDependencies()
-    {
-        var missing = new HashSet<ItemDefinition>();
-        var missingList = new List<ItemDefinition>();
-
-        foreach (var entry in Tokens.Recipes)
-        {
-            var recipes = entry.Value;
-
-            foreach (var recipe in recipes)
-            {
-                var dependencies = recipe.ItemIngredients;
-
-                foreach (var dep in dependencies)
-                {
-                    if (dep.Equals(Tokens.SourceItem))
-                    {
-                        continue;
-                    }
-
-                    if (!missing.Contains(dep) && !Tokens.HasAnyRecipes(dep))
-                    {
-                        missing.Add(dep);
-                        missingList.Add(dep);
-                    }
-                }
-            }
-        }
-
-        return missingList;
-    }
-
-    public IEnumerable<ItemDefinition> GetAllDependencies()
-    {
-        var dependencies = new HashSet<ItemDefinition>();
-        var dependenciesList = new List<ItemDefinition>();
-
-        foreach (var entry in Tokens.Recipes)
-        {
-            var recipes = entry.Value;
-
-            foreach (var recipe in recipes)
-            {
-                foreach (var dep in recipe.ItemIngredients)
-                {
-                    if (!dependencies.Contains(dep))
-                    {
-                        dependencies.Add(dep);
-                        dependenciesList.Add(dep);
-                    }
-                }
-            }
-        }
-
-        return dependenciesList;
-    }
-
-    public bool IsNeeded(ItemDefinition item)
-    {
-        var itemKey = item.WithoutNames();
-
-        return _needItemParentMap.ContainsKey(itemKey);
-    }
-
-    public bool IsSolved(ItemDefinition item)
-    {
-        var itemKey = item.WithoutNames();
-
-        return SolvedItems.Contains(itemKey);
-    }
-
-    public void UnsetItemNeeded(ItemDefinition item)
-    {
-        var itemKey = item.WithoutNames();
-
-        if (_neededItemDependencyMap.TryGetValue(itemKey, out var dependencies))
-        {
-            // remove our entry for dependencies
-            _neededItemDependencyMap.Remove(itemKey);
-
-            // if this item has any dependencies then remove this
-            // from its parent list remove it if there are no other parents
-            foreach (var dep in dependencies)
-            {
-                if (_needItemParentMap.TryGetValue(dep, out var parentList))
-                {
-                    if (parentList.Contains(item))
-                    {
-                        parentList.Remove(item);
-                    }
-
-                    if (parentList.Count() == 0)
-                    {
-                        UnsetItemNeeded(dep);
-                    }
-                }
-            }
-        }
-
-        if (_needItemParentMap.TryGetValue(itemKey, out var parents))
-        {
-            foreach (var parent in parents)
-            {
-                if (_neededItemDependencyMap.TryGetValue(parent, out var deps))
-                {
-                    deps.Remove(itemKey);
-                }
-            }
-
-            _needItemParentMap.Remove(itemKey);
-        }
-    }
-
-    private void SetItemAsSolved(ItemDefinition item)
-    {
-        var itemKey = item.WithoutNames();
-
-        UnsetItemNeeded(itemKey);
-
-        SolvedItems.Add(itemKey);
-    }
-
-    public void AddRecipes(IEnumerable<Recipe> recipes, bool solved)
-    {
-        foreach (var recipe in recipes)
-        {
-            AddRecipe(recipe, solved);
-        }
-    }
-
-    public void AddRecipe(Recipe recipe, bool solved)
-    {
-        var result = recipe.Result;
-
-        Tokens.AddRecipe(recipe);
-
-        if (solved)
-        {
-            SetItemAsSolved(result);
-        }
-    }
-
-    public void SetParentNeedsItem(ItemDefinition parent, ItemDefinition item)
-    {
-        var parentKey = parent.WithoutNames();
-        var itemKey = item.WithoutNames();
-
-        if (!_needItemParentMap.ContainsKey(itemKey))
-        {
-            _needItemParentMap.Add(itemKey, new());
-        }
-
-        _needItemParentMap[itemKey].Add(parent);
-
-        if (!_neededItemDependencyMap.ContainsKey(parentKey))
-        {
-            _neededItemDependencyMap.Add(parentKey, new());
-        }
-
-        _neededItemDependencyMap[parentKey].Add(itemKey);
-    }
-
-    public static bool TryGetReverseSolution(ArchiveTokenization tokens, ItemDefinition item, ref List<Recipe> recipes)
-    {
-        if (item.Equals(tokens.ArchiveItem))
-        {
-            return true;
-        }
-
-        var itemKey = item.WithoutNames();
-
-        if (!tokens.ReverseRecipes.ContainsKey(itemKey))
-        {
-            return false;
-        }
-
-        bool solved = true;
-
-        var recipe = tokens.ReverseRecipes[itemKey];
-
-        recipes.Add(recipe);
-
-        foreach (var ingredient in recipe.ItemIngredients)
-        {
-            if (!TryGetReverseSolution(tokens, ingredient, ref recipes))
-            {
-                solved = false;
-                break;
-            }
-        }
-
-        return solved;
     }
 }

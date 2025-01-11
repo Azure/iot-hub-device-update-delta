@@ -38,7 +38,7 @@ public class SelectItemsForDelta : Worker
     {
     }
 
-    protected void AddPayloadDeltas()
+    private void AddPayloadDeltas()
     {
         if (TargetTokens.Payload == null || !TargetTokens.Payload.Any() || SourceTokens.Payload == null || !SourceTokens.Payload.Any())
         {
@@ -58,32 +58,23 @@ public class SelectItemsForDelta : Worker
         {
             var targetPayloadFullPath = payloadEntry.Key.Name;
             var targetPayloadItems = payloadEntry.Value;
-            bool foundAnyMatches = false;
 
-            if (SourceTokens.HasPayloadWithName(targetPayloadFullPath))
-            {
-                AddDeltaPlansFromSourceToTarget(targetPayloadItems, targetPayloadFullPath);
-                foundAnyMatches = true;
-            }
-
+            // This will also match exact matches
             var sourceWildcardMatches = SourceTokens.GetPayloadMatchingWildcard(targetPayloadFullPath);
 
             if (sourceWildcardMatches.Count() == 0)
             {
-                if (!foundAnyMatches)
+                newItems.Add($"{payloadEntry.Key.Name}, {string.Join(",", payloadEntry.Value.Select(x => x.ToString()))}");
+
+                ulong totalItemBytes = 0;
+                foreach (var item in targetPayloadItems)
                 {
-                    newItems.Add($"{payloadEntry.Key.Name}, {string.Join(",", payloadEntry.Value.Select(x => x.ToString()))}");
-
-                    ulong totalItemBytes = 0;
-                    foreach (var item in targetPayloadItems)
-                    {
-                        totalItemBytes += item.Length;
-                    }
-
-                    totalNew += totalItemBytes;
-
-                    continue;
+                    totalItemBytes += item.Length;
                 }
+
+                totalNew += totalItemBytes;
+
+                continue;
             }
 
             foreach (var targetItem in targetPayloadItems)
@@ -97,9 +88,6 @@ public class SelectItemsForDelta : Worker
                         continue;
                     }
 
-                    var targetItemKey = targetItem.WithoutNames();
-                    var sourceItemKey = sourceItem.WithoutNames();
-
                     // If this item is an archive then it will be assembled from
                     // its recipes those items should be diffed, not the archive itself
                     if (TargetTokens.HasArchiveItem(targetItem))
@@ -110,10 +98,14 @@ public class SelectItemsForDelta : Worker
                     differentItems.Add($"{payloadEntry.Key.Name}, {string.Join(",", payloadEntry.Value.Select(x => x.ToString()))}");
 
                     totalDifferent += targetItem.Length;
-                    var plan = new DeltaPlan(sourceItemKey, targetItemKey, targetPayloadFullPath, true);
-                    DeltaPlans.AddDeltaPlan(targetItem, plan);
-                    TargetItemsNeeded.Add(targetItemKey.WithoutNames());
-                    SourceItemsNeeded.Add(sourceItemKey.WithoutNames());
+
+                    if (Diff.IsNeededItem(targetItem))
+                    {
+                        var plan = new DeltaPlan(sourceItem, targetItem, targetPayloadFullPath, true);
+                        DeltaPlans.AddDeltaPlan(targetItem, plan);
+                        TargetItemsNeeded.Add(targetItem);
+                        SourceItemsNeeded.Add(sourceItem);
+                    }
                 }
             }
         }
@@ -132,46 +124,48 @@ public class SelectItemsForDelta : Worker
         Logger.LogInformation("Total different items found: Count: {differentItemsCount:N0}, Bytes: {totalDifferent:N0}. Details written to {differentItemsFile}", differentItems.Count(), totalDifferent, differentItemsFile);
     }
 
-    protected void AddDeltaPlansFromSourceToTarget(HashSet<ItemDefinition> targetPayloadItems, string targetPayloadFullPath)
+    private bool TryAddDeltaPlansFromSourceToTarget(HashSet<ItemDefinition> targetPayloadItems, string targetPayloadFullPath)
     {
         var sourcePayload = SourceTokens.GetPayloadWithName(targetPayloadFullPath);
 
+        if (!sourcePayload.Any())
+        {
+            return false;
+        }
+
+        bool added = false;
+
         foreach (var targetItem in targetPayloadItems)
         {
-            if (!Diff.IsNeeded(targetItem))
+            if (!Diff.IsNeededItem(targetItem))
+            {
+                continue;
+            }
+
+            // If this item is an archive then it will be assembled from
+            // its recipes those items should be diffed, not the archive itself
+            if (TargetTokens.HasArchiveItem(targetItem))
             {
                 continue;
             }
 
             foreach (var sourceItem in sourcePayload)
             {
-                if (targetItem.Equals(sourceItem))
+                if (!Diff.IsNeededItem(targetItem))
                 {
-                    List<Recipe> recipes = new();
-                    if (Diff.TryGetReverseSolution(SourceTokens, sourceItem, ref recipes))
-                    {
-                        Diff.AddRecipes(recipes, true);
-                    }
-
-                    break;
+                    continue;
                 }
 
-                // If this item is an archive then it will be assembled from
-                // its recipes those items should be diffed, not the archive itself
-                if (TargetTokens.HasArchiveItem(targetItem))
-                {
-                    break;
-                }
-
-                var sourceItemKey = sourceItem.WithoutNames();
-                var targetItemKey = targetItem.WithoutNames();
-
-                var plan = new DeltaPlan(sourceItemKey, targetItemKey, targetPayloadFullPath, false);
+                var plan = new DeltaPlan(sourceItem, targetItem, targetPayloadFullPath, false);
                 DeltaPlans.AddDeltaPlan(targetItem, plan);
-                TargetItemsNeeded.Add(targetItemKey);
-                SourceItemsNeeded.Add(sourceItemKey);
+                TargetItemsNeeded.Add(targetItem);
+                SourceItemsNeeded.Add(sourceItem);
+
+                added = true;
             }
         }
+
+        return added;
     }
 
     protected override void ExecuteInternal()
