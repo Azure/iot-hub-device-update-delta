@@ -32,7 +32,15 @@ if (-not ($BuildType -match "Release") -and -not ($BuildType -match "Debug")) {
 Push-Location native
 ./build.ps1 $VcpkgTriplet $BuildType "all"
 Pop-Location
+if ($LASTEXITCODE -ne 0) {
+	Write-Host "Result from native build was $LASTEXITCODE, exiting."
+	exit $LASTEXITCODE
+}
 
 Push-Location managed
 ./build.ps1 $BuildType
 Pop-Location
+if ($LASTEXITCODE -ne 0) {
+	Write-Host "Result from managed build was $LASTEXITCODE, exiting."
+	exit $LASTEXITCODE
+}

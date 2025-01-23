@@ -54,14 +54,12 @@
 
         public bool TryAddRecipe(Recipe recipe)
         {
-            var itemKey = recipe.Result.WithoutNames();
-
-            if (!_recipes.ContainsKey(itemKey))
+            if (!_recipes.ContainsKey(recipe.Result))
             {
-                _recipes.Add(itemKey, new());
+                _recipes.Add(recipe.Result, new());
             }
 
-            var recipes = _recipes[itemKey];
+            var recipes = _recipes[recipe.Result];
 
             recipes.Add(recipe);
             return true;
@@ -69,11 +67,9 @@
 
         public HashSet<Recipe> GetRecipes(ItemDefinition item)
         {
-            var itemKey = item.WithoutNames();
-
-            if (_recipes.ContainsKey(itemKey))
+            if (_recipes.ContainsKey(item))
             {
-                return _recipes[itemKey];
+                return _recipes[item];
             }
 
             return new();
@@ -105,19 +101,17 @@
 
         public bool HasAnyRecipes(ItemDefinition item)
         {
-            var itemKey = item.WithoutNames();
-            return _recipes.ContainsKey(itemKey) && _recipes[itemKey].Count > 0;
+            return _recipes.ContainsKey(item) && _recipes[item].Count > 0;
         }
 
         public bool HasRecipe(Recipe recipe)
         {
-            var itemKey = recipe.Result.WithoutNames();
-            if (!_recipes.ContainsKey(itemKey))
+            if (!_recipes.ContainsKey(recipe.Result))
             {
                 return false;
             }
 
-            return _recipes[itemKey].Contains(recipe);
+            return _recipes[recipe.Result].Contains(recipe);
         }
     }
 }

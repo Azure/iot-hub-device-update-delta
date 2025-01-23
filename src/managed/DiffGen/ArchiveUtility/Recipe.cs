@@ -71,6 +71,12 @@ namespace ArchiveUtility
             ItemIngredients = items;
         }
 
+        public bool IsDeltaRecipe() => Name.Equals("bspatch_decompression") || Name.Equals("zstd_decompression");
+
+        public bool HasDeltaBasis() => IsDeltaRecipe() && (ItemIngredients.Count == 2 && ItemIngredients[1].Length > 0);
+
+        public ItemDefinition GetDeltaBasis() => ItemIngredients[1];
+
         public override int GetHashCode()
         {
             if (!HashCodeCache.HasValue)

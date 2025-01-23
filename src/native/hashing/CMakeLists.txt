@@ -35,6 +35,9 @@ else()
 	message(FATAL_ERROR "No hashing library selected")
 endif()
 
+find_package(jsoncpp CONFIG REQUIRED)
+target_link_libraries(hashing PRIVATE JsonCpp::JsonCpp)
+
 target_link_libraries(hashing PUBLIC errors io io_sequential)
 
 target_include_directories(hashing PUBLIC

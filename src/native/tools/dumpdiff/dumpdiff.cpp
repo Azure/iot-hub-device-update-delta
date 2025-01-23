@@ -91,60 +91,196 @@ int main(int argc, char **argv)
 	return dump_diff(archive.get(), std::cout);
 }
 
+int dump_pantry(Json::Value &pantry, std::ostream &ostream, Json::StreamWriter *writer)
+{
+	ostream << " \"Pantry\": ";
+	ostream << " [\n";
+	for (int i_item = 0; i_item < (int)pantry.size(); i_item++)
+	{
+		auto item = pantry[i_item];
+
+		ostream << "  ";
+		writer->write(item, &ostream);
+
+		if (i_item != (int)(pantry.size() - 1))
+		{
+			ostream << ",\n";
+		}
+		else
+		{
+			ostream << "\n";
+		}
+	}
+
+	ostream << " ]";
+
+	return 0;
+}
+
+int dump_supported_recipes(Json::Value &supported_recipe_types, std::ostream &ostream, Json::StreamWriter *writer)
+{
+	ostream << " \"SupportedRecipeTypes\":\n [\n";
+	for (int i_recipe_type = 0; i_recipe_type < (int)supported_recipe_types.size(); i_recipe_type++)
+	{
+		auto recipe_type = supported_recipe_types[i_recipe_type];
+
+		ostream << "  ";
+		writer->write(recipe_type, &ostream);
+
+		if (i_recipe_type != (int)(supported_recipe_types.size() - 1))
+		{
+			ostream << ",\n";
+		}
+		else
+		{
+			ostream << "\n";
+		}
+	}
+
+	ostream << " ]";
+
+	return 0;
+}
+
+int dump_recipe(Json::Value& recipe, std::ostream& ostream, Json::StreamWriter* writer)
+{
+	auto members = recipe.getMemberNames();
+	std::set<std::string> member_set(members.begin(), members.end());
+
+	bool first = true;
+
+	ostream << "{";
+
+	if (member_set.contains("Name"))
+	{
+		first = false;
+
+		ostream << "\"Name\":";
+		writer->write(recipe["Name"], &ostream);
+	}
+
+	if (member_set.contains("Result"))
+	{
+		if (!first)
+		{
+			ostream << ",";
+		}
+		first = false;
+
+		ostream << "\"Result\":";
+		writer->write(recipe["Result"], &ostream);
+	}
+
+	if (member_set.contains("NumberIngredients"))
+	{
+		if (!first)
+		{
+			ostream << ",";
+		}
+		first = false;
+
+		ostream << "\"NumberIngredients\":";
+		writer->write(recipe["NumberIngredients"], &ostream);
+	}
+
+	if (member_set.contains("ItemIngredients"))
+	{
+		if (!first)
+		{
+			ostream << ",";
+		}
+		first = false;
+
+		ostream << "\"ItemIngredients\":";
+		writer->write(recipe["ItemIngredients"], &ostream);
+	}
+
+	ostream << "}";
+
+	return 0;
+}
+
+int dump_cookbook(Json::Value &cookbook, std::ostream &ostream, Json::StreamWriter *writer)
+{
+	ostream << " \"Recipes\":\n [\n";
+	for (int i_recipe = 0; i_recipe < (int)cookbook.size(); i_recipe++)
+	{
+		auto recipe = cookbook[i_recipe];
+
+		ostream << "  ";
+		int ret = dump_recipe(recipe, ostream, writer);
+		if (ret != 0)
+		{
+			return ret;
+		}
+
+		if (i_recipe != (int)(cookbook.size() - 1))
+		{
+			ostream << ",\n";
+		}
+		else
+		{
+			ostream << "\n";
+		}
+	}
+
+	ostream << " ]";
+
+	return 0;
+}
+
+
 int dump_diff(archive_diff::diffs::core::archive *to_dump, std::ostream &ostream)
 {
-	archive_diff::diffs::serialization::legacy::deserializer deserializer;
+	auto root = to_dump->to_json();
 
-	auto target_item = to_dump->get_archive_item();
-	ostream << "Target: " << target_item.to_string() << std::endl;
+	Json::StreamWriterBuilder builder;
+	builder["indentation"] = "";
+	const std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
 
-	auto source_item = to_dump->get_source_item();
-	if (source_item.size())
+    ostream << "{\n";
+
+	auto target = root["TargetItem"];
+
+	ostream << " \"TargetItem\": ";
+	writer->write(target, &ostream);
+
+	auto members = root.getMemberNames();
+
+	std::set<std::string> member_set(members.begin(), members.end());
+
+	if (member_set.contains("SourceItem"))
 	{
-		ostream << "Source: " << source_item.to_string() << std::endl;
+		ostream << ",\n";
+		auto source = root["SourceItem"];
+		ostream << " \"SourceItem\": ";
+		writer->write(source, &ostream);
 	}
 
-	auto &pantry = to_dump->get_pantry();
-
-	auto pantry_items = pantry->get_items();
-
-	if (!pantry_items.empty())
+	if (member_set.contains("Pantry"))
 	{
-		ostream << "Pantry:" << std::endl;
-		for (const auto &pantry_entry : pantry_items)
-		{
-			ostream << "\t" << pantry_entry.second->to_string() << std::endl;
-		}
-		ostream << std::endl;
+		ostream << ",\n";
+		dump_pantry(root["Pantry"], ostream, writer.get());
 	}
-
-	auto &cookbook = to_dump->get_cookbook();
 
 	if (!g_skip_recipes)
 	{
-		ostream << "Recipe Types: " << std::endl;
-		auto supported_recipe_types = to_dump->get_supported_recipe_type_count();
-		for (uint32_t i = 0; i < supported_recipe_types; i++)
+		if (member_set.contains("SupportedRecipeTypes"))
 		{
-			ostream << "\t" << std::to_string(i) << ") " << to_dump->get_supported_type_name(i) << std::endl;
+			ostream << ",\n";
+			dump_supported_recipes(root["SupportedRecipeTypes"], ostream, writer.get());
 		}
 
-		ostream << "Cookbook:" << std::endl;
-		auto recipe_set_map = cookbook->get_all_recipes();
-		if (recipe_set_map.empty())
+		if (member_set.contains("Cookbook"))
 		{
-			ostream << "\tNo recipes in cookbook." << std::endl;
-		}
-
-		for (auto &entry : recipe_set_map)
-		{
-			auto &recipes = entry.second;
-			for (const auto &recipe : recipes)
-			{
-				ostream << "\t" << recipe->to_string() << std::endl;
-			}
+			ostream << ",\n";
+			dump_cookbook(root["Cookbook"], ostream, writer.get());
 		}
 	}
+
+	ostream << "\n";
+
+	ostream << "}\n";
 
 	return 0;
 }

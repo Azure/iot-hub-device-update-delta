@@ -82,4 +82,62 @@ void archive::set_recipe_template_for_recipe_type(
 
 	m_supported_recipe_templates.insert(std::pair{id, recipe_template});
 }
+
+Json::Value archive::to_json() const
+{
+	Json::Value root;
+
+	root["TargetItem"] = m_archive_item.to_json();
+
+	if (m_source_item.size())
+	{
+		root["SourceItem"] = m_source_item.to_json();
+	}
+
+	auto pantry_items = m_pantry->get_items();
+
+	if (pantry_items.size())
+	{
+		Json::Value pantry;
+
+		for (const auto &item : pantry_items)
+		{
+			pantry.append(item.first.to_json());
+		}
+
+		root["Pantry"] = pantry;
+	}
+
+	Json::Value supported_recipes_types;
+
+	for (const auto &[recipe_type_id, recipe_template] : m_supported_recipe_templates)
+	{
+		Json::Value recipe_type_json;
+		recipe_type_json["Id"]   = recipe_type_id;
+		recipe_type_json["Name"] = m_recipe_type_id_to_type_name.at(recipe_type_id);
+
+		supported_recipes_types.append(recipe_type_json);
+	}
+
+	root["SupportedRecipeTypes"] = supported_recipes_types;
+
+	auto all_recipes = m_cookbook->get_all_recipes();
+
+	if (!all_recipes.empty())
+	{
+		Json::Value cookbook;
+
+		for (const auto &recipes_for_item : all_recipes)
+		{
+			for (const auto &recipe : recipes_for_item.second)
+			{
+				cookbook.append(recipe->to_json());
+			}
+		}
+
+		root["Cookbook"] = cookbook;
+	}
+
+	return root;
+}
 } // namespace archive_diff::diffs::core

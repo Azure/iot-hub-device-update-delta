@@ -27,15 +27,15 @@ public class DeltaPlans
 
     public void AddDeltaPlan(ItemDefinition item, DeltaPlan deltaPlan)
     {
-        var itemKey = item.WithoutNames();
-
-        if (!_entries.ContainsKey(itemKey))
+        if (!_entries.ContainsKey(item))
         {
-            _entries.Add(itemKey, new());
+            _entries.Add(item, new());
         }
 
-        _entries[itemKey].Add(deltaPlan);
+        _entries[item].Add(deltaPlan);
     }
+
+    public bool HasPlan(ItemDefinition item) => _entries.ContainsKey(item);
 
     public static JsonSerializerOptions GetStandardJsonSerializerOptions()
     {

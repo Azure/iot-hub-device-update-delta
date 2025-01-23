@@ -79,40 +79,49 @@ bool operator<(const std::shared_ptr<recipe> &lhs, const std::shared_ptr<recipe>
 	return false;
 }
 
+Json::Value recipe::to_json() const 
+{
+	Json::Value value;
+
+	value["Name"]   = get_recipe_name();
+	value["Result"] = m_result_item_definition.to_json();
+	
+	if (m_number_ingredients.size()) 
+	{
+		Json::Value number_ingredients;
+
+		for (auto number : m_number_ingredients)
+		{
+			number_ingredients.append(number);
+		}
+		value["NumberIngredients"] = number_ingredients;
+	}
+
+	if (m_item_ingredients.size())
+	{
+		Json::Value item_ingredients;
+
+		for (auto &item : m_item_ingredients)
+		{
+			item_ingredients.append(item.to_json());
+		}
+		value["ItemIngredients"] = item_ingredients;
+	}
+
+	return value;
+}
+
 std::string recipe::to_string() const
 {
-	std::string str = "{" + get_recipe_name() + ": result: ";
-	str += m_result_item_definition.to_string();
-	str += ", {ingredients: {numbers: {";
+	auto json = to_json();
 
-	auto numbers = get_number_ingredients();
-	if (numbers.size() != 0)
-	{
-		for (size_t i = 0; i < numbers.size() - 1; i++)
-		{
-			str += std::to_string(numbers[i]);
-			str += ", ";
-		}
+	std::stringstream stream;
+	Json::StreamWriterBuilder builder;
+	builder["indentation"] = "";
+	const std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
 
-		str += std::to_string(numbers.back());
-	}
+	writer->write(json, &stream);
 
-	str += "}, items: {";
-
-	auto items = get_item_ingredients();
-	if (items.size() != 0)
-	{
-		for (size_t i = 0; i < items.size() - 1; i++)
-		{
-			str += items[i].to_string();
-			str += ", ";
-		}
-
-		str += items.back().to_string();
-	}
-
-	str += "}}}";
-
-	return str;
+	return stream.str();
 }
 } // namespace archive_diff::diffs::core

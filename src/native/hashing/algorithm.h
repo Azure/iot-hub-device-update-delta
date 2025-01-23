@@ -33,5 +33,7 @@ const algorithm all_algorithms[] = {algorithm::md5, algorithm::sha256};
 int alg_to_gcrypt_algo(hashing::algorithm alg);
 #endif
 
+std::string get_algorithm_name(algorithm algo);
+
 size_t get_byte_count_for_algorithm(algorithm algo);
 } // namespace archive_diff::hashing

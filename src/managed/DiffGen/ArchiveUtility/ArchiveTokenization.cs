@@ -204,15 +204,13 @@ namespace ArchiveUtility
 
         public void AddForwardRecipe(Recipe recipe)
         {
-            var itemKey = recipe.Result.WithoutNames();
-            ForwardRecipes[itemKey] = recipe;
+            ForwardRecipes[recipe.Result] = recipe;
             AddRecipe(recipe);
         }
 
         public void AddReverseRecipe(Recipe recipe)
         {
-            var itemKey = recipe.Result.WithoutNames();
-            ReverseRecipes[itemKey] = recipe;
+            ReverseRecipes[recipe.Result] = recipe;
             AddRecipe(recipe);
         }
 
@@ -575,7 +573,7 @@ namespace ArchiveUtility
 
         public HashSet<Recipe> GetRecipes(ItemDefinition item) => RecipeCatalog.GetRecipes(item);
 
-        public bool HasArchiveItem(ItemDefinition item) => PayloadCatalog.ArchiveItems.Contains(item.WithoutNames());
+        public bool HasArchiveItem(ItemDefinition item) => PayloadCatalog.ArchiveItems.Contains(item);
 
         public IEnumerable<ItemDefinition> ArchiveItems => PayloadCatalog.ArchiveItems;
 

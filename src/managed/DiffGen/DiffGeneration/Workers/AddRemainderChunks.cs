@@ -36,7 +36,7 @@ public class AddRemainderChunks : Worker
     {
         Logger.LogInformation("Determining remaining chunks.");
 
-        var remainderItems = Diff.GetRemainderItems();
+        var remainderItems = Diff.GetNeededItems();
 
         var totalSize = remainderItems.Sum(x => (long)x.Length);
 

@@ -124,53 +124,75 @@ public class SelectItemsForDelta : Worker
         Logger.LogInformation("Total different items found: Count: {differentItemsCount:N0}, Bytes: {totalDifferent:N0}. Details written to {differentItemsFile}", differentItems.Count(), totalDifferent, differentItemsFile);
     }
 
-    private bool TryAddDeltaPlansFromSourceToTarget(HashSet<ItemDefinition> targetPayloadItems, string targetPayloadFullPath)
+    private void AddSizeBasedDeltas()
     {
-        var sourcePayload = SourceTokens.GetPayloadWithName(targetPayloadFullPath);
+        Dictionary<ulong, HashSet<ItemDefinition>> sourceItemsBySize = new();
 
-        if (!sourcePayload.Any())
+        // build index of items with recipes by size from source
+        foreach (var (result, recipes) in SourceTokens.Recipes)
         {
-            return false;
+            if (!sourceItemsBySize.ContainsKey(result.Length))
+            {
+                sourceItemsBySize.Add(result.Length, new());
+            }
+
+            sourceItemsBySize[result.Length].Add(result);
         }
 
-        bool added = false;
-
-        foreach (var targetItem in targetPayloadItems)
+        foreach (var needed in Diff.GetNeededItems())
         {
-            if (!Diff.IsNeededItem(targetItem))
+            if (needed.Length < 256)
             {
                 continue;
             }
 
-            // If this item is an archive then it will be assembled from
-            // its recipes those items should be diffed, not the archive itself
-            if (TargetTokens.HasArchiveItem(targetItem))
+            if (DeltaPlans.HasPlan(needed))
             {
                 continue;
             }
 
-            foreach (var sourceItem in sourcePayload)
+            if (sourceItemsBySize.ContainsKey(needed.Length))
             {
-                if (!Diff.IsNeededItem(targetItem))
+                bool matched = false;
+                foreach (var sourceItem in sourceItemsBySize[needed.Length])
+                {
+                    if (AnyMatchingNames(needed, sourceItem))
+                    {
+                        matched = true;
+
+                        var plan = new DeltaPlan(sourceItem, needed, string.Empty, false);
+                        DeltaPlans.AddDeltaPlan(needed, plan);
+                        TargetItemsNeeded.Add(needed);
+                        SourceItemsNeeded.Add(sourceItem);
+                        break;
+                    }
+                }
+
+                if (matched)
                 {
                     continue;
                 }
 
-                var plan = new DeltaPlan(sourceItem, targetItem, targetPayloadFullPath, false);
-                DeltaPlans.AddDeltaPlan(targetItem, plan);
-                TargetItemsNeeded.Add(targetItem);
-                SourceItemsNeeded.Add(sourceItem);
-
-                added = true;
+                foreach (var sourceItem in sourceItemsBySize[needed.Length])
+                {
+                    var plan = new DeltaPlan(sourceItem, needed, string.Empty, false);
+                    DeltaPlans.AddDeltaPlan(needed, plan);
+                    TargetItemsNeeded.Add(needed);
+                    SourceItemsNeeded.Add(sourceItem);
+                }
             }
         }
+    }
 
-        return added;
+    private bool AnyMatchingNames(ItemDefinition left, ItemDefinition right)
+    {
+        return left.Names.Any(x => right.Names.Contains(x));
     }
 
     protected override void ExecuteInternal()
     {
         AddPayloadDeltas();
+        AddSizeBasedDeltas();
 
         using (var stream = File.Create(Path.Combine(WorkingFolder, "DeltaPlans.json")))
         {

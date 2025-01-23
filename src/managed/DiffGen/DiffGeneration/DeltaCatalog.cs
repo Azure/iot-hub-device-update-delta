@@ -17,6 +17,7 @@ using ArchiveUtility;
 public class DeltaCatalog
 {
     private Dictionary<ItemDefinition, Recipe> _recipes = new();
+    private Dictionary<ItemDefinition, string> _deltaItemPaths = new();
 
     public void ClearRecipes() => _recipes.Clear();
 
@@ -24,6 +25,12 @@ public class DeltaCatalog
     {
         get { return _recipes.ToList(); }
         set { _recipes = value.ToDictionary(x => x.Key, x => x.Value); }
+    }
+
+    public List<KeyValuePair<ItemDefinition, string>> DeltaItempaths
+    {
+        get { return _deltaItemPaths.ToList(); }
+        set { _deltaItemPaths = value.ToDictionary(x => x.Key, x => x.Value); }
     }
 
     public void AddRecipe(ItemDefinition item, Recipe recipe)
@@ -35,6 +42,13 @@ public class DeltaCatalog
     {
         return _recipes.TryGetValue(item, out recipes);
     }
+
+    public void AddDeltaPath(ItemDefinition deltaItem, string path)
+    {
+        _deltaItemPaths[deltaItem] = path;
+    }
+
+    public bool TryGetDeltaPath(ItemDefinition deltaItem, out string path) => _deltaItemPaths.TryGetValue(deltaItem, out path);
 
     private Dictionary<ItemDefinition, ItemDefinition> _targetItemToDeltaMap = new();
 

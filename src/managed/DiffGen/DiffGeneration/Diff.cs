@@ -9,12 +9,14 @@ namespace Microsoft.Azure.DeviceUpdate.Diffs;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.ComponentModel.Design;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
 
 using ArchiveUtility;
+using Microsoft.Extensions.Logging;
 
 public class Diff
 {
@@ -31,16 +33,20 @@ public class Diff
     private HashSet<ItemDefinition> _neededItems = new();
     private HashSet<ItemDefinition> _solvedItems = new();
 
+    private ILogger _logger;
     private ArchiveTokenization _sourceTokens;
     private ArchiveTokenization _targetTokens;
+    private string _workingFolder;
 
-    public Diff(ArchiveTokenization sourceTokens, ArchiveTokenization targetTokens)
+    public Diff(ILogger logger, ArchiveTokenization sourceTokens, ArchiveTokenization targetTokens, string workingFolder)
     {
         Tokens.SourceItem = sourceTokens.ArchiveItem;
         Tokens.ArchiveItem = targetTokens.ArchiveItem;
 
+        _logger = logger;
         _sourceTokens = sourceTokens;
         _targetTokens = targetTokens;
+        _workingFolder = workingFolder;
 
         CheckForSolutions(null, targetTokens.ArchiveItem);
     }
@@ -51,14 +57,150 @@ public class Diff
         CheckForSolutions(deltaCatalog, Tokens.ArchiveItem);
     }
 
-    public IEnumerable<ItemDefinition> GetRemainderItems()
+    public void ImportDeltasFromCatalog(DeltaCatalog deltaCatalog)
     {
-        return _neededItems.Where(x => !Tokens.HasAnyRecipes(x));
+        using var createSession = new DiffApi.DiffcSession();
+        createSession.SetTarget(_targetTokens.ArchiveItem);
+
+        foreach (var recipeSet in _targetTokens.Recipes)
+        {
+            foreach (var recipe in recipeSet.Value)
+            {
+                createSession.AddRecipe(recipe);
+            }
+        }
+
+        foreach (var recipeSet in _sourceTokens.Recipes)
+        {
+            foreach (var recipe in recipeSet.Value)
+            {
+                createSession.AddRecipe(recipe);
+            }
+        }
+
+        List<ItemDefinition> mockedItems = new();
+
+        foreach (var recipe in deltaCatalog.Recipes)
+        {
+            createSession.AddRecipe(recipe.Value);
+            mockedItems.Add(recipe.Value.ItemIngredients[0]);
+        }
+
+        using var applySession = createSession.NewApplySession();
+
+        foreach (var item in _neededItems)
+        {
+            applySession.RequestItem(item);
+        }
+
+        mockedItems.Add(_sourceTokens.ArchiveItem);
+
+        bool solvedAll = applySession.ProcessRequestedItemsEx(true, mockedItems);
+
+        var selectedRecipesJson = Path.Combine(_workingFolder, "selectedRecipes.json");
+        applySession.SaveSelectedRecipes(selectedRecipesJson);
+        var selectedRecipes = LoadSelectedRecipes(selectedRecipesJson);
+
+        if (selectedRecipes.Recipes is null)
+        {
+            return;
+        }
+
+        var selectedRecipeMap = selectedRecipes.Recipes.Select(x => new KeyValuePair<ItemDefinition, Recipe>(x.Result, x)).ToDictionary();
+
+        _neededItems.Clear();
+        _solvedItems.Clear();
+        Tokens.ForwardRecipes.Clear();
+        Tokens.ReverseRecipes.Clear();
+        Tokens.ClearRecipes();
+
+        CheckForSolutionsFromSelectedRecipes(selectedRecipeMap, _targetTokens.ArchiveItem);
+    }
+
+    public IEnumerable<ItemDefinition> GetNeededItems()
+    {
+        return _neededItems;
     }
 
     public IEnumerable<ItemDefinition> GetSortedDeltaItems() => DeltaRecipes.Select(x => x.ItemIngredients.First()).Order();
 
     public bool IsNeededItem(ItemDefinition item) => _neededItems.Contains(item);
+
+    private bool CheckForSolutionsFromSelectedRecipes(Dictionary<ItemDefinition, Recipe> selectedRecipes, ItemDefinition item)
+    {
+        if (_solvedItems.Contains(item))
+        {
+            return true;
+        }
+
+        if (selectedRecipes.ContainsKey(item))
+        {
+            List<ItemDefinition> toAdd = [item];
+            while (toAdd.Any())
+            {
+                List<ItemDefinition> newToAdd = new();
+
+                foreach (var itemToAdd in toAdd)
+                {
+                    if (itemToAdd.CompareTo(_sourceTokens.ArchiveItem) == 0)
+                    {
+                        continue;
+                    }
+
+                    if (!selectedRecipes.ContainsKey(itemToAdd))
+                    {
+                        _logger.LogError("Selected Items doesn't contain recipe for item {itemToAdd}", itemToAdd.ToString());
+                        throw new Exception($"Selected Items doesn't contain recipe for item {itemToAdd}");
+                    }
+
+                    var selectedRecipe = selectedRecipes[itemToAdd];
+
+                    if (selectedRecipe.IsDeltaRecipe())
+                    {
+                        DeltaRecipes.Add(selectedRecipe);
+
+                        if (selectedRecipe.HasDeltaBasis())
+                        {
+                            newToAdd.Add(selectedRecipe.GetDeltaBasis());
+                        }
+                    }
+                    else
+                    {
+                        newToAdd.AddRange(selectedRecipe.ItemIngredients);
+                    }
+
+                    Tokens.AddRecipe(selectedRecipe);
+                }
+
+                toAdd = newToAdd;
+            }
+
+            return true;
+        }
+
+        // Otherwise, look at the recipes for the target and see check for solutions for the ingredients
+        if (!_targetTokens.ForwardRecipes.TryGetValue(item, out var forwardRecipe))
+        {
+            _neededItems.Add(item);
+            return false;
+        }
+
+        bool solved = true;
+
+        foreach (var ingredient in forwardRecipe.ItemIngredients)
+        {
+            solved = CheckForSolutionsFromSelectedRecipes(selectedRecipes, ingredient) && solved;
+        }
+
+        Tokens.AddForwardRecipe(forwardRecipe);
+
+        if (solved)
+        {
+            _solvedItems.Add(item);
+        }
+
+        return solved;
+    }
 
     private bool CheckForSolutions(DeltaCatalog deltaCatalog, ItemDefinition item)
     {
@@ -83,6 +225,14 @@ public class Diff
         }
 
         return UseTargetForwardRecipe(deltaCatalog, item);
+    }
+
+    public static RecipeList LoadSelectedRecipes(string path)
+    {
+        var options = ArchiveTokenization.GetStandardJsonSerializerOptions();
+        var jsonText = File.ReadAllText(path);
+        var deserialized = JsonSerializer.Deserialize<RecipeList>(jsonText, options);
+        return deserialized;
     }
 
     private bool UseTargetForwardRecipe(DeltaCatalog deltaCatalog, ItemDefinition item)

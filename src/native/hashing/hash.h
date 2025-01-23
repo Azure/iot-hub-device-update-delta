@@ -17,6 +17,8 @@
 #include <io/sequential/reader.h>
 #include <io/sequential/writer.h>
 
+#include <json/json.h>
+
 #include "algorithm.h"
 
 namespace archive_diff::hashing
@@ -82,6 +84,16 @@ struct hash
 		value += "(";
 		value += get_type_string();
 		value += ")";
+
+		return value;
+	}
+
+	Json::Value to_json() const
+	{
+		Json::Value value;
+
+		value["type"]  = static_cast<uint32_t>(m_algorithm);
+		value["value"] = get_data_string();
 
 		return value;
 	}

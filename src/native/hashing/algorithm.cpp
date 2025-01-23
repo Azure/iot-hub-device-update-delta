@@ -28,6 +28,21 @@ size_t get_byte_count_for_algorithm(algorithm algo)
 	}
 }
 
+std::string get_algorithm_name(algorithm algo)
+{
+	switch (algo)
+	{
+	case algorithm::md5:
+		return "md5";
+	case algorithm::sha256:
+		return "sha256";
+	default:
+		std::string msg =
+			"diffs::hash::get_algorithm_name(): Unexpected hash type: " + std::to_string(static_cast<int>(algo));
+		throw errors::user_exception(errors::error_code::diff_bad_hash_type, msg);
+	}
+}
+
 #ifdef USE_LIBGCRYPT
 int alg_to_gcrypt_algo(hashing::algorithm alg)
 {
