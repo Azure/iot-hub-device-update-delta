@@ -74,7 +74,7 @@ public class CreateInlineAssets : Worker
 
                 offset += item.Length;
 
-                if (!itemFromReader.Equals(item.WithoutNames()))
+                if (!itemFromReader.Equals(item))
                 {
                     throw new Exception($"InlineAssets item mismatch. Expected: {item}, Actual: {itemFromReader}");
                 }

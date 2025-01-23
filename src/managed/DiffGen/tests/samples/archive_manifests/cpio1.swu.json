@@ -179,7 +179,9 @@
             "value": "66E7E75470AE70B4AF5F3EA68D3A1FFE"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Header.Payload=sw-description"
+        ]
       },
       "Value": [
         {
@@ -235,7 +237,9 @@
             "value": "11169FFD4B97B35088CD39E763C22C41"
           }
         },
-        "Names": []
+        "Names": [
+          "sw-description"
+        ]
       },
       "Value": [
         {
@@ -291,7 +295,9 @@
             "value": "C4103F122D27677C9DB144CAE1394A66"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Padding=630"
+        ]
       },
       "Value": [
         {
@@ -347,7 +353,9 @@
             "value": "A617993388380D3ACB5F3E3FF8640DC8"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Header.Payload=deb.deb"
+        ]
       },
       "Value": [
         {
@@ -403,7 +411,9 @@
             "value": "EA0142D83C111211219A87E6D1991396"
           }
         },
-        "Names": []
+        "Names": [
+          "deb.deb"
+        ]
       },
       "Value": [
         {
@@ -459,7 +469,9 @@
             "value": "0F6A48D7C4E416139BC8CD3853260D44"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Header.Payload=img.img"
+        ]
       },
       "Value": [
         {
@@ -515,7 +527,9 @@
             "value": "3A773DCD4815048DFE5AD707B2376498"
           }
         },
-        "Names": []
+        "Names": [
+          "img.img"
+        ]
       },
       "Value": [
         {
@@ -571,7 +585,9 @@
             "value": "FF30FFD394AB4AFF157BA78B2B557F73"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Header.Payload=iso.iso"
+        ]
       },
       "Value": [
         {
@@ -627,7 +643,9 @@
             "value": "4CEB4396122A8F3EE714D5AF0C290D02"
           }
         },
-        "Names": []
+        "Names": [
+          "iso.iso"
+        ]
       },
       "Value": [
         {
@@ -683,7 +701,9 @@
             "value": "85181D2B32DE6026719D628C111944F9"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Header.Payload=TRAILER!!!"
+        ]
       },
       "Value": [
         {
@@ -739,7 +759,9 @@
             "value": "0A15F50911FBD69C7F0D921F313CE4DB"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Gap=1140,396"
+        ]
       },
       "Value": [
         {

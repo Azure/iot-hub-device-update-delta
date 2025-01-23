@@ -68,7 +68,9 @@
             "value": "B80FFDC387F02A3196449AF9F1C552DB"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Header.Payload=tg.tar.gz"
+        ]
       },
       "Value": [
         {
@@ -124,7 +126,9 @@
             "value": "EC92E114BD56FCE47363308723B8E3B2"
           }
         },
-        "Names": []
+        "Names": [
+          "tg.tar.gz"
+        ]
       },
       "Value": [
         {
@@ -180,7 +184,9 @@
             "value": "93B885ADFE0DA089CDF634904FD59F71"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Padding=205"
+        ]
       },
       "Value": [
         {
@@ -236,7 +242,9 @@
             "value": "7D3B721B75725E308A76B5C882F64E13"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Header.Payload=TRAILER!!!"
+        ]
       },
       "Value": [
         {
@@ -292,7 +300,9 @@
             "value": "645605496AC18D914435EC4427573DA7"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Gap=244,268"
+        ]
       },
       "Value": [
         {

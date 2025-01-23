@@ -180,7 +180,7 @@ namespace ArchiveUtility
             }
         }
 
-        public class ItemIngredients : IDisposable
+        public class ItemDefinitionArray : IDisposable
         {
             private ItemDefinitionObject[] _objects;
             private IntPtr[] _array;
@@ -190,7 +190,7 @@ namespace ArchiveUtility
 
             public UIntPtr Count { get; init; }
 
-            public ItemIngredients(IEnumerable<ItemDefinition> items)
+            public ItemDefinitionArray(IEnumerable<ItemDefinition> items)
             {
                 _objects = items.Select(x => new ItemDefinitionObject(x)).ToArray();
                 _array = _objects.Select(x => x.Pointer).ToArray();
@@ -293,6 +293,17 @@ namespace ArchiveUtility
                 return NativeMethods.diffa_process_requested_items(_session) == 0;
             }
 
+            public bool ProcessRequestedItemsEx(bool selectRecipesOnly, List<ItemDefinition> mockedPantryItems)
+            {
+                if (mockedPantryItems is not null)
+                {
+                    using ItemDefinitionArray mockedPantryItemArray = new(mockedPantryItems);
+                    return NativeMethods.diffa_process_requested_items_ex(_session, selectRecipesOnly, mockedPantryItemArray.Array, mockedPantryItemArray.Count) == 0;
+                }
+
+                return NativeMethods.diffa_process_requested_items_ex(_session, selectRecipesOnly, IntPtr.Zero, 0) == 0;
+            }
+
             public void ResumeSlicing()
             {
                 var ret = NativeMethods.diffa_resume_slicing(_session);
@@ -319,6 +330,16 @@ namespace ArchiveUtility
                 if (ret != 0)
                 {
                     throw new Exception($"NativeMethods.diffa_extract_item_to_path() failed with ret: {ret}");
+                }
+            }
+
+            public void SaveSelectedRecipes(string path)
+            {
+                var nativePath = GetNativePath(path);
+                var ret = NativeMethods.diffa_save_selected_recipes(_session, nativePath);
+                if (ret != 0)
+                {
+                    throw new Exception($"NativeMethods.diffa_save_used_recipes() failed with ret: {ret}");
                 }
             }
         }
@@ -363,7 +384,7 @@ namespace ArchiveUtility
             {
                 using ItemDefinitionObject resultItem = new(recipe.Result);
                 using NumberIngredients numbers = new(recipe.NumberIngredients);
-                using ItemIngredients items = new(recipe.ItemIngredients);
+                using ItemDefinitionArray items = new(recipe.ItemIngredients);
 
                 var ret = NativeMethods.diffc_add_recipe(_session, recipe.Name, resultItem.Pointer, numbers.Array, numbers.Count, items.Array, items.Count);
                 if (ret != 0)
@@ -567,6 +588,9 @@ namespace ArchiveUtility
             public static extern uint diffa_process_requested_items(IntPtr handle);
 
             [DllImport(AduDiffApiDll, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+            public static extern uint diffa_process_requested_items_ex(IntPtr handle, bool selectRecipesOnly, IntPtr mockedPantryItems, UIntPtr mockedPantryItemCount);
+
+            [DllImport(AduDiffApiDll, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
             public static extern uint diffa_resume_slicing(IntPtr handle);
 
             [DllImport(AduDiffApiDll, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
@@ -574,6 +598,9 @@ namespace ArchiveUtility
 
             [DllImport(AduDiffApiDll, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
             public static extern uint diffa_extract_item_to_path(IntPtr handle, IntPtr item, [MarshalAs(UnmanagedType.LPStr)] string path);
+
+            [DllImport(AduDiffApiDll, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+            public static extern uint diffa_save_selected_recipes(IntPtr handle, [MarshalAs(UnmanagedType.LPStr)] string path);
 
             [DllImport(AduDiffApiDll, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
             public static extern uint diffa_get_error_code(IntPtr handle, [MarshalAs(UnmanagedType.U4)] int index);

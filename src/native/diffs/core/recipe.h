@@ -8,6 +8,9 @@
 
 #include "item_definition.h"
 #include "prepared_item.h"
+
+#include <json/json.h>
+
 namespace archive_diff::diffs::core
 {
 class kitchen;
@@ -27,7 +30,8 @@ class recipe
 	const std::vector<uint64_t> &get_number_ingredients() const { return m_number_ingredients; }
 	const std::vector<item_definition> &get_item_ingredients() const { return m_item_ingredients; }
 	virtual std::string get_recipe_name() const = 0;
-	virtual std::string to_string() const;
+	virtual Json::Value to_json() const;
+	std::string to_string() const;
 
 	const item_definition &get_result_item_definition() const { return m_result_item_definition; }
 	virtual prepare_result prepare(kitchen *kitchen, std::vector<std::shared_ptr<prepared_item>> &items) const = 0;

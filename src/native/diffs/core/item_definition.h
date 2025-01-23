@@ -10,6 +10,8 @@
 
 #include <hashing/hash.h>
 
+#include <json/json.h>
+
 namespace archive_diff::diffs::core
 {
 class item_definition
@@ -70,6 +72,8 @@ class item_definition
 	bool equals(const item_definition &other) const { return match(other) == match_result::match; }
 
 	std::string to_string() const;
+
+	Json::Value to_json() const;
 
 	enum serialization_options : int
 	{

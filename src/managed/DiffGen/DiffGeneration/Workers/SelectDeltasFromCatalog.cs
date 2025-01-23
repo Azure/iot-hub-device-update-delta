@@ -22,6 +22,6 @@ public class SelectDeltasFromCatalog : Worker
 
     protected override void ExecuteInternal()
     {
-        Diff.SelectDeltasFromCatalog(DeltaCatalog);
+        Diff.ImportDeltasFromCatalog(DeltaCatalog);
     }
 }

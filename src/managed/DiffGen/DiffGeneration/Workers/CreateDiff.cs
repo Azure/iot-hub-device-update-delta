@@ -28,7 +28,7 @@ public class CreateDiff : Worker
 
     protected override void ExecuteInternal()
     {
-        Diff diff = new(SourceTokens, TargetTokens);
+        Diff diff = new(Logger, SourceTokens, TargetTokens, WorkingFolder);
 
         diff.Version = 1;
 

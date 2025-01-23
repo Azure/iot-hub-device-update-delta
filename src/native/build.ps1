@@ -60,15 +60,15 @@ else {
 
 
 function RunSetupVCPkg {
-	Write-Output "Setting up VCPKG repo in ${vcpkgRepo}"
+	Write-Host "Setting up VCPKG repo in ${vcpkgRepo}"
 
 	$setupVCPkgScript = Resolve-Path("..\..\vcpkg\setup_vcpkg.ps1")
 
-	Write-Output "Calling ${setupVCPkgScript} $vcpkgRepo $repoRoot $VcpkgTriplet"
+	Write-Host "Calling ${setupVCPkgScript} $vcpkgRepo $repoRoot $VcpkgTriplet"
 
 	&${setupVCPkgScript} $vcpkgRepo $repoRoot $VcpkgTriplet
 	if ($LASTEXITCODE -ne 0) {
-		Write-Output "VCPKG Setup failed."
+		Write-Host "VCPKG Setup failed."
 		exit $LASTEXITCODE
 	}
 }
@@ -129,10 +129,10 @@ function RunCMake {
 
 	Write-Host "Calling: `"$cmake`" -S $cmakeSourceDir -B $cmakeBuildDir $cmakePlatformParameter -DCMAKE_TOOLCHAIN_FILE=`"$vcpkgCMakeToolChainFile`" -DCMAKE_BUILD_TYPE=`"$BuildType`" -DVCPKG_TARGET_TRIPLET=`"$VcpkgTriplet`" -DADU_DIFFS_VERSION=`"$ADU_DIFFS_VERSION`""
 
-	& "$cmake" -S $cmakeSourceDir -B $cmakeBuildDir $cmakePlatformParameter -DCMAKE_TOOLCHAIN_FILE="$vcpkgCMakeToolChainFile" -DCMAKE_BUILD_TYPE="$BuildType" -DVCPKG_TARGET_TRIPLET="$VcpkgTriplet" -DADU_DIFFS_VERSION="$ADU_DIFFS_VERSION"
+	& "$cmake" -S $cmakeSourceDir -B $cmakeBuildDir $cmakePlatformParameter -DCMAKE_TOOLCHAIN_FILE="$vcpkgCMakeToolChainFile" -DCMAKE_BUILD_TYPE="$BuildType" -DVCPKG_TARGET_TRIPLET="$VcpkgTriplet" -DADU_DIFFS_VERSION="$ADU_DIFFS_VERSION" | Out-Host
 
 	if ($LASTEXITCODE -ne 0) {
-		Write-Output "CMake failed."
+		Write-Host "CMake failed."
 		exit $LASTEXITCODE
 	}
 }
@@ -148,9 +148,9 @@ function CopyBsdiffBinaryFiles {
 
 	$targetBin = "${cmakeBuildDir}\bin\$BuildType"
 
-	Copy-Item $bsdiffPackageBinaries/* ${cmakeBuildDir}\bin\$BuildType
-	Move-Item $targetBin/bsdiff_diff.exe $targetBin/bsdiff.exe -Force
-	Move-Item $targetBin/bsdiff_patch.exe $targetBin/bspatch.exe -Force
+	Copy-Item $bsdiffPackageBinaries/* ${cmakeBuildDir}\bin\$BuildType | Out-Host
+	Move-Item $targetBin/bsdiff_diff.exe $targetBin/bsdiff.exe -Force | Out-Host
+	Move-Item $targetBin/bsdiff_patch.exe $targetBin/bspatch.exe -Force | Out-Host
 }
 
 $targetBin = "${cmakeBuildDir}\bin\$BuildType"
@@ -158,14 +158,14 @@ $baseLicenseSource = "$repoRoot\licenses\LICENSE.windows"
 $baseLicenseTarget = "${targetBin}\NOTICE"
 
 function CopyBaseWindowsLicense {
-	Copy-Item $baseLicenseSource $baseLicenseTarget
+	Copy-Item $baseLicenseSource $baseLicenseTarget | Out-Host
 }
 
 function CopyVcpkgLicenseFile {
 	param([string]$PackageName, [string]$LicenseFileName = "copyright")
 
 	$licensePath = Resolve-Path("$vcpkgRepo/packages/${PackageName}_${VcpkgTriplet}/share/${PackageName}/${LicenseFileName}")
-	Copy-Item $licensePath $targetBin/LICENSE.${PackageName}
+	Copy-Item $licensePath $targetBin/LICENSE.${PackageName} | Out-Host
 
 	$headerText = "`r`n================ License for $PackageName ================`r`n"
 	$licenseText = Get-Content -Raw $licensePath
@@ -179,14 +179,14 @@ function RunMsBuild {
 	$msbuild = FindToolInPath $env:ProgramFiles "msbuild.exe"
 
 	Write-Host "Calling: `"${msbuild}`" $cmakeBuildDir\adu_diffs.sln /property:OutputPath=. /property:UseStructuredOutput=false /property:Configuration=$BuildType"
-	& "$msbuild" $cmakeBuildDir\adu_diffs.sln /property:OutputPath=. /property:UseStructuredOutput=false /property:Configuration=$BuildType
+	& "$msbuild" $cmakeBuildDir\adu_diffs.sln /property:OutputPath=. /property:UseStructuredOutput=false /property:Configuration=$BuildType | Out-Host
 
 	if ($LASTEXITCODE -ne 0) {
-		Write-Output "Build failed."
+		Write-Host "Build failed."
 		exit $LASTEXITCODE
 	}
 
-	Write-Output "Copying VCPKG binaries and license files."
+	Write-Host "Copying VCPKG binaries and license files."
 	CopyBsdiffBinaryFiles
 
 	CopyBaseWindowsLicense
@@ -199,9 +199,9 @@ function RunMsBuild {
 	CopyVcpkgLicenseFile zlib
 	CopyVcpkgLicenseFile zstd LICENSE
 
-	Write-Output "Build Output (binaries): " (Get-ChildItem ${cmakeBuildDir}\bin\$BuildType) | Out-Host
+	Write-Host "Build Output (binaries): " (Get-ChildItem ${cmakeBuildDir}\bin\$BuildType) | Out-Host
 
-	Write-Output "Build Output (test binaries): " (Get-ChildItem ${cmakeBuildDir}\test\bin\$BuildType) | Out-Host
+	Write-Host "Build Output (test binaries): " (Get-ChildItem ${cmakeBuildDir}\test\bin\$BuildType) | Out-Host
 }
 
 switch ($Stages) {
@@ -225,3 +225,5 @@ switch ($Stages) {
 		Exit 1
 	}
 }
+
+Exit 0

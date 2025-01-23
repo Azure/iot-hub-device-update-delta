@@ -6,6 +6,8 @@
  */
 #include "item_definition.h"
 
+#include <sstream>
+
 #include <io/sequential/basic_reader_wrapper.h>
 
 #include <errors/user_exception.h>
@@ -219,47 +221,47 @@ item_definition::match_result item_definition::match(const item_definition &rhs)
 
 std::string item_definition::to_string() const
 {
-	std::string str = "{len=" + std::to_string(m_length);
+	auto json = to_json();
 
-	if (!m_names.empty())
+	std::stringstream stream;
+	Json::StreamWriterBuilder builder;
+	builder["indentation"] = "";
+	const std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
+
+	writer->write(json, &stream);
+
+	return stream.str();
+}
+
+Json::Value item_definition::to_json() const 
+{
+	Json::Value value;
+
+	value["Length"] = m_length;
+
+	if (m_names.size())
 	{
-		str += ", names: {";
-		auto name_entry = m_names.cbegin();
-		while (name_entry != m_names.cend())
+		Json::Value names;
+		for (const auto & name : m_names)
 		{
-			str += *name_entry;
-
-			name_entry++;
-			if (name_entry != m_names.cend())
-			{
-				str += ", ";
-			}
+			names.append(name);
 		}
-		str += "}";
+
+		value["Names"] = names;
 	}
 
-	if (m_hashes.size() != 0)
+	if (m_hashes.size())
 	{
-		str += ", hashes={";
-		auto hash_entry = m_hashes.cbegin();
-		while (hash_entry != m_hashes.cend())
+		Json::Value hashes;
+		for (const auto &[hash_type, hash] : m_hashes)
 		{
-			auto &hash = hash_entry->second;
-			str += "\"";
-			str += hash.get_string();
-			str += "\"";
-
-			hash_entry++;
-			if (hash_entry != m_hashes.cend())
-			{
-				str += ", ";
-			}
+			hashes[hash.get_type_string()] = hash.to_json();
 		}
+
+		value["Hashes"] = hashes;
 	}
 
-	str += "}";
-
-	return str;
+	return value;
 }
 
 void item_definition::write(io::sequential::writer &writer, serialization_options options) const

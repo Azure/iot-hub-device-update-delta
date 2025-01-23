@@ -349,6 +349,11 @@ bool sign_file(const std::string &cmd, const std::string &file_path, const std::
 	int end_of_file = feof(pipe);
 	int ret_val     = PCLOSE(pipe);
 
+	if (ret_val != 0)
+	{
+		return false;
+	}
+
 	return end_of_file != 0;
 }
 
@@ -378,6 +383,11 @@ bool get_wsl_path(const std::string& path, std::string* wsl_path)
 
 	int end_of_file = feof(pipe);
 	int ret_val     = PCLOSE(pipe);
+
+	if (ret_val != 0)
+	{
+		return false;
+	}
 
 	*wsl_path = new_wsl_path.substr(0, new_wsl_path.length() -1);
 	printf("Determined wsl path: %s\n", wsl_path->c_str());
@@ -456,4 +466,6 @@ bool generate_description_sig(fs::path &file_path, std::string &signing_cmd, arc
 		archive.insert_file_at(index, SIG_FILE_NAME, sig_inode_32, sig_reader);
 		printf("done.\n");
 	}
+
+	return true;
 }

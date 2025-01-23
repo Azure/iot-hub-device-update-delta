@@ -18,6 +18,8 @@
 #include <io/file/binary_file_writer.h>
 #include <io/file/io_device.h>
 
+#include "aduapi_type_conversion.h"
+
 namespace archive_diff::diffs::api
 {
 uint32_t apply_session::add_archive(std::shared_ptr<diffs::core::archive> &archive)
@@ -101,6 +103,30 @@ uint32_t apply_session::process_requested_items()
 	API_CALL_EPILOG();
 }
 
+uint32_t apply_session::process_requested_items(
+	bool select_recipes_only, const diffc_item_definition **mocked_items, size_t mocked_item_count)
+{
+	API_CALL_PROLOG();
+	std::optional<core::item_definition> source_item_opt;
+
+	std::set<core::item_definition> mocked_items_set;
+
+	if (mocked_items != nullptr && mocked_item_count > 0)
+	{
+		for (size_t i = 0; i < mocked_item_count; i++)
+		{
+			auto item = diffc_item_definition_to_core_item_definition(*(mocked_items[i]));
+			mocked_items_set.insert(item);
+		}
+	}
+
+	if (!m_kitchen->process_requested_items(select_recipes_only, mocked_items_set))
+	{
+		return 1;
+	}
+	API_CALL_EPILOG();
+}
+
 uint32_t apply_session::resume_slicing()
 {
 	API_CALL_PROLOG();
@@ -126,4 +152,15 @@ uint32_t apply_session::extract_item_to_path(const core::item_definition &item, 
 
 	API_CALL_EPILOG();
 }
+
+uint32_t apply_session::save_selected_recipes(const std::string &path)
+{
+	API_CALL_PROLOG();
+
+	std::shared_ptr<io::writer> writer = std::make_shared<io::file::binary_file_writer>(path);
+	m_kitchen->save_selected_recipes(writer);
+
+	API_CALL_EPILOG();
+}
+
 } // namespace archive_diff::diffs::api

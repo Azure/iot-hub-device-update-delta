@@ -412,7 +412,7 @@ public class DiffBuilder : Worker
 
     private void CreateDiff()
     {
-        diff = new(SourceTokens, TargetTokens);
+        diff = new(Logger, SourceTokens, TargetTokens, WorkingFolder);
 
         diff.Version = 1;
     }

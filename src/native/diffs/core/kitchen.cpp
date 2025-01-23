@@ -10,6 +10,7 @@
 #include "recipe.h"
 #include <hashing/hasher.h>
 #include <io/buffer/reader_factory.h>
+#include <io/sequential/basic_writer_wrapper.h>
 
 namespace archive_diff::diffs::core
 {
@@ -89,7 +90,7 @@ void kitchen::request_item(const item_definition &item)
 // Acquires and holds m_item_request_mutex
 //
 // Returns true if all items were fully available, false otherwise
-bool kitchen::process_requested_items(bool select_recipes_only, std::optional<item_definition> source_item)
+bool kitchen::process_requested_items(bool select_recipes_only, std::set<core::item_definition> &mocked_items)
 {
 	bool all_requests_fulfilled{true};
 
@@ -100,7 +101,7 @@ bool kitchen::process_requested_items(bool select_recipes_only, std::optional<it
 	for (auto itr = m_requested_items.begin(); itr != m_requested_items.end();)
 	{
 		std::set<item_definition> already_using;
-		if (!make_dependency_ready(*itr, select_recipes_only, source_item, already_using))
+		if (!make_dependency_ready(*itr, select_recipes_only, mocked_items, already_using))
 		{
 			all_requests_fulfilled = false;
 			m_unreachable_items.insert(*itr);
@@ -121,31 +122,36 @@ bool kitchen::process_requested_items(bool select_recipes_only, std::optional<it
 	return all_requests_fulfilled;
 }
 
-bool kitchen::process_requested_items() { return process_requested_items(false, std::nullopt); }
+bool kitchen::process_requested_items() 
+{
+	std::set<item_definition> mocked_items;
+	return process_requested_items(false, mocked_items); 
+}
 
 bool kitchen::make_dependency_ready(
 	const item_definition &item,
 	bool select_recipes_only,
-	std::optional<item_definition> source_item,
+	std::set<item_definition> &mocked_items,
 	std::set<item_definition> &already_using)
 {
-	if (source_item.has_value() && source_item.value() == item)
+	if (mocked_items.contains(item))
+	{
+		return true;
+	}
+	
+	if (m_selected_recipes.contains(item))
 	{
 		return true;
 	}
 
-	if (m_selected_recipes.count(item) > 0)
+	if (m_ready_items.contains(item))
 	{
 		return true;
 	}
 
-	if (m_ready_items.count(item) > 0)
+	if (m_unreachable_items.contains(item))
 	{
-		return true;
-	}
-
-	if (m_unreachable_items.count(item) > 0)
-	{
+		ADU_LOG("Item already determined unreachable: {}", item.to_string());
 		return false;
 	}
 
@@ -161,7 +167,7 @@ bool kitchen::make_dependency_ready(
 
 	// Only check this after we've looked in the pantry to allow us to
 	// use the pantry multiple times when only selecting recipes.
-	if (already_using.count(item) > 0)
+	if (already_using.contains(item))
 	{
 		return false;
 	}
@@ -189,7 +195,7 @@ bool kitchen::make_dependency_ready(
 
 			for (auto &ingredient : ingredients)
 			{
-				if (!make_dependency_ready(ingredient, select_recipes_only, source_item, already_using))
+				if (!make_dependency_ready(ingredient, select_recipes_only, mocked_items, already_using))
 				{
 					impossible_item = ingredient;
 
@@ -349,5 +355,26 @@ void kitchen::write_item(io::writer &writer, const item_definition &item)
 		remaining -= to_read;
 		offset += to_read;
 	}
+}
+
+void kitchen::save_selected_recipes(std::shared_ptr<io::writer> &writer) const
+{
+	io::sequential::basic_writer_wrapper seq_writer(writer);
+
+	Json::Value recipe_list;
+	Json::Value recipes;
+
+	bool first = true;
+
+	for (const auto& [result, recipe] : m_selected_recipes)
+	{
+		recipes.append(recipe->to_json());
+	}
+
+	recipe_list["Recipes"] = recipes;
+
+	auto json_text = recipe_list.toStyledString();
+
+	seq_writer.write_text(json_text);
 }
 } // namespace archive_diff::diffs::core

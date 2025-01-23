@@ -105,7 +105,9 @@
             "value": "B2A83A359DC501B619760CF4D55CD8C9"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Header.Payload=deb.deb"
+        ]
       },
       "Value": [
         {
@@ -161,7 +163,9 @@
             "value": "EA0142D83C111211219A87E6D1991396"
           }
         },
-        "Names": []
+        "Names": [
+          "deb.deb"
+        ]
       },
       "Value": [
         {
@@ -217,7 +221,9 @@
             "value": "5D2A33958EBE530732FD9C258850C5AA"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Padding=520"
+        ]
       },
       "Value": [
         {
@@ -311,7 +317,9 @@
             "value": "6FCF44700FAD030375FF3DC632A225C0"
           }
         },
-        "Names": []
+        "Names": [
+          "Chunk.Header.Payload=/mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
+        ]
       },
       "Value": [
         {
@@ -367,7 +375,9 @@
             "value": "F15F36FC9FC367C4674E078AEEA7468F"
           }
         },
-        "Names": []
+        "Names": [
+          "/mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
+        ]
       },
       "Value": [
         {

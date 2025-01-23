@@ -11,6 +11,8 @@
 #include <optional>
 #include <io/writer.h>
 
+#include <json/json.h>
+
 #include "item_definition.h"
 #include "kitchen.h"
 
@@ -70,6 +72,8 @@ class archive
 		const std::string recipe_name, std::shared_ptr<recipe_template> &recipe_template);
 	size_t get_supported_recipe_type_count() const { return m_supported_recipe_templates.size(); }
 	std::string get_supported_type_name(uint32_t type_id) { return m_recipe_type_id_to_type_name[type_id]; }
+
+	Json::Value to_json() const;
 
 	private:
 	std::shared_ptr<pantry> m_pantry{std::make_shared<pantry>()};

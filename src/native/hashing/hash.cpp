@@ -62,9 +62,9 @@ std::string hash::get_type_string() const
 	switch (m_algorithm)
 	{
 	case algorithm::md5:
-		return std::string("md5");
+		return std::string("Md5");
 	case algorithm::sha256:
-		return std::string("sha256");
+		return std::string("Sha256");
 	default:
 		std::string msg =
 			"hash::get_type_string(): Unexpected hash type: " + std::to_string(static_cast<int>(m_algorithm));

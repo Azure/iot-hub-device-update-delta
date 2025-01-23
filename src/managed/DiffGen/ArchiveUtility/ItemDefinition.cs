@@ -90,16 +90,6 @@ namespace ArchiveUtility
             return newItem;
         }
 
-        public ItemDefinition WithoutNames()
-        {
-            if (Names.Count == 0)
-            {
-                return this;
-            }
-
-            return new(Length, Hashes, new());
-        }
-
         public bool IsGapChunk()
         {
             return Names.Any(x => x.StartsWith(ChunkNames.GapChunkNamePrefix));

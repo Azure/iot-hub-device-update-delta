@@ -64,6 +64,21 @@ ADUAPI_LINKAGESPEC uint32_t CDECL diffa_process_requested_items(diffa_handle han
 	return session->process_requested_items() ? 1 : 0;
 }
 
+ADUAPI_LINKAGESPEC uint32_t CDECL diffa_process_requested_items_ex(
+	diffa_handle handle, bool select_recipes_only, const diffc_item_definition **mocked_items, size_t mocked_item_count)
+{
+	auto session = reinterpret_cast<archive_diff::diffs::api::apply_session *>(handle);
+
+	return session->process_requested_items(select_recipes_only, mocked_items, mocked_item_count);
+}
+
+ADUAPI_LINKAGESPEC uint32_t CDECL diffa_save_selected_recipes(diffa_handle handle, const char *path)
+{
+	auto session = reinterpret_cast<archive_diff::diffs::api::apply_session *>(handle);
+
+	return session->save_selected_recipes(path);
+}
+
 ADUAPI_LINKAGESPEC uint32_t CDECL diffa_resume_slicing(diffa_handle handle)
 {
 	auto session = reinterpret_cast<archive_diff::diffs::api::apply_session *>(handle);

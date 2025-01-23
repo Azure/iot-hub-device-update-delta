@@ -16,6 +16,9 @@ target_link_libraries(diffs_core PUBLIC
 	hashing
 	)
 
+find_package(jsoncpp CONFIG REQUIRED)
+target_link_libraries(diffs_core PRIVATE JsonCpp::JsonCpp)
+
 target_include_directories(diffs_core PUBLIC 
 	${CMAKE_CURRENT_SOURCE_DIR}
 	)

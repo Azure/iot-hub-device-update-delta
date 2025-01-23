@@ -37,18 +37,16 @@ internal class AnalyzeArchiveTokens : Worker
 
         foreach (var archive in TargetTokens.ArchiveItems)
         {
-            var archiveKey = archive.WithoutNames();
-
             // If we can produce this archive with some recipe, we may be able to make
             // a reasonable diff
-            if (TargetTokens.ForwardRecipes.ContainsKey(archiveKey))
+            if (TargetTokens.ForwardRecipes.ContainsKey(archive))
             {
                 continue;
             }
 
             // If we can produce this archive from something in the source, we
             // may be able to have a reasonable diff
-            if (SourceTokens.ReverseRecipes.ContainsKey(archiveKey))
+            if (SourceTokens.ReverseRecipes.ContainsKey(archive))
             {
                 continue;
             }
