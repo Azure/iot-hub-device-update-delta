@@ -1,6 +1,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include <filesystem>
 #include <fmt/core.h>
 
 #include <stdio.h>
@@ -248,7 +249,7 @@ bool swu_cmd(fs::path &source, fs::path &dest, std::string *signing_cmd)
 
 				auto hash = hash_reader(recompressed_reader);
 
-				file_to_hash_map.insert(std::make_pair(file, hash.get_string()));
+				file_to_hash_map.insert(std::make_pair(file, hash.get_data_string()));
 			}
 
 			auto &entry_setting = root.lookup(entry.setting_path);
@@ -359,14 +360,32 @@ bool sign_file(const std::string &cmd, const std::string &file_path, const std::
 
 #ifdef WIN32
 
-bool get_wsl_path(const std::string& path, std::string* wsl_path)
+enum class WslPathType
+{
+	Windows = 0,
+	Linux   = 1,
+};
+
+bool get_wsl_path(const std::string& path, std::string* wsl_path, WslPathType wslPathType)
 {
 	char buffer[128];
 	std::string new_wsl_path;
 
 	std::filesystem::path absolute = std::filesystem::absolute(path);
+	std::string absoulte_str       = absolute.string();
+	const std::string *pathValue         = &absoulte_str;
+	char wslPathTypeSwitch = 'w';
 
-	std::string cmd = "wsl wslpath \"" + absolute.string() + "\"";
+	if (wslPathType == WslPathType::Linux)
+	{
+		wslPathTypeSwitch = 'a';
+	}
+	else
+	{
+		pathValue = &path;
+	}
+
+	std::string cmd = "wsl wslpath -" + std::string(1, wslPathTypeSwitch) + " \"" + *pathValue + "\"";
 
 	printf("Determining wsl path by calling: %s\n", cmd.c_str());
 	FILE *pipe;
@@ -395,24 +414,54 @@ bool get_wsl_path(const std::string& path, std::string* wsl_path)
 	return end_of_file != 0;
 }
 
+bool get_linux_path_of_file(const std::string &path, std::string* linux_path) 
+{
+	std::string wsl_path;
+
+	// Is this an existing script in the WSL?
+	if (!get_wsl_path(path, &wsl_path, WslPathType::Windows))
+	{
+		return false;
+	}
+
+	printf("path: %s\n", wsl_path.c_str());
+
+	if (fs::exists(wsl_path))
+	{
+		printf("Found script in WSL: %s\n", wsl_path.c_str());
+		*linux_path = path;
+		return true;
+	}
+
+	if (!get_wsl_path(path, &wsl_path, WslPathType::Linux))
+	{
+		return false;
+	}
+
+	*linux_path = wsl_path;
+	return true;
+}
+
 bool sign_file_using_wsl(
 	const std::string &cmd, const std::string &file_path, const std::string &sig_path)
 {
 	std::string wsl_cmd_path;
 
-	if (!get_wsl_path(cmd, &wsl_cmd_path))
+	printf("cmd: %s\n", cmd.c_str());
+
+	if (!get_linux_path_of_file(cmd, &wsl_cmd_path))
 	{
 		return false;
 	}
 
 	std::string wsl_file_path;
-	if (!get_wsl_path(file_path, &wsl_file_path))
+	if (!get_wsl_path(file_path, &wsl_file_path, WslPathType::Linux))
 	{
 		return false;
 	}
 
 	std::string wsl_sig_path;
-	if (!get_wsl_path(sig_path, &wsl_sig_path))
+	if (!get_wsl_path(sig_path, &wsl_sig_path, WslPathType::Linux))
 	{
 		return false;
 	}

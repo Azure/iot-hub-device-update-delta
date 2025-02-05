@@ -364,8 +364,6 @@ void kitchen::save_selected_recipes(std::shared_ptr<io::writer> &writer) const
 	Json::Value recipe_list;
 	Json::Value recipes;
 
-	bool first = true;
-
 	for (const auto& [result, recipe] : m_selected_recipes)
 	{
 		recipes.append(recipe->to_json());
