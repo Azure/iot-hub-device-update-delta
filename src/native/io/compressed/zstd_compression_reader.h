@@ -32,8 +32,8 @@ class zstd_compression_reader : public io::sequential::reader
 		uint64_t level,
 		uint64_t uncompressed_input_size,
 		uint64_t compressed_result_size) :
-		m_sequential_reader(std::move(reader)),
-		m_uncompressed_input_size(uncompressed_input_size), m_compressed_result_size(compressed_result_size)
+		m_sequential_reader(std::move(reader)), m_uncompressed_input_size(uncompressed_input_size),
+		m_compressed_result_size(compressed_result_size)
 	{
 		initialize(level);
 	}
@@ -52,8 +52,8 @@ class zstd_compression_reader : public io::sequential::reader
 		uint64_t uncompressed_input_size,
 		uint64_t compressed_result_size,
 		compression_dictionary &&dictionary) :
-		m_sequential_reader(std::move(reader)),
-		m_uncompressed_input_size(uncompressed_input_size), m_compressed_result_size(compressed_result_size)
+		m_sequential_reader(std::move(reader)), m_uncompressed_input_size(uncompressed_input_size),
+		m_compressed_result_size(compressed_result_size)
 	{
 		initialize(level);
 

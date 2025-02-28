@@ -15,8 +15,7 @@ const size_t OUTPUT_DATA_CAPACITY = 4096;
 
 zlib_decompression_writer::zlib_decompression_writer(
 	std::shared_ptr<io::sequential::writer> &writer, zlib_helpers::init_type init_type) :
-	io::sequential::writer_impl(),
-	m_writer(writer), m_init_type(init_type)
+	io::sequential::writer_impl(), m_writer(writer), m_init_type(init_type)
 {
 	m_output_data.reserve(OUTPUT_DATA_CAPACITY);
 

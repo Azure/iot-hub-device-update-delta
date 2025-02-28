@@ -34,9 +34,8 @@ class user_readerwriter : public readerwriter
 		write_pfn write,
 		flush_pfn flush,
 		close_pfn close) :
-		m_handle(handle),
-		m_read_some(read_some), m_get_read_style(get_read_style), m_size(size), m_write(write), m_flush(flush),
-		m_close(close)
+		m_handle(handle), m_read_some(read_some), m_get_read_style(get_read_style), m_size(size), m_write(write),
+		m_flush(flush), m_close(close)
 	{}
 
 	virtual ~user_readerwriter() { m_close(m_handle); }

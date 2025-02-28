@@ -23,8 +23,7 @@ class deserializer
 	deserializer(
 		const diffs::core::item_definition &origin,
 		std::shared_ptr<std::map<core::item_definition, uint32_t>> &alias_map) :
-		m_origin(origin),
-		m_nested_diff_alias_map(alias_map)
+		m_origin(origin), m_nested_diff_alias_map(alias_map)
 	{
 		ensure_builtin_recipe_types(m_archive.get());
 	}

@@ -203,7 +203,16 @@ Build() {
         popd
         exit 1
     fi
-    popd
+
+    if cpack --config CPackConfig.cmake ; then
+        echo "Package build succeeded!"
+    else
+        echo "Package build failed!"
+        popd
+        exit 1
+    fi
+
+    dpkg-deb --info $CMAKE_BUILD_DIR/_packages/*.deb
 
     echo "Copying VCPKG binaries and license files."
     CopyBsdiffBinaryFiles

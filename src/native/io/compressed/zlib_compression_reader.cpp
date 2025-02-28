@@ -32,9 +32,9 @@ zlib_compression_reader::zlib_compression_reader(
 	uint64_t uncompressed_input_size,
 	uint64_t compressed_result_size,
 	zlib_helpers::init_type init_type) :
-	m_reader(std::make_unique<io::sequential::basic_reader_wrapper>(reader)),
-	m_compression_level(compression_level), m_uncompressed_input_size(uncompressed_input_size),
-	m_compressed_result_size(compressed_result_size), m_init_type(init_type)
+	m_reader(std::make_unique<io::sequential::basic_reader_wrapper>(reader)), m_compression_level(compression_level),
+	m_uncompressed_input_size(uncompressed_input_size), m_compressed_result_size(compressed_result_size),
+	m_init_type(init_type)
 {
 	initialize();
 }
@@ -45,9 +45,9 @@ zlib_compression_reader::zlib_compression_reader(
 	uint64_t uncompressed_input_size,
 	uint64_t compressed_result_size,
 	zlib_helpers::init_type init_type) :
-	m_reader(std::move(reader)),
-	m_compression_level(compression_level), m_uncompressed_input_size(uncompressed_input_size),
-	m_compressed_result_size(compressed_result_size), m_init_type(init_type)
+	m_reader(std::move(reader)), m_compression_level(compression_level),
+	m_uncompressed_input_size(uncompressed_input_size), m_compressed_result_size(compressed_result_size),
+	m_init_type(init_type)
 {
 	initialize();
 }

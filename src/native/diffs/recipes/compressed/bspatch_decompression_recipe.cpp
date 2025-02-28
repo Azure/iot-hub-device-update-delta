@@ -21,8 +21,8 @@ class bspatch_decompression_reader_factory : public io::sequential::reader_facto
 		const item_definition &uncompressed,
 		std::shared_ptr<prepared_item> &compressed_prepared_item,
 		std::shared_ptr<prepared_item> &dictionary_prepared_item) :
-		m_uncompressed_result(uncompressed),
-		m_compressed_prepared_item(compressed_prepared_item), m_dictionary_prepared_item(dictionary_prepared_item)
+		m_uncompressed_result(uncompressed), m_compressed_prepared_item(compressed_prepared_item),
+		m_dictionary_prepared_item(dictionary_prepared_item)
 	{}
 
 	virtual std::unique_ptr<io::sequential::reader> make_sequential_reader() override

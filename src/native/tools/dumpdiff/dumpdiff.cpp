@@ -142,7 +142,7 @@ int dump_supported_recipes(Json::Value &supported_recipe_types, std::ostream &os
 	return 0;
 }
 
-int dump_recipe(Json::Value& recipe, std::ostream& ostream, Json::StreamWriter* writer)
+int dump_recipe(Json::Value &recipe, std::ostream &ostream, Json::StreamWriter *writer)
 {
 	auto members = recipe.getMemberNames();
 	std::set<std::string> member_set(members.begin(), members.end());
@@ -229,7 +229,6 @@ int dump_cookbook(Json::Value &cookbook, std::ostream &ostream, Json::StreamWrit
 	return 0;
 }
 
-
 int dump_diff(archive_diff::diffs::core::archive *to_dump, std::ostream &ostream)
 {
 	auto root = to_dump->to_json();
@@ -238,7 +237,7 @@ int dump_diff(archive_diff::diffs::core::archive *to_dump, std::ostream &ostream
 	builder["indentation"] = "";
 	const std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
 
-    ostream << "{\n";
+	ostream << "{\n";
 
 	auto target = root["TargetItem"];
 

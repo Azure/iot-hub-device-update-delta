@@ -48,13 +48,10 @@ class writer
 		write(buffer);
 	}
 
-	void write_text(const std::string &value)
-	{
-		write(std::string_view{value.data(), value.size()});
-	}
+	void write_text(const std::string &value) { write(std::string_view{value.data(), value.size()}); }
 
 	template <typename T>
-	void write(const T* value)
+	void write(const T *value)
 	{
 		std::string_view buffer{reinterpret_cast<const char *>(value), sizeof(T)};
 		write(buffer);

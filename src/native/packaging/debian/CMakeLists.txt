@@ -4,7 +4,44 @@ set(CPACK_PACKAGE_VENDOR "Microsoft")
 set(CPACK_PACKAGE_CONTACT "adudev@microsoft.com")
 set(CPACK_DEBIAN_PACKAGE_MAINTAINER "ADU Developers")
 
-set(PACKAGE_TARGET_ARCHITECTURE "x86_64" CACHE STRING "Target architecture for the package")
+# -dumpmachine gives the target triple
+if("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+    set(CMD_ARGS "-target" "${CMAKE_C_COMPILER_TARGET}" "-dumpmachine")
+else()
+    set(CMD_ARGS "-dumpmachine")
+endif()
+execute_process(
+    COMMAND
+        ${CMAKE_C_COMPILER} ${CMD_ARGS}
+    RESULT_VARIABLE
+        RESULT
+    OUTPUT_VARIABLE
+        ARCH
+    ERROR_QUIET)
+if(RESULT)
+    message(FATAL_ERROR "Failed to determine target architecture triplet: ${RESULT}")
+endif()
+string(REGEX MATCH "([^-]+).*" ARCH_MATCH ${ARCH})
+if(NOT CMAKE_MATCH_1 OR NOT ARCH_MATCH)
+    message(FATAL_ERROR "Failed to match the target architecture triplet: ${ARCH}")
+endif()
+set(ARCH ${CMAKE_MATCH_1})
+
+if("${ARCH}" STREQUAL "x86_64")
+    set(ARCH "amd64")
+elseif("${ARCH}" STREQUAL "aarch64")
+    set(ARCH "arm64")
+elseif("${ARCH}" STREQUAL "i686")
+    # Do nothing
+elseif("${ARCH}" STREQUAL "i386")
+    # Do nothing
+elseif("${ARCH}" STREQUAL "arm")
+else()
+    message(FATAL_ERROR "Unrecognized architecture ${ARCH} from ${CMAKE_C_COMPILER}")
+endif()
+
+set(PACKAGE_TARGET_ARCHITECTURE ${ARCH} CACHE STRING "Target architecture for the package")
+set(CPACK_DEBIAN_PACKAGE_ARCHITECTURE ${ARCH})
 
 set(CPACK_VERBATIM_VARIABLES YES)
 

@@ -25,7 +25,7 @@ function ClangFormatAllDirs([string]$folder)
 			continue
 		}
 
-		echo "Found $cpp_file_count cpp files in $dir_full_name"
+		Write-Host "Found $cpp_file_count cpp files in $dir_full_name"
 
 		RunClangFormat $dir.FullName
 	}
@@ -62,23 +62,23 @@ function CppAllFilesCount([string]$folder)
 
 if (( ${env:path}.Split(";") | Where { Test-Path -Path "$_\clang-format.exe" } | Measure ).Count -eq 0)
 {
-	echo "Couldn't find clang-format.exe in path."
+	Write-Host "Couldn't find clang-format.exe in path."
 
 	$possiblePaths = (Get-ChildItem -Path $env:ProgramFiles -Recurse -Filter 'clang-format.exe' -ErrorAction SilentlyContinue | Where {$_.FullName -like '*x64\bin*'})
 	$entryCounts = ($possiblePaths | Measure).Count
 
 	if ($entryCounts -eq 0)
 	{
-		echo "Couldn't find a path for clang-format in program files."
+		Write-Host "Couldn't find a path for clang-format in program files."
 		exit 1
 	}
 
-	echo "Will try to use $clangFormatDir for clang-format.exe"
 	$clangFormatDir = $possiblePaths[0].Directory.FullName
 	if (!$clangFormatDir.EndsWith('\\') || !clangFormatDir.EndsWith('/'))
 	{
 		$clangFormatDir = $clangFormatDir + '/'
 	}
+	Write-Host "Will try to use $clangFormatDir for clang-format.exe"
 }
 
 clangformatalldirs "hashing"

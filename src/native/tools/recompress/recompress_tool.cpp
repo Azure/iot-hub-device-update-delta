@@ -65,7 +65,7 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				if (!swu_cmd(source, dest, nullptr)) 
+				if (!swu_cmd(source, dest, nullptr))
 				{
 					printf("Failed to recompress.");
 					return -1;
@@ -306,25 +306,26 @@ bool swu_cmd(fs::path &source, fs::path &dest, std::string *signing_cmd)
 #ifdef WIN32
 	#define POPEN  _popen
 	#define PCLOSE _pclose
+	#define POPEN_READ_MODE "rt"
 #else
 	#define POPEN  popen
 	#define PCLOSE pclose
+	#define POPEN_READ_MODE "r"
 #endif
 
-static bool contains_space(const std::string& str)
-{
-	return str.find(' ') != std::string::npos; 
-}
+#ifdef WIN32
+static bool contains_space(const std::string &str) { return str.find(' ') != std::string::npos; }
 
-static bool ends_with(const std::string& str, const std::string& ending)
+static bool ends_with(const std::string &str, const std::string &ending)
 {
 	if (ending.length() > str.length())
 	{
-		return false; 
+		return false;
 	}
 
 	return str.compare(str.length() - ending.length(), ending.length(), ending) == 0;
 }
+#endif
 
 bool sign_file(const std::string &cmd, const std::string &file_path, const std::string &sig_path)
 {
@@ -337,8 +338,9 @@ bool sign_file(const std::string &cmd, const std::string &file_path, const std::
 	printf("Sig File: %s\n", sig_path.c_str());
 
 	FILE *pipe;
-	if ((pipe = POPEN(cmd_with_args.c_str(), "rt")) == nullptr)
+	if ((pipe = POPEN(cmd_with_args.c_str(), POPEN_READ_MODE)) == nullptr)
 	{
+		printf("Failed to open pipe.\n");
 		return false;
 	}
 
@@ -352,10 +354,17 @@ bool sign_file(const std::string &cmd, const std::string &file_path, const std::
 
 	if (ret_val != 0)
 	{
+		printf("Failed to close pipe. pclose(): %d\n", ret_val);
 		return false;
 	}
 
-	return end_of_file != 0;
+	if (end_of_file == 0)
+	{
+		printf("Failed to close pipe. feof(): 0\n");
+		return false;
+	}
+
+	return true;
 }
 
 #ifdef WIN32
@@ -366,15 +375,15 @@ enum class WslPathType
 	Linux   = 1,
 };
 
-bool get_wsl_path(const std::string& path, std::string* wsl_path, WslPathType wslPathType)
+bool get_wsl_path(const std::string &path, std::string *wsl_path, WslPathType wslPathType)
 {
 	char buffer[128];
 	std::string new_wsl_path;
 
 	std::filesystem::path absolute = std::filesystem::absolute(path);
 	std::string absoulte_str       = absolute.string();
-	const std::string *pathValue         = &absoulte_str;
-	char wslPathTypeSwitch = 'w';
+	const std::string *pathValue   = &absoulte_str;
+	char wslPathTypeSwitch         = 'w';
 
 	if (wslPathType == WslPathType::Linux)
 	{
@@ -408,13 +417,13 @@ bool get_wsl_path(const std::string& path, std::string* wsl_path, WslPathType ws
 		return false;
 	}
 
-	*wsl_path = new_wsl_path.substr(0, new_wsl_path.length() -1);
+	*wsl_path = new_wsl_path.substr(0, new_wsl_path.length() - 1);
 	printf("Determined wsl path: %s\n", wsl_path->c_str());
 
 	return end_of_file != 0;
 }
 
-bool get_linux_path_of_file(const std::string &path, std::string* linux_path) 
+bool get_linux_path_of_file(const std::string &path, std::string *linux_path)
 {
 	std::string wsl_path;
 
@@ -442,8 +451,7 @@ bool get_linux_path_of_file(const std::string &path, std::string* linux_path)
 	return true;
 }
 
-bool sign_file_using_wsl(
-	const std::string &cmd, const std::string &file_path, const std::string &sig_path)
+bool sign_file_using_wsl(const std::string &cmd, const std::string &file_path, const std::string &sig_path)
 {
 	std::string wsl_cmd_path;
 
@@ -472,7 +480,7 @@ bool sign_file_using_wsl(
 }
 #endif
 
-bool generate_description_sig(fs::path &file_path, std::string &signing_cmd, archive_diff::cpio_archive& archive)
+bool generate_description_sig(fs::path &file_path, std::string &signing_cmd, archive_diff::cpio_archive &archive)
 {
 	fs::path sig_path = file_path.string() + ".sig";
 
@@ -484,6 +492,7 @@ bool generate_description_sig(fs::path &file_path, std::string &signing_cmd, arc
 		printf("Signing using WSL.\n");
 		if (!sign_file_using_wsl(signing_cmd, file_path.string(), sig_path.string()))
 		{
+			printf("Failed to sign file.\n");
 			return false;
 		}
 	}

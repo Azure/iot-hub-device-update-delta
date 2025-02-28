@@ -26,8 +26,8 @@ class zlib_decompression_reader_factory : public io::sequential::reader_factory
 		const item_definition &uncompressed,
 		std::shared_ptr<prepared_item> &compressed_prepared_item,
 		init_type init_type) :
-		m_uncompressed_result(uncompressed),
-		m_compressed_prepared_item(compressed_prepared_item), m_init_type(init_type)
+		m_uncompressed_result(uncompressed), m_compressed_prepared_item(compressed_prepared_item),
+		m_init_type(init_type)
 	{}
 
 	virtual std::unique_ptr<io::sequential::reader> make_sequential_reader() override

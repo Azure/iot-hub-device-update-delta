@@ -207,11 +207,11 @@ class json_entries
 		Json::Value payload_item =
 			create_archive_item_value(file.length, file.hash_sha256_string, file.hash_md5_string);
 
+		uint64_t offset_in_payload = 0;
 		for (auto &region : file.regions)
 		{
-			uint64_t offset_in_payload = 0;
-
-			import_region(file, region, payload_item, &offset_in_payload);
+			import_region(file, region, payload_item, offset_in_payload);
+			offset_in_payload += region.length;
 		}
 
 		Json::Value payload_recipe = create_payload_recipe(payload_item, file);
@@ -233,7 +233,7 @@ class json_entries
 		const file_details &file,
 		const file_region &region,
 		const Json::Value &payload_item,
-		uint64_t *offset_in_payload)
+		uint64_t offset_in_payload)
 	{
 		if (region.offset.has_value())
 		{
@@ -247,22 +247,16 @@ class json_entries
 			m_chunks.emplace(offset, region);
 		}
 
+		auto chunk_result_and_recipe = create_chunk_recipe(m_archive_item, region);
+		add_reverse_recipe(chunk_result_and_recipe.first, chunk_result_and_recipe.second);
+
 		if (file.regions.size() > 1)
 		{
 			auto region_key = region.hash_sha256_string;
 
-			auto result_and_recipe = create_slice_of_payload_recipe(region, payload_item, *offset_in_payload);
+			auto result_and_recipe = create_slice_of_payload_recipe(region, payload_item, offset_in_payload);
 
 			add_reverse_recipe(result_and_recipe.first, result_and_recipe.second);
-		}
-
-		auto chunk_result_and_recipe = create_chunk_recipe(m_archive_item, region);
-
-		add_reverse_recipe(chunk_result_and_recipe.first, chunk_result_and_recipe.second);
-
-		if (region.offset.has_value())
-		{
-			*offset_in_payload += region.offset.value();
 		}
 	}
 
