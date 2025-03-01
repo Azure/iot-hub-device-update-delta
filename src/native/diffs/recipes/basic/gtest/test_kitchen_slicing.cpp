@@ -213,8 +213,7 @@ class ceasar_cipher_sequential_reader : public archive_diff::io::sequential::rea
 		std::unique_ptr<archive_diff::io::sequential::reader> &&reader,
 		uint8_t rotation,
 		std::chrono::duration<uint64_t, std::milli> sleep_on_call) :
-		m_reader(std::move(reader)),
-		m_rotation(rotation), m_sleep_on_call(sleep_on_call)
+		m_reader(std::move(reader)), m_rotation(rotation), m_sleep_on_call(sleep_on_call)
 	{}
 
 	virtual void skip(uint64_t to_skip) override { m_reader->skip(to_skip); }
@@ -247,8 +246,7 @@ class ceasar_cipher_sequential_reader_factory : public archive_diff::io::sequent
 		std::shared_ptr<archive_diff::diffs::core::prepared_item> &clear_text_prepared_item,
 		uint8_t rotation,
 		std::chrono::duration<uint64_t, std::milli> sleep_on_call) :
-		m_clear_text_prepared_item(clear_text_prepared_item),
-		m_rotation(rotation), m_sleep_on_call(sleep_on_call)
+		m_clear_text_prepared_item(clear_text_prepared_item), m_rotation(rotation), m_sleep_on_call(sleep_on_call)
 	{}
 
 	virtual std::unique_ptr<archive_diff::io::sequential::reader> make_sequential_reader()

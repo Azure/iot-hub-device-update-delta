@@ -233,7 +233,7 @@ std::string item_definition::to_string() const
 	return stream.str();
 }
 
-Json::Value item_definition::to_json() const 
+Json::Value item_definition::to_json() const
 {
 	Json::Value value;
 
@@ -242,7 +242,7 @@ Json::Value item_definition::to_json() const
 	if (m_names.size())
 	{
 		Json::Value names;
-		for (const auto & name : m_names)
+		for (const auto &name : m_names)
 		{
 			names.append(name);
 		}

@@ -30,8 +30,7 @@ class zlib_decompression_reader : public io::sequential::reader
 
 	zlib_decompression_reader(
 		std::unique_ptr<io::sequential::reader> reader, uint64_t uncompressed_size, zlib_helpers::init_type init_type) :
-		m_reader(std::move(reader)),
-		m_uncompressed_size(uncompressed_size), m_init_type(init_type)
+		m_reader(std::move(reader)), m_uncompressed_size(uncompressed_size), m_init_type(init_type)
 	{
 		initialize();
 	}

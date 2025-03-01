@@ -39,7 +39,7 @@ class item_definition
 	};
 
 	public:
-	item_definition() : item_definition(0){};
+	item_definition() : item_definition(0) {};
 	item_definition(uint64_t length) { m_length = length; }
 
 	bool operator<(const item_definition &rhs) const;

@@ -38,8 +38,7 @@ class zstd_decompression_reader : public io::sequential::reader
 	zstd_decompression_reader(
 		std::unique_ptr<io::sequential::reader> &&reader,
 		uint64_t uncompressed_size,
-		compression_dictionary &&dictionary) :
-		zstd_decompression_reader(std::move(reader), uncompressed_size)
+		compression_dictionary &&dictionary) : zstd_decompression_reader(std::move(reader), uncompressed_size)
 	{
 		m_compression_dictionary = std::move(dictionary);
 		set_dictionary(m_compression_dictionary);

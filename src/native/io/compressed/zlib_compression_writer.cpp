@@ -17,8 +17,7 @@ const size_t OUTPUT_DATA_CAPACITY = 4096;
 
 zlib_compression_writer::zlib_compression_writer(
 	std::shared_ptr<io::sequential::writer> &writer, int level, zlib_helpers::init_type init_type) :
-	io::sequential::writer_impl(),
-	m_writer(writer), m_compression_level(level), m_init_type(init_type)
+	io::sequential::writer_impl(), m_writer(writer), m_compression_level(level), m_init_type(init_type)
 {
 	m_output_data.reserve(OUTPUT_DATA_CAPACITY);
 

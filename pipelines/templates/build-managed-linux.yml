@@ -1,134 +1,140 @@
 # File: build-managed-linux.yml
 parameters:
-# We could make this default to '', but then we could accidentally publish a standard package.
-# Better to require explicit setting to '' to elect for this behavior.
-- name: version_suffix
-  type: string
+  # We could make this default to '', but then we could accidentally publish a standard package.
+  # Better to require explicit setting to '' to elect for this behavior.
+  - name: version_suffix
+    type: string
 
-# Optional Parameters
-- name: build_platform
-  type: string
-  default: x64
-- name: build_configuration
-  type: string
-  default: 'Release'
-- name: publish
-  type: boolean
-  default: true
-- name: copy_output
-  type: boolean
-  default: false
-- name: copy_output_archives
-  type: string
-  default: ''
-- name: copy_output_binaries
-  type: string
-  default: ''
-- name: one_branch_signing
-  type: boolean
-  default: false
+  # Optional Parameters
+  - name: build_platform
+    type: string
+    default: x64
+  - name: build_configuration
+    type: string
+    default: "Release"
+  - name: publish
+    type: boolean
+    default: true
+  - name: copy_output
+    type: boolean
+    default: false
+  - name: copy_output_archives
+    type: string
+    default: ""
+  - name: copy_output_binaries
+    type: string
+    default: ""
+  - name: one_branch_signing
+    type: boolean
+    default: false
 
 steps:
-- task: Bash@3
-  displayName: 'Dump Environment Variables'
-  inputs:
-    targetType: inline
-    script: env
-
-- task: UseDotNet@2
-  displayName: 'Use .NET Standard sdk'
-  inputs:
-    packageType: sdk
-    version: 8.x
-    installationPath: $(Agent.ToolsDirectory)/dotnet
-
-- task: NuGetToolInstaller@1
-
-- task: CmdLine@2
-  displayName: 'Dump nuget.config'
-  inputs:
-    script: cat $(Build.SourcesDirectory)/nuget.config
-
-- task: NuGetAuthenticate@1
-  inputs:
-    forceReinstallCredentialProvider: true
-
-- task: Bash@3
-  displayName: 'Build Managed (${{ parameters.build_configuration }})'
-  inputs:
-    filePath: $(Build.SourcesDirectory)/src/managed/build.sh
-    arguments: ${{ parameters.build_configuration }}
-    workingDirectory: $(Build.SourcesDirectory)/src/managed
-
-- task: Bash@3
-  displayName: 'Show Managed Build Output (${{ parameters.build_configuration }})'
-  inputs:
-    targetType: inline
-    script: tree $(Build.SourcesDirectory)/src/managed
-
-- task: Bash@3
-  displayName: 'Run Managed Tests (${{ parameters.build_configuration }})'
-  inputs:
-    filePath: $(Build.SourcesDirectory)/src/managed/run_tests.sh
-    arguments: ${{ parameters.build_configuration }}
-    workingDirectory: $(Build.SourcesDirectory)/src/managed
-
-- ${{ if parameters.publish }}:
-  - task: PublishPipelineArtifact@1
-    inputs:
-      targetPath: '$(Build.SourcesDirectory)/src/out/managed/${{ parameters.build_configuration }}/DiffGenTool/net8.0/linux-x64'
-      artifactType: 'pipeline'
-      artifactName: 'DiffGenTool.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}'
-    displayName: 'Publish DiffGenTool.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}'
-
-- ${{ if parameters.copy_output }}:
-  - task: CopyFiles@2
-    inputs:
-      SourceFolder: '$(Build.SourcesDirectory)/src/out/managed/${{ parameters.build_configuration }}/DiffGenTool/net8.0/linux-x64'
-      Contents: '*'
-      TargetFolder: ${{ parameters.copy_output_binaries }}
-
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.SourcesDirectory)/src/out/managed/${{ parameters.build_configuration }}/DiffGenTool/net8.0/linux-x64'
-    archiveType: tar
-    tarCompression: gz
-    archiveFile: '$(Build.ArtifactStagingDirectory)/archives/DiffGenTool.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}.tar.gz'
-    verbose: true
-
-- task: Bash@3
-  displayName: 'Show Archive'
-  inputs:
-    targetType: inline
-    script: tree $(Build.ArtifactStagingDirectory)/archives
-
-- ${{ if parameters.one_branch_signing }}:
-  - task: onebranch.pipeline.signing@1 # https://aka.ms/obpipelines/signing
-    displayName: 'Sign archive'
-    inputs:
-      command: 'sign'
-      signing_environment: 'azure-ado'
-      files_to_sign: '**/*.tar.gz'
-      search_root: '$(Build.ArtifactStagingDirectory)/archives'
-
-- ${{ if parameters.one_branch_signing }}:
   - task: Bash@3
-    displayName: 'Show Signed Archive'
+    displayName: "Dump Environment Variables"
+    inputs:
+      targetType: inline
+      script: env
+
+  - task: UseDotNet@2
+    displayName: "Use .NET Standard sdk"
+    inputs:
+      packageType: sdk
+      version: 8.x
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+
+  - task: NuGetToolInstaller@1
+
+  - task: CmdLine@2
+    displayName: "Dump nuget.config"
+    inputs:
+      script: cat $(Build.SourcesDirectory)/nuget.config
+
+  - task: NuGetAuthenticate@1
+    inputs:
+      forceReinstallCredentialProvider: true
+
+  - task: Bash@3
+    displayName: "Build Managed (${{ parameters.build_configuration }})"
+    inputs:
+      filePath: $(Build.SourcesDirectory)/src/managed/build.sh
+      arguments: ${{ parameters.build_configuration }}
+      workingDirectory: $(Build.SourcesDirectory)/src/managed
+
+  - task: Bash@3
+    displayName: "Show Managed Build Output (${{ parameters.build_configuration }})"
+    inputs:
+      targetType: inline
+      script: tree $(Build.SourcesDirectory)/src/managed
+
+  - task: Bash@3
+    displayName: "Run Managed Tests (${{ parameters.build_configuration }})"
+    inputs:
+      filePath: $(Build.SourcesDirectory)/src/managed/run_tests.sh
+      arguments: ${{ parameters.build_configuration }}
+      workingDirectory: $(Build.SourcesDirectory)/src/managed
+
+  - ${{ if parameters.publish }}:
+      - task: PublishPipelineArtifact@1
+        inputs:
+          targetPath: "$(Build.SourcesDirectory)/src/out/managed/${{ parameters.build_configuration }}/DiffGenTool/net8.0/linux-x64"
+          artifactType: "pipeline"
+          artifactName: "DiffGenTool.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}"
+        displayName: "Publish DiffGenTool.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}"
+
+  - ${{ if parameters.copy_output }}:
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: "$(Build.SourcesDirectory)/src/out/managed/${{ parameters.build_configuration }}/DiffGenTool/net8.0/linux-x64"
+          Contents: "*"
+          TargetFolder: ${{ parameters.copy_output_binaries }}
+
+  - task: ArchiveFiles@2
+    inputs:
+      rootFolderOrFile: "$(Build.SourcesDirectory)/src/out/managed/${{ parameters.build_configuration }}/DiffGenTool/net8.0/linux-x64"
+      archiveType: tar
+      tarCompression: gz
+      archiveFile: "$(Build.ArtifactStagingDirectory)/archives/DiffGenTool.VERSION_STRING.${{ parameters.build_platform }}-linux.${{ parameters.build_configuration }}.tar.gz"
+      verbose: true
+
+  - task: Bash@3
+    displayName: "Set Version on Archive"
+    inputs:
+      filePath: $(Build.SourcesDirectory)/src/native/set_version_strings.sh
+      arguments: $(Build.ArtifactStagingDirectory)/archives
+      workingDirectory: $(Build.SourcesDirectory)/src/native
+
+  - task: Bash@3
+    displayName: "Show Archive"
     inputs:
       targetType: inline
       script: tree $(Build.ArtifactStagingDirectory)/archives
 
-- ${{ if parameters.copy_output }}:
-  - task: CopyFiles@2
-    inputs:
-      SourceFolder: '$(Build.ArtifactStagingDirectory)/archives'
-      Contents: '*'
-      TargetFolder: ${{ parameters.copy_output_archives }}
+  - ${{ if parameters.one_branch_signing }}:
+      - task: onebranch.pipeline.signing@1 # https://aka.ms/obpipelines/signing
+        displayName: "Sign archive"
+        inputs:
+          command: "sign"
+          signing_environment: "azure-ado"
+          files_to_sign: "**/*.tar.gz"
+          search_root: "$(Build.ArtifactStagingDirectory)/archives"
 
-- ${{ if parameters.copy_output }}:
-  - task: Bash@3
-    displayName: 'Show Copied Archive'
-    inputs:
-      targetType: inline
-      script: tree ${{ parameters.copy_output_archives }}
+  - ${{ if parameters.one_branch_signing }}:
+      - task: Bash@3
+        displayName: "Show Signed Archive"
+        inputs:
+          targetType: inline
+          script: tree $(Build.ArtifactStagingDirectory)/archives
 
+  - ${{ if parameters.copy_output }}:
+      - task: CopyFiles@2
+        inputs:
+          SourceFolder: "$(Build.ArtifactStagingDirectory)/archives"
+          Contents: "*"
+          TargetFolder: ${{ parameters.copy_output_archives }}
+
+  - ${{ if parameters.copy_output }}:
+      - task: Bash@3
+        displayName: "Show Copied Archive"
+        inputs:
+          targetType: inline
+          script: tree ${{ parameters.copy_output_archives }}

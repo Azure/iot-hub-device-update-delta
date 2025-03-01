@@ -14,8 +14,7 @@ namespace archive_diff::io::compressed
 {
 zstd_compression_writer::zstd_compression_writer(
 	std::shared_ptr<io::sequential::writer> &writer, uint64_t level, uint64_t uncompressed_input_size) :
-	io::sequential::writer_impl(),
-	m_writer(writer), m_uncompressed_input_size(uncompressed_input_size)
+	io::sequential::writer_impl(), m_writer(writer), m_uncompressed_input_size(uncompressed_input_size)
 {
 	ZSTD_CCtx_setPledgedSrcSize(m_zstd_cstream.get(), m_uncompressed_input_size);
 	ZSTD_CCtx_reset(m_zstd_cstream.get(), ZSTD_reset_session_only);
@@ -36,8 +35,7 @@ zstd_compression_writer::zstd_compression_writer(
 	std::shared_ptr<io::sequential::writer> &writer,
 	uint64_t level,
 	uint64_t uncompressed_input_size,
-	compression_dictionary &&dictionary) :
-	zstd_compression_writer(writer, level, uncompressed_input_size)
+	compression_dictionary &&dictionary) : zstd_compression_writer(writer, level, uncompressed_input_size)
 {
 	m_compression_dictionary = std::move(dictionary);
 	set_dictionary(m_compression_dictionary);

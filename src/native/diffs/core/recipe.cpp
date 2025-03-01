@@ -12,8 +12,8 @@ recipe::recipe(
 	const item_definition &result_item_definition,
 	const std::vector<uint64_t> &number_ingredients,
 	const std::vector<item_definition> &item_ingredients) :
-	m_result_item_definition(result_item_definition),
-	m_number_ingredients(number_ingredients), m_item_ingredients(item_ingredients)
+	m_result_item_definition(result_item_definition), m_number_ingredients(number_ingredients),
+	m_item_ingredients(item_ingredients)
 {}
 
 recipe::~recipe() {}
@@ -79,14 +79,14 @@ bool operator<(const std::shared_ptr<recipe> &lhs, const std::shared_ptr<recipe>
 	return false;
 }
 
-Json::Value recipe::to_json() const 
+Json::Value recipe::to_json() const
 {
 	Json::Value value;
 
 	value["Name"]   = get_recipe_name();
 	value["Result"] = m_result_item_definition.to_json();
-	
-	if (m_number_ingredients.size()) 
+
+	if (m_number_ingredients.size())
 	{
 		Json::Value number_ingredients;
 

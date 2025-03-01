@@ -44,9 +44,7 @@ class zlib_compression_reader_factory : public io::sequential::reader_factory
 		const item_definition &compressed,
 		std::shared_ptr<prepared_item> &uncompressed,
 		zlib_init_type init_type,
-		uint64_t compression_level) :
-		m_compressed(compressed),
-		m_uncompresed(uncompressed), m_init_type(init_type)
+		uint64_t compression_level) : m_compressed(compressed), m_uncompresed(uncompressed), m_init_type(init_type)
 	{
 		if (compression_level == 0xFFFFFFFF)
 		{

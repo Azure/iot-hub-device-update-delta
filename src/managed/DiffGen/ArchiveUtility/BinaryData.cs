@@ -94,7 +94,7 @@ namespace ArchiveUtility
 
             if (remaining != 0)
             {
-                throw new Exception("Coulnd't read expected data for hashing.");
+                throw new Exception($"Couldn't read expected data for hashing. Length: {length}, blockSize: {blockSize}, {remaining}");
             }
 
             hashes.Add(HashAlgorithmType.Sha256, new Hash(HashAlgorithmType.Sha256, sha256.GetCurrentHash()));

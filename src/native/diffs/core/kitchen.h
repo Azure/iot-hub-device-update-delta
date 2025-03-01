@@ -107,7 +107,7 @@ class kitchen : public std::enable_shared_from_this<kitchen>
 	// Acquires and holds m_item_request_mutex
 	//
 	// Returns true if all items were fully available, false otherwise
-	bool process_requested_items(bool select_recipes_only, std::set<core::item_definition>& mocked_items);
+	bool process_requested_items(bool select_recipes_only, std::set<core::item_definition> &mocked_items);
 
 	//
 	// Looks at m_ready_items. If the item is present, will return the contained
@@ -153,7 +153,7 @@ class kitchen : public std::enable_shared_from_this<kitchen>
 
 	void write_item(io::writer &writer, const item_definition &item);
 
-	void save_selected_recipes(std::shared_ptr<io::writer>& writer) const;
+	void save_selected_recipes(std::shared_ptr<io::writer> &writer) const;
 
 	private:
 	bool make_dependency_ready(

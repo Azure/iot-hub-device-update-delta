@@ -122,10 +122,10 @@ bool kitchen::process_requested_items(bool select_recipes_only, std::set<core::i
 	return all_requests_fulfilled;
 }
 
-bool kitchen::process_requested_items() 
+bool kitchen::process_requested_items()
 {
 	std::set<item_definition> mocked_items;
-	return process_requested_items(false, mocked_items); 
+	return process_requested_items(false, mocked_items);
 }
 
 bool kitchen::make_dependency_ready(
@@ -138,7 +138,7 @@ bool kitchen::make_dependency_ready(
 	{
 		return true;
 	}
-	
+
 	if (m_selected_recipes.contains(item))
 	{
 		return true;
@@ -364,7 +364,7 @@ void kitchen::save_selected_recipes(std::shared_ptr<io::writer> &writer) const
 	Json::Value recipe_list;
 	Json::Value recipes;
 
-	for (const auto& [result, recipe] : m_selected_recipes)
+	for (const auto &[result, recipe] : m_selected_recipes)
 	{
 		recipes.append(recipe->to_json());
 	}
