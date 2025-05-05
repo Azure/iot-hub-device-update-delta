@@ -147,6 +147,7 @@ class kitchen : public std::enable_shared_from_this<kitchen>
 
 	// Fetches items from slice store and decrements count
 	std::shared_ptr<prepared_item> fetch_slice(const item_definition &item) { return m_slicer.fetch_slice(item); }
+
 	void resume_slicing() { m_slicer.resume_slicing(); }
 	void pause_slicing() { m_slicer.pause_slicing(); }
 	void cancel_slicing() { m_slicer.cancel_slicing(); }
@@ -155,12 +156,20 @@ class kitchen : public std::enable_shared_from_this<kitchen>
 
 	void save_selected_recipes(std::shared_ptr<io::writer> &writer) const;
 
+	// Alternative to slicing, it takes the item and makes it ready for a slice directly
+	// by staging it to a temporary file
+	std::shared_ptr<prepared_item> prepare_as_reader(std::shared_ptr<prepared_item> &to_prepare);
+
 	private:
 	bool make_dependency_ready(
 		const item_definition &item,
 		bool select_recipes_only,
 		std::set<item_definition> &mocked_items,
 		std::set<item_definition> &already_using);
+
+	private:
+	std::shared_ptr<prepared_item> store_item_as_buffer(std::shared_ptr<prepared_item> &to_prepare);
+	std::shared_ptr<prepared_item> store_item_as_temp_file(std::shared_ptr<prepared_item> &to_prepare);
 
 	std::atomic<bool> m_ready_for_requests{false};
 

@@ -58,7 +58,7 @@ legacy_recipe_type deserializer::read_recipe_type(io::sequential::reader &reader
 {
 	{
 		uint8_t recipe_type;
-		reader.read(&recipe_type);
+		reader.read_uint8_t(&recipe_type);
 
 		if (recipe_type < std::numeric_limits<uint8_t>::max())
 		{
@@ -67,7 +67,7 @@ legacy_recipe_type deserializer::read_recipe_type(io::sequential::reader &reader
 	}
 
 	legacy_recipe_type recipe_type;
-	reader.read(&recipe_type);
+	reader.read_uint32_t(reinterpret_cast<uint32_t *>(&recipe_type));
 	return recipe_type;
 }
 
@@ -466,7 +466,7 @@ bool deserializer::is_this_format(io::reader &reader, std::string *reason)
 
 	uint64_t version;
 
-	reader.read(4, &version);
+	reader.read_uint64_t(4, &version);
 
 	if (version != g_DIFF_VERSION)
 	{
@@ -494,7 +494,7 @@ void deserializer::read(io::reader &reader)
 
 	uint64_t version;
 
-	seq.read(&version);
+	seq.read_uint64_t(&version);
 
 	if (version != g_DIFF_VERSION)
 	{
@@ -504,7 +504,7 @@ void deserializer::read(io::reader &reader)
 	}
 
 	uint64_t length;
-	seq.read(&length);
+	seq.read_uint64_t(&length);
 
 	hashing::hash archive_item_hash;
 	archive_item_hash.read(seq);
@@ -514,7 +514,7 @@ void deserializer::read(io::reader &reader)
 		m_archive->set_archive_item(archive_item);
 	}
 
-	seq.read(&length);
+	seq.read_uint64_t(&length);
 	if (length != 0)
 	{
 		hashing::hash source_item_hash;
@@ -525,7 +525,7 @@ void deserializer::read(io::reader &reader)
 	}
 
 	uint64_t chunk_count;
-	seq.read(&chunk_count);
+	seq.read_uint64_t(&chunk_count);
 
 	std::vector<diffs::core::item_definition> chain_ingredients;
 
@@ -537,12 +537,12 @@ void deserializer::read(io::reader &reader)
 	m_all_recipes.emplace_back(std::make_shared<diffs::recipes::basic::chain_recipe>(
 		archive_item, std::vector<uint64_t>(), chain_ingredients));
 
-	seq.read(&m_inline_assets_size);
+	seq.read_uint64_t(&m_inline_assets_size);
 	m_inline_assets_offset = seq.tellg();
 	seq.skip(m_inline_assets_size);
 
-	seq.read(&m_remainder_uncompressed_size);
-	seq.read(&m_remainder_compressed_size);
+	seq.read_uint64_t(&m_remainder_uncompressed_size);
+	seq.read_uint64_t(&m_remainder_compressed_size);
 	m_remainder_offset = seq.tellg();
 
 	m_diff_size = m_remainder_offset + m_remainder_compressed_size;
@@ -567,7 +567,7 @@ void deserializer::read(io::reader &reader)
 diffs::core::item_definition deserializer::read_chunk(io::sequential::reader &reader)
 {
 	uint64_t length;
-	reader.read(&length);
+	reader.read_uint64_t(&length);
 	hashing::hash hash;
 	hash.read(reader);
 	auto item = diffs::core::item_definition{length}.with_hash(hash);
@@ -580,20 +580,20 @@ diffs::core::item_definition deserializer::read_chunk(io::sequential::reader &re
 diffs::core::item_definition deserializer::read_archive_item(io::sequential::reader &reader)
 {
 	legacy_archive_item_type type;
-	reader.read(&type);
+	reader.read_uint8_t(reinterpret_cast<uint8_t *>(&type));
 	if (type == legacy_archive_item_type::chunk)
 	{
 		uint64_t offset;
-		reader.read(&offset);
+		reader.read_uint64_t(&offset);
 	}
 	uint64_t length;
-	reader.read(&length);
+	reader.read_uint64_t(&length);
 	hashing::hash hash;
 	hash.read(reader);
 	auto item = diffs::core::item_definition{length}.with_hash(hash);
 
-	bool has_recipe;
-	reader.read(&has_recipe);
+	uint8_t has_recipe;
+	reader.read_uint8_t(&has_recipe);
 
 	if (has_recipe)
 	{
@@ -616,18 +616,18 @@ void deserializer::read_recipe(
 	std::vector<diffs::core::item_definition> item_ingredients;
 
 	uint8_t parameter_count;
-	reader.read(&parameter_count);
+	reader.read_uint8_t(&parameter_count);
 
 	for (uint8_t i = 0; i < parameter_count; i++)
 	{
 		recipe_parameter_type param_type;
-		reader.read(&param_type);
+		reader.read_uint8_t(reinterpret_cast<uint8_t *>(&param_type));
 
 		switch (param_type)
 		{
 		case recipe_parameter_type::number:
 			uint64_t number_value;
-			reader.read(&number_value);
+			reader.read_uint64_t(&number_value);
 			number_ingredients.push_back(number_value);
 			break;
 		case recipe_parameter_type::archive_item: {

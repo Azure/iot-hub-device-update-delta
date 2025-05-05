@@ -62,7 +62,6 @@ void get_file_hashes(const char *path, archive_details &details)
 	input.seekg(0, std::ios::beg);
 
 	archive_diff::hashing::hasher sha256_hasher(archive_diff::hashing::algorithm::sha256);
-	archive_diff::hashing::hasher md5_hasher(archive_diff::hashing::algorithm::md5);
 
 	const size_t read_block_size = 4 * 1024;
 	char buffer[read_block_size];
@@ -74,13 +73,11 @@ void get_file_hashes(const char *path, archive_details &details)
 		input.read(buffer, to_read);
 
 		sha256_hasher.hash_data(std::string_view{buffer, to_read});
-		md5_hasher.hash_data(std::string_view{buffer, to_read});
 
 		remaining -= to_read;
 	}
 
 	details.hash_sha256_string = sha256_hasher.get_hash_string();
-	details.hash_md5_string    = md5_hasher.get_hash_string();
 }
 
 int load_ext4(const char *ext4_path, archive_details &details)
@@ -177,22 +174,13 @@ static int populate_file_details_from_inode(ext2_filsys fs, int ino, file_detail
 	__u64 offset           = std::numeric_limits<__u64>::max();
 	__u64 length           = 0;
 
-	archive_diff::hashing::hasher hasher_md5(archive_diff::hashing::algorithm::md5);
 	archive_diff::hashing::hasher hasher_sha256(archive_diff::hashing::algorithm::sha256);
 
-	archive_diff::hashing::hasher hasher_md5_region(archive_diff::hashing::algorithm::md5);
 	archive_diff::hashing::hasher hasher_sha256_region(archive_diff::hashing::algorithm::sha256);
 
 	while (read < file_size)
 	{
 		retval = ext2fs_file_read(e2_file, const_cast<char *>(buf.data()), blocksize, &got);
-#ifdef WIN32
-		if (retval == ERROR_NEGATIVE_SEEK)
-		{
-			// Loading directories from windows file system sometimes fails with a negative seek
-			return 0;
-		}
-#endif
 		if (retval == EXT2_ET_SHORT_READ)
 		{
 			// Very small files are probably not worth diffing
@@ -206,7 +194,6 @@ static int populate_file_details_from_inode(ext2_filsys fs, int ino, file_detail
 
 		unsigned char *ubuf = reinterpret_cast<unsigned char *>(buf.data());
 
-		hasher_md5.hash_data(ubuf, got);
 		hasher_sha256.hash_data(ubuf, got);
 
 		blk64_t current_physblock = ext2fs_file_get_current_physblock(e2_file);
@@ -219,14 +206,10 @@ static int populate_file_details_from_inode(ext2_filsys fs, int ino, file_detail
 			{
 				auto offset_value = current_block_all_zeroes ? std::nullopt : std::optional<uint64_t>{offset};
 
-				details->regions.emplace_back(file_region{
-					offset_value,
-					length,
-					current_block_all_zeroes,
-					hasher_md5_region.get_hash_string(),
-					hasher_sha256_region.get_hash_string()});
+				details->regions.emplace_back(
+					file_region{
+						offset_value, length, current_block_all_zeroes, hasher_sha256_region.get_hash_string()});
 
-				hasher_md5_region.reset();
 				hasher_sha256_region.reset();
 			}
 			offset                   = blocksize * current_physblock;
@@ -234,7 +217,6 @@ static int populate_file_details_from_inode(ext2_filsys fs, int ino, file_detail
 			current_block_all_zeroes = true;
 		}
 
-		hasher_md5_region.hash_data(ubuf, got);
 		hasher_sha256_region.hash_data(ubuf, got);
 
 		if (current_block_all_zeroes)
@@ -252,15 +234,10 @@ static int populate_file_details_from_inode(ext2_filsys fs, int ino, file_detail
 	{
 		auto offset_value = current_block_all_zeroes ? std::nullopt : std::optional<uint64_t>{offset};
 
-		details->regions.emplace_back(file_region{
-			offset_value,
-			length,
-			current_block_all_zeroes,
-			hasher_md5_region.get_hash_string(),
-			hasher_sha256_region.get_hash_string()});
+		details->regions.emplace_back(
+			file_region{offset_value, length, current_block_all_zeroes, hasher_sha256_region.get_hash_string()});
 	}
 
-	details->hash_md5_string    = hasher_md5.get_hash_string();
 	details->hash_sha256_string = hasher_sha256.get_hash_string();
 
 	return 0;
@@ -314,12 +291,6 @@ static int list_dir_proc(
 
 		return 0;
 	}
-#ifdef WIN32
-	else if (retval == ERROR_NEGATIVE_SEEK)
-	{
-		return 0;
-	}
-#endif
 	else if (retval)
 	{
 		printf("ext2fs_check_directory() failed: %d\n", retval);

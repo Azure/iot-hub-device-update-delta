@@ -37,8 +37,9 @@ slice_recipe::slice_recipe(
 diffs::core::recipe::prepare_result slice_recipe::prepare(
 	kitchen *kitchen, std::vector<std::shared_ptr<prepared_item>> &items) const
 {
-	auto &whole_item_prepared = items[0];
+	std::shared_ptr<prepared_item> whole_item_prepared = items[0];
 
+#if 0
 	if (!whole_item_prepared->can_slice(m_offset, m_result_item_definition.size()))
 	{
 		kitchen->request_slice(whole_item_prepared, m_offset, m_result_item_definition);
@@ -46,6 +47,16 @@ diffs::core::recipe::prepare_result slice_recipe::prepare(
 		return std::make_shared<prepared_item>(
 			m_result_item_definition, prepared_item::fetch_slice_kind{kitchen->get_weak()});
 	}
+#else
+	if (!whole_item_prepared->can_slice(m_offset, m_result_item_definition.size()))
+	{
+		whole_item_prepared = kitchen->prepare_as_reader(whole_item_prepared);
+		if (!whole_item_prepared->can_slice(m_offset, m_result_item_definition.size()))
+		{
+			throw errors::user_exception(errors::error_code::diffs_kitchen_item_not_ready_to_fetch);
+		}
+	}
+#endif
 
 	diffs::core::prepared_item::slice_kind slice;
 	slice.m_item   = whole_item_prepared;

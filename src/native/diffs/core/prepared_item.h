@@ -6,6 +6,7 @@
  */
 #pragma once
 
+#include <io/basic_reader_factory.h>
 #include <io/reader_factory.h>
 #include <io/sequential/reader_factory.h>
 
@@ -52,6 +53,10 @@ class prepared_item
 
 	prepared_item(const item_definition &item_definition, const reader_kind &reader) :
 		m_item_definition(item_definition), m_kind(reader)
+	{}
+
+	prepared_item(const item_definition &item_definition, io::reader &reader) :
+		m_item_definition(item_definition), m_kind(reader_kind{std::make_shared<io::basic_reader_factory>(reader)})
 	{}
 
 	prepared_item(const item_definition &item_definition, const sequential_reader_kind &sequential_reader) :

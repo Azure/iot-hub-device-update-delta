@@ -30,7 +30,7 @@ void serializer::write(io::sequential::writer &writer)
 void serializer::write_header(io::sequential::writer &writer)
 {
 	writer.write(std::string_view{g_DIFF_MAGIC_VALUE.data(), g_DIFF_MAGIC_VALUE.size()});
-	writer.write_value(g_STANDARD_DIFF_VERSION);
+	writer.write_uint64_t(g_STANDARD_DIFF_VERSION);
 
 	auto target_item = m_archive->get_archive_item();
 	target_item.write(writer, core::item_definition::serialization_options::standard);
@@ -48,7 +48,7 @@ void serializer::write_suported_recipe_types(io::sequential::writer &writer)
 		throw std::exception();
 	}
 
-	writer.write_value(static_cast<uint32_t>(supported_recipe_type_count));
+	writer.write_uint32_t(static_cast<uint32_t>(supported_recipe_type_count));
 
 	for (uint32_t i = 0; i < supported_recipe_type_count; i++)
 	{
@@ -61,7 +61,7 @@ void serializer::write_recipe_set(
 	io::sequential::writer &writer, const core::item_definition &result, const core::recipe_set &recipes)
 {
 	uint64_t recipe_count = recipes.size();
-	writer.write_value(recipe_count);
+	writer.write_uint64_t(recipe_count);
 
 	result.write(writer, core::item_definition::serialization_options::standard);
 
@@ -76,7 +76,7 @@ void serializer::write_recipes(io::sequential::writer &writer)
 	auto recipe_set_map = m_archive->get_cookbook()->get_all_recipes();
 
 	uint64_t result_set_count = recipe_set_map.size();
-	writer.write_value(result_set_count);
+	writer.write_uint64_t(result_set_count);
 
 	for (auto entry : recipe_set_map)
 	{
@@ -92,17 +92,17 @@ void serializer::write_recipe(io::sequential::writer &writer, const core::recipe
 	{
 		throw std::exception();
 	}
-	writer.write_value(recipe_type_id);
+	writer.write_uint32_t(static_cast<uint32_t>(recipe_type_id));
 
 	auto numbers = recipe.get_number_ingredients();
-	writer.write_value(static_cast<uint64_t>(numbers.size()));
+	writer.write_uint64_t(static_cast<uint64_t>(numbers.size()));
 	for (auto &number : numbers)
 	{
-		writer.write_value(number);
+		writer.write_uint64_t(number);
 	}
 
 	auto items = recipe.get_item_ingredients();
-	writer.write_value(static_cast<uint64_t>(items.size()));
+	writer.write_uint64_t(static_cast<uint64_t>(items.size()));
 	for (auto &item : items)
 	{
 		item.write(writer, core::item_definition::serialization_options::standard);
@@ -149,7 +149,7 @@ void serializer::write_nested_archives(io::sequential::writer &writer)
 	auto archives = m_archive->get_nested_archives();
 
 	uint32_t nested_archives_count = static_cast<uint32_t>(archives.size());
-	writer.write_value(nested_archives_count);
+	writer.write_uint32_t(nested_archives_count);
 
 	for (auto &archive : archives)
 	{

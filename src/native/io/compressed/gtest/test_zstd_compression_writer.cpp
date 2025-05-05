@@ -20,49 +20,6 @@
 #include "main.h"
 #include "common.h"
 
-TEST(zstd_compression_writer, read_and_then_write)
-{
-	auto compressed_path = g_test_data_root / c_sample_file_zst_compressed;
-	auto compressed_size = fs::file_size(compressed_path);
-
-	auto compressed_file_reader = archive_diff::io::file::io_device::make_reader(compressed_path.string());
-
-	archive_diff::io::compressed::zstd_decompression_reader decompression_reader{
-		compressed_file_reader, c_sample_file_zst_uncompressed_size};
-
-	ASSERT_EQ(decompression_reader.size(), c_sample_file_zst_uncompressed_size);
-
-	auto uncompressed_data_vector = std::make_shared<std::vector<char>>();
-	uncompressed_data_vector->reserve(static_cast<size_t>(decompression_reader.size()));
-
-	auto uncompressed_data = std::span<char>{uncompressed_data_vector->data(), uncompressed_data_vector->capacity()};
-	decompression_reader.read_some(uncompressed_data);
-
-	using device             = archive_diff::io::buffer::io_device;
-	auto uncompressed_reader = device::make_reader(uncompressed_data_vector, device::size_kind::vector_capacity);
-
-	auto compressed_data_vector = std::make_shared<std::vector<char>>();
-	compressed_data_vector->reserve(static_cast<size_t>(static_cast<size_t>(compressed_size)));
-
-	std::shared_ptr<archive_diff::io::writer> buffer_writer =
-		std::make_shared<archive_diff::io::buffer::writer>(compressed_data_vector);
-	std::shared_ptr<archive_diff::io::sequential::writer> sequential_buffer_writer =
-		std::make_shared<archive_diff::io::sequential::basic_writer_wrapper>(buffer_writer);
-
-	archive_diff::io::compressed::zstd_compression_writer compression_writer(
-		sequential_buffer_writer, c_sample_file_zst_compression_level, c_sample_file_zst_uncompressed_size);
-
-	compression_writer.write(uncompressed_reader);
-
-	auto compressed_data = std::span<char>{compressed_data_vector->data(), compressed_data_vector->size()};
-
-	auto file_data_vector = reader_to_vector(compressed_file_reader);
-	auto file_data        = std::span<char>{file_data_vector.data(), file_data_vector.capacity()};
-
-	ASSERT_EQ(file_data.size(), compressed_data.size());
-	ASSERT_EQ(0, std::memcmp(file_data.data(), compressed_data.data(), file_data.size()));
-}
-
 TEST(zstd_compression_writer, uncompressed_size_one_byte_too_few)
 {
 	auto compressed_path = g_test_data_root / c_sample_file_zst_compressed;

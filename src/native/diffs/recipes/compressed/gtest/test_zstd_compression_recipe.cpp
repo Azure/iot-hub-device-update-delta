@@ -9,90 +9,47 @@
 
 #include <language_support/include_filesystem.h>
 
-#include <io/buffer/reader_factory.h>
-#include <io/compressed/zstd_decompression_reader.h>
 #include <io/file/io_device.h>
 
 #include <diffs/recipes/compressed/zstd_compression_recipe.h>
+#include <diffs/core/item_definition_helpers.h>
 
 #include <diffs/core/kitchen.h>
 
 #include "main.h"
 
-TEST(zstd_compression_recipe, make_sequential_reader)
+TEST(zstd_compression_recipe, create_and_throw)
 {
+	using namespace archive_diff;
+	using namespace archive_diff::diffs::core;
+	using namespace archive_diff::diffs::recipes::compressed;
+	using namespace archive_diff::io;
+
 	auto temp_path = fs::temp_directory_path() / "recipe_zstd_decompression.make_sequential_reader";
 	fs::remove_all(temp_path);
 	fs::create_directories(temp_path);
 
-	const fs::path compressed_path = g_test_data_root / c_sample_file_zst_compressed;
+	const fs::path compressed_path   = g_test_data_root / c_sample_file_zst_compressed;
+	const fs::path uncompressed_path = g_test_data_root / c_sample_file_zst_uncompressed;
 
-	auto compressed_file_reader = archive_diff::io::file::io_device::make_reader(compressed_path.string());
-	auto compressed_size        = static_cast<size_t>(compressed_file_reader.size());
-	auto compressed_data_vector = std::make_shared<std::vector<char>>();
-	compressed_data_vector->reserve(compressed_size);
-	auto compressed_data = std::span<char>{compressed_data_vector->data(), compressed_size};
-	compressed_file_reader.read(0, compressed_data);
+	auto uncompressed_file_reader = file::io_device::make_reader(uncompressed_path.string());
+	auto compressed_file_reader   = file::io_device::make_reader(compressed_path.string());
 
-	archive_diff::io::compressed::zstd_decompression_reader decompression_reader{
-		compressed_file_reader, c_sample_file_zst_uncompressed_size};
+	auto uncompressed_item = create_definition_from_reader(uncompressed_file_reader);
+	auto compressed_item   = create_definition_from_reader(compressed_file_reader);
 
-	ASSERT_EQ(decompression_reader.size(), c_sample_file_zst_uncompressed_size);
-
-	auto uncompressed_data_vector = std::make_shared<std::vector<char>>();
-	uncompressed_data_vector->reserve(decompression_reader.size());
-	auto uncompressed_data = std::span<char>{uncompressed_data_vector->data(), uncompressed_data_vector->capacity()};
-	decompression_reader.read(uncompressed_data);
-
-	archive_diff::diffs::recipes::compressed::zstd_compression_recipe::recipe_template recipe_template{};
-
-	auto uncompressed_item = create_definition_from_span(uncompressed_data);
-	auto compressed_item   = create_definition_from_span(compressed_data);
-
-	std::vector<uint64_t> number_ingredients;
-	std::vector<archive_diff::diffs::core::item_definition> item_ingredients;
-	item_ingredients.push_back(uncompressed_item);
-
-	auto compress_recipe = recipe_template.create_recipe(compressed_item, number_ingredients, item_ingredients);
-
-	// verify there is one item ingredient
-	auto item_ingredients_found = compress_recipe->get_item_ingredients();
-	ASSERT_EQ(1, item_ingredients_found.size());
-
-	auto kitchen = archive_diff::diffs::core::kitchen::create();
-
-	ASSERT_FALSE(kitchen->can_fetch_item(compressed_item));
-
-	kitchen->add_recipe(compress_recipe);
-	ASSERT_FALSE(kitchen->can_fetch_item(compressed_item));
-
-	using device = archive_diff::io::buffer::io_device;
-	std::shared_ptr<archive_diff::io::reader_factory> uncompressed_data_factory =
-		std::make_shared<archive_diff::io::buffer::reader_factory>(
-			uncompressed_data_vector, device::size_kind::vector_capacity);
-
-	auto prep_uncompressed = std::make_shared<archive_diff::diffs::core::prepared_item>(
-		uncompressed_item, archive_diff::diffs::core::prepared_item::reader_kind{uncompressed_data_factory});
-
-	kitchen->store_item(prep_uncompressed);
-
-	kitchen->request_item(compressed_item);
-	ASSERT_TRUE(kitchen->process_requested_items());
-	ASSERT_TRUE(kitchen->can_fetch_item(compressed_item));
-
-	auto prep_compressed = kitchen->fetch_item(compressed_item);
-
-	ASSERT_FALSE(prep_compressed->can_make_reader());
-
-	auto sequential_reader = prep_compressed->make_sequential_reader();
-
-	std::vector<char> compressed_from_recipe_vector{};
-	compressed_from_recipe_vector.reserve(sequential_reader->size());
-	auto compressed_from_recipe_data =
-		std::span<char>{compressed_from_recipe_vector.data(), compressed_from_recipe_vector.capacity()};
-	sequential_reader->read(compressed_from_recipe_data);
-
-	ASSERT_EQ(compressed_from_recipe_data.size(), compressed_data.size());
-	ASSERT_EQ(
-		0, std::memcmp(compressed_data.data(), compressed_from_recipe_data.data(), compressed_from_recipe_data.size()));
+	bool caught_exception{false};
+	try
+	{
+		zstd_compression_recipe compressor{
+			compressed_item, std::vector<uint64_t>{}, std::vector<item_definition>{uncompressed_item}};
+	}
+	catch (errors::user_exception &e)
+	{
+		if (e.get_error() == errors::error_code::recipe_zstd_compression_not_supported)
+		{
+			caught_exception = true;
+		}
+	}
+	ASSERT_TRUE(caught_exception);
 }

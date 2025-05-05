@@ -21,6 +21,22 @@
             return _recipes.SelectMany(x => x.Value.Where(recipe => IsSliceOfItem(recipe, item)));
         }
 
+        public IEnumerable<Recipe> GetAllRecipes()
+        {
+            List<Recipe> allRecipes = new();
+
+            foreach (var entry in _recipes)
+            {
+                var recipes = entry.Value;
+                foreach (var recipe in recipes)
+                {
+                    allRecipes.Add(recipe);
+                }
+            }
+
+            return allRecipes;
+        }
+
         public IEnumerable<Recipe> GetRecipesUsing(ItemDefinition usingItem)
         {
             List<Recipe> recipesUsing = new();

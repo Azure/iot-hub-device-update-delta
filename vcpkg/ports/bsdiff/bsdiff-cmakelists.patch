@@ -1,177 +1,8 @@
-diff --git a/3rdparty/bzip2/dlltest.dsp b/3rdparty/bzip2/dlltest.dsp
-index 4b1615e..1b8e9a6 100644
---- a/3rdparty/bzip2/dlltest.dsp
-+++ b/3rdparty/bzip2/dlltest.dsp
-@@ -1,25 +1,25 @@
- # Microsoft Developer Studio Project File - Name="dlltest" - Package Owner=<4>
- # Microsoft Developer Studio Generated Build File, Format Version 5.00
--# ** •ÒW‚µ‚È‚¢‚Å‚­‚¾‚³‚¢ **
-+# ** ï¿½ÒWï¿½ï¿½ï¿½È‚ï¿½ï¿½Å‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ **
- 
- # TARGTYPE "Win32 (x86) Console Application" 0x0103
- 
- CFG=dlltest - Win32 Debug
--!MESSAGE ‚±‚ê‚Í—LŒø‚ÈÒ²¸Ì§²Ù‚Å‚Í‚ ‚è‚Ü‚¹‚ñB ‚±‚ÌÌßÛ¼Şª¸Ä‚ğËŞÙÄŞ‚·‚é‚½‚ß‚É‚Í NMAKE ‚ğg—p‚µ‚Ä‚­‚¾‚³‚¢B
--!MESSAGE [Ò²¸Ì§²Ù‚Ì´¸½Îß°Ä] ºÏİÄŞ‚ğg—p‚µ‚ÄÀs‚µ‚Ä‚­‚¾‚³‚¢
--!MESSAGE 
-+!MESSAGE ï¿½ï¿½ï¿½ï¿½Í—Lï¿½ï¿½ï¿½ï¿½Ò²ï¿½Ì§ï¿½Ù‚Å‚Í‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½B ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û¼Şªï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½Ş‚ï¿½ï¿½é‚½ï¿½ß‚É‚ï¿½ NMAKE ï¿½ï¿½ï¿½gï¿½pï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
-+!MESSAGE [Ò²ï¿½Ì§ï¿½Ù‚Ì´ï¿½ï¿½ï¿½ß°ï¿½] ï¿½ï¿½ï¿½ï¿½Ş‚ï¿½ï¿½gï¿½pï¿½ï¿½ï¿½Äï¿½ï¿½sï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-+!MESSAGE
- !MESSAGE NMAKE /f "dlltest.mak".
--!MESSAGE 
--!MESSAGE NMAKE ‚ÌÀs‚É\¬‚ğw’è‚Å‚«‚Ü‚·
--!MESSAGE ºÏİÄŞ ×²İã‚ÅÏ¸Û‚Ìİ’è‚ğ’è‹`‚µ‚Ü‚·B—á:
--!MESSAGE 
-+!MESSAGE
-+!MESSAGE NMAKE ï¿½Ìï¿½ï¿½sï¿½ï¿½ï¿½É\ï¿½ï¿½ï¿½ï¿½ï¿½wï¿½ï¿½Å‚ï¿½ï¿½Ü‚ï¿½
-+!MESSAGE ï¿½ï¿½ï¿½ï¿½ï¿½ ×²İï¿½ï¿½Ï¸Û‚Ìİ’ï¿½ï¿½ï¿½`ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½Bï¿½ï¿½:
-+!MESSAGE
- !MESSAGE NMAKE /f "dlltest.mak" CFG="dlltest - Win32 Debug"
--!MESSAGE 
--!MESSAGE ‘I‘ğ‰Â”\‚ÈËŞÙÄŞ Ó°ÄŞ:
--!MESSAGE 
--!MESSAGE "dlltest - Win32 Release" ("Win32 (x86) Console Application" —p)
--!MESSAGE "dlltest - Win32 Debug" ("Win32 (x86) Console Application" —p)
--!MESSAGE 
-+!MESSAGE
-+!MESSAGE ï¿½Iï¿½ï¿½ï¿½Â”\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ó°ï¿½ï¿½:
-+!MESSAGE
-+!MESSAGE "dlltest - Win32 Release" ("Win32 (x86) Console Application" ï¿½p)
-+!MESSAGE "dlltest - Win32 Debug" ("Win32 (x86) Console Application" ï¿½p)
-+!MESSAGE
- 
- # Begin Project
- # PROP Scc_ProjName ""
-@@ -40,8 +40,8 @@ RSC=rc.exe
- # PROP Intermediate_Dir "Release"
- # PROP Ignore_Export_Lib 0
- # PROP Target_Dir ""
--# ADD BASE CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
--# ADD CPP /nologo /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-+# ADD BASE CPP /nologo /W4 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c /sdl /Qspectre
-+# ADD CPP /nologo /W4 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c /sdl /Qspectre
- # ADD BASE RSC /l 0x411 /d "NDEBUG"
- # ADD RSC /l 0x411 /d "NDEBUG"
- BSC32=bscmake.exe
-@@ -64,8 +64,8 @@ LINK32=link.exe
- # PROP Intermediate_Dir "dlltest_"
- # PROP Ignore_Export_Lib 0
- # PROP Target_Dir ""
--# ADD BASE CPP /nologo /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
--# ADD CPP /nologo /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-+# ADD BASE CPP /nologo /W$ /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
-+# ADD CPP /nologo /W$ /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /YX /FD /c
- # ADD BASE RSC /l 0x411 /d "_DEBUG"
- # ADD RSC /l 0x411 /d "_DEBUG"
- BSC32=bscmake.exe
-@@ -75,7 +75,7 @@ LINK32=link.exe
- # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /pdbtype:sept
- # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /debug /machine:I386 /out:"minibz2.exe" /pdbtype:sept
- 
--!ENDIF 
-+!ENDIF
- 
- # Begin Target
- 
-diff --git a/3rdparty/bzip2/libbz2.dsp b/3rdparty/bzip2/libbz2.dsp
-index a21a20f..175f8d2 100644
---- a/3rdparty/bzip2/libbz2.dsp
-+++ b/3rdparty/bzip2/libbz2.dsp
-@@ -1,25 +1,25 @@
- # Microsoft Developer Studio Project File - Name="libbz2" - Package Owner=<4>
- # Microsoft Developer Studio Generated Build File, Format Version 5.00
--# ** •ÒW‚µ‚È‚¢‚Å‚­‚¾‚³‚¢ **
-+# ** ï¿½ÒWï¿½ï¿½ï¿½È‚ï¿½ï¿½Å‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ **
- 
- # TARGTYPE "Win32 (x86) Dynamic-Link Library" 0x0102
- 
- CFG=libbz2 - Win32 Debug
--!MESSAGE ‚±‚ê‚Í—LŒø‚ÈÒ²¸Ì§²Ù‚Å‚Í‚ ‚è‚Ü‚¹‚ñB ‚±‚ÌÌßÛ¼Şª¸Ä‚ğËŞÙÄŞ‚·‚é‚½‚ß‚É‚Í NMAKE ‚ğg—p‚µ‚Ä‚­‚¾‚³‚¢B
--!MESSAGE [Ò²¸Ì§²Ù‚Ì´¸½Îß°Ä] ºÏİÄŞ‚ğg—p‚µ‚ÄÀs‚µ‚Ä‚­‚¾‚³‚¢
--!MESSAGE 
-+!MESSAGE ï¿½ï¿½ï¿½ï¿½Í—Lï¿½ï¿½ï¿½ï¿½Ò²ï¿½Ì§ï¿½Ù‚Å‚Í‚ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½ï¿½B ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Û¼Şªï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½Ş‚ï¿½ï¿½é‚½ï¿½ß‚É‚ï¿½ NMAKE ï¿½ï¿½ï¿½gï¿½pï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½B
-+!MESSAGE [Ò²ï¿½Ì§ï¿½Ù‚Ì´ï¿½ï¿½ï¿½ß°ï¿½] ï¿½ï¿½ï¿½ï¿½Ş‚ï¿½ï¿½gï¿½pï¿½ï¿½ï¿½Äï¿½ï¿½sï¿½ï¿½ï¿½Ä‚ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
-+!MESSAGE
- !MESSAGE NMAKE /f "libbz2.mak".
--!MESSAGE 
--!MESSAGE NMAKE ‚ÌÀs‚É\¬‚ğw’è‚Å‚«‚Ü‚·
--!MESSAGE ºÏİÄŞ ×²İã‚ÅÏ¸Û‚Ìİ’è‚ğ’è‹`‚µ‚Ü‚·B—á:
--!MESSAGE 
-+!MESSAGE
-+!MESSAGE NMAKE ï¿½Ìï¿½ï¿½sï¿½ï¿½ï¿½É\ï¿½ï¿½ï¿½ï¿½ï¿½wï¿½ï¿½Å‚ï¿½ï¿½Ü‚ï¿½
-+!MESSAGE ï¿½ï¿½ï¿½ï¿½ï¿½ ×²İï¿½ï¿½Ï¸Û‚Ìİ’ï¿½ï¿½ï¿½`ï¿½ï¿½ï¿½Ü‚ï¿½ï¿½Bï¿½ï¿½:
-+!MESSAGE
- !MESSAGE NMAKE /f "libbz2.mak" CFG="libbz2 - Win32 Debug"
--!MESSAGE 
--!MESSAGE ‘I‘ğ‰Â”\‚ÈËŞÙÄŞ Ó°ÄŞ:
--!MESSAGE 
--!MESSAGE "libbz2 - Win32 Release" ("Win32 (x86) Dynamic-Link Library" —p)
--!MESSAGE "libbz2 - Win32 Debug" ("Win32 (x86) Dynamic-Link Library" —p)
--!MESSAGE 
-+!MESSAGE
-+!MESSAGE ï¿½Iï¿½ï¿½ï¿½Â”\ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ó°ï¿½ï¿½:
-+!MESSAGE
-+!MESSAGE "libbz2 - Win32 Release" ("Win32 (x86) Dynamic-Link Library" ï¿½p)
-+!MESSAGE "libbz2 - Win32 Debug" ("Win32 (x86) Dynamic-Link Library" ï¿½p)
-+!MESSAGE
- 
- # Begin Project
- # PROP Scc_ProjName ""
-@@ -41,8 +41,8 @@ RSC=rc.exe
- # PROP Intermediate_Dir "Release"
- # PROP Ignore_Export_Lib 0
- # PROP Target_Dir ""
--# ADD BASE CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
--# ADD CPP /nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c
-+# ADD BASE CPP /nologo /MT /W4 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c /sdl /Qspectre
-+# ADD CPP /nologo /MT /W4 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /YX /FD /c /sdl /Qspectre
- # ADD BASE MTL /nologo /D "NDEBUG" /mktyplib203 /o NUL /win32
- # ADD MTL /nologo /D "NDEBUG" /mktyplib203 /o NUL /win32
- # ADD BASE RSC /l 0x411 /d "NDEBUG"
-@@ -67,8 +67,8 @@ LINK32=link.exe
- # PROP Intermediate_Dir "Debug"
- # PROP Ignore_Export_Lib 0
- # PROP Target_Dir ""
--# ADD BASE CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
--# ADD CPP /nologo /MTd /W3 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c
-+# ADD BASE CPP /nologo /MTd /W4 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c /sdl /Qspectre
-+# ADD CPP /nologo /MTd /W4 /Gm /GX /Zi /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /YX /FD /c /sdl /Qspectre
- # ADD BASE MTL /nologo /D "_DEBUG" /mktyplib203 /o NUL /win32
- # ADD MTL /nologo /D "_DEBUG" /mktyplib203 /o NUL /win32
- # ADD BASE RSC /l 0x411 /d "_DEBUG"
-@@ -80,7 +80,7 @@ LINK32=link.exe
- # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /pdbtype:sept
- # ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:windows /dll /debug /machine:I386 /out:"libbz2.dll" /pdbtype:sept
- 
--!ENDIF 
-+!ENDIF
- 
- # Begin Target
- 
-diff --git a/3rdparty/libdivsufsort/CMakeLists.txt b/3rdparty/libdivsufsort/CMakeLists.txt
-index 7ceace3..f54c4d5 100644
---- a/3rdparty/libdivsufsort/CMakeLists.txt
-+++ b/3rdparty/libdivsufsort/CMakeLists.txt
-@@ -57,7 +57,7 @@ endif(NOT CMAKE_BUILD_TYPE)
- 
- ## Compiler options ##
- if(MSVC)
--  append_c_compiler_flags("/W4" "VC" CMAKE_C_FLAGS)
-+  append_c_compiler_flags("/Qspectre /W4" "VC" CMAKE_C_FLAGS)
-   append_c_compiler_flags("/Oi;/Ot;/Ox;/Oy" "VC" CMAKE_C_FLAGS_RELEASE)
-   if(USE_OPENMP)
-     append_c_compiler_flags("/openmp" "VC" CMAKE_C_FLAGS)
 diff --git a/CMakeLists.txt b/CMakeLists.txt
-index ad3df4b..df30bd5 100644
+index 8883838..8ada95a 100644
 --- a/CMakeLists.txt
 +++ b/CMakeLists.txt
-@@ -1,4 +1,4 @@
--cmake_minimum_required(VERSION 3.10)
-+cmake_minimum_required(VERSION 3.20)
- 
- project(bsdiff)
- 
-@@ -6,14 +6,7 @@ option(BUILD_SHARED_LIBS "Set to ON to build shared libraries" OFF)
+@@ -8,14 +8,7 @@ option(BUILD_SHARED_LIBS "Set to ON to build shared libraries" OFF)
  option(BUILD_STANDALONES "Set to OFF to not build standalones" ON)
  
  # bzip2
@@ -187,7 +18,7 @@ index ad3df4b..df30bd5 100644
  
  # libdivsufsort
  function(add_libdivsufsort)
-@@ -38,16 +31,18 @@ add_library(bsdiff
+@@ -41,16 +34,16 @@ add_library(bsdiff
      source/bsdiff.c
      source/bspatch.c)
  target_include_directories(bsdiff
@@ -195,46 +26,29 @@ index ad3df4b..df30bd5 100644
      PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/3rdparty/libdivsufsort/include"
      PRIVATE "include")
  if (BUILD_SHARED_LIBS)
-     target_compile_definitions(bsdiff PRIVATE "BSDIFF_BUILD_DLL")
+     target_compile_definitions(bsdiff PRIVATE "BSDIFF_DLL" "BSDIFF_EXPORTS")
  endif()
  if (MSVC)
 -    target_compile_definitions(bsdiff PRIVATE "_CRT_SECURE_NO_WARNINGS")
-+    target_link_options(bsdiff PRIVATE /DYNAMICBASE /guard:cf /sdl /CETCOMPAT)
-+    target_compile_options(bsdiff PRIVATE /sdl /Qspectre /W4)
++    add_compile_options("/Zi;/sdl;/guard:cf;/DEBUG;/W4;/Qspectre")
++    add_link_options("/Zi /sdl /guard:cf /W4 /Qspectre")
  endif()
 -target_link_libraries(bsdiff PRIVATE bzip2 PRIVATE divsufsort PRIVATE divsufsort64)
-+target_link_libraries(bsdiff PRIVATE BZip2::BZip2 PUBLIC divsufsort PUBLIC divsufsort64)
-+
-+set_target_properties(bsdiff PROPERTIES PUBLIC_HEADERS include/bsdiff.h)
++target_link_libraries(bsdiff PRIVATE BZip2::BZip2 PRIVATE divsufsort PRIVATE divsufsort64)
  
  if (BUILD_STANDALONES)
-     # bsdiff_diff
-@@ -57,6 +52,10 @@ if (BUILD_STANDALONES)
-     if (BUILD_SHARED_LIBS)
-         target_compile_definitions(bsdiff_diff PRIVATE "BSDIFF_DLL")
+     # bsdiff_app
+@@ -70,6 +63,20 @@ if (BUILD_STANDALONES)
+         target_compile_definitions(bspatch_app PRIVATE "BSDIFF_DLL")
      endif()
-+    if (MSVC)
-+       target_link_options(bsdiff_diff PRIVATE /DYNAMICBASE /guard:cf /sdl /CETCOMPAT)
-+       target_compile_options(bsdiff_diff PRIVATE /sdl /Qspectre /W4)
-+    endif()
- 
-     # bsdiff_patch
-     add_executable(bsdiff_patch source/bsdiff_patch.c)
-@@ -65,4 +64,22 @@ if (BUILD_STANDALONES)
-     if (BUILD_SHARED_LIBS)
-         target_compile_definitions(bsdiff_patch PRIVATE "BSDIFF_DLL")
-     endif()
-+    if (MSVC)
-+       target_link_options(bsdiff_patch PRIVATE /DYNAMICBASE /guard:cf /sdl /CETCOMPAT)
-+       target_compile_options(bsdiff_patch PRIVATE /sdl /Qspectre /W4)
-+    endif()
+     target_link_libraries(bspatch_app PRIVATE bsdiff)
 +
 +    install(TARGETS
-+        bsdiff bsdiff_diff bsdiff_patch divsufsort divsufsort64
++        bspatch_app bsdiff_app bsdiff divsufsort divsufsort64
 +        RUNTIME DESTINATION bin
 +        LIBRARY DESTINATION lib
 +        ARCHIVE DESTINATION lib
-+        )
++       )
 +else()
 +    install(TARGETS
 +        bsdiff divsufsort divsufsort64
@@ -243,93 +57,23 @@ index ad3df4b..df30bd5 100644
 +        ARCHIVE DESTINATION lib
 +        )
  endif()
-diff --git a/source/file_stream.c b/source/file_stream.c
-index 7b999c6..cf6aed4 100644
---- a/source/file_stream.c
-+++ b/source/file_stream.c
-@@ -5,7 +5,7 @@
- static int bsdiff_stream_file_seek(void *state, int64_t offset, int origin)
- {
- 	int n;
--	FILE *f = (FILE*)state;
-+	FILE *f = (FILE *)state;
- #if defined(_MSC_VER)
- 	n = _fseeki64(f, offset, origin);
- 	return (n != 0) ? BSDIFF_FILE_ERROR : BSDIFF_SUCCESS;
-@@ -17,7 +17,7 @@ static int bsdiff_stream_file_seek(void *state, int64_t offset, int origin)
  
- static int bsdiff_stream_file_tell(void *state, int64_t *position)
- {
--	FILE *f = (FILE*)state;
-+	FILE *f = (FILE *)state;
- #if defined(_MSC_VER)
- 	*position = _ftelli64(f);
- 	return (*position == -1) ? BSDIFF_FILE_ERROR : BSDIFF_SUCCESS;
-@@ -29,8 +29,8 @@ static int bsdiff_stream_file_tell(void *state, int64_t *position)
+ if (BUILD_TESTING)
+diff --git a/source/stream_file.c b/source/stream_file.c
+index f63df59..9c5639d 100644
+--- a/source/stream_file.c
++++ b/source/stream_file.c
+@@ -84,7 +84,13 @@ int bsdiff_open_file_stream(
+ 	assert(filename);
+ 	assert(stream);
  
- static int bsdiff_stream_file_read(void *state, void *buffer, size_t size, size_t *readed)
- {
--	FILE *f = (FILE*)state;
--	
-+	FILE *f = (FILE *)state;
-+
- 	*readed = 0;
- 
- 	/* The ANSI standard requires a return value of 0 for a size of 0. */
-@@ -46,41 +46,50 @@ static int bsdiff_stream_file_read(void *state, void *buffer, size_t size, size_
- 
- static int bsdiff_stream_file_write(void *state, const void *buffer, size_t size)
- {
--	FILE *f = (FILE*)state;
-+	FILE *f = (FILE *)state;
- 	size_t n = fwrite(buffer, 1, size, f);
- 	return (n < size) ? BSDIFF_FILE_ERROR : BSDIFF_SUCCESS;
- }
- 
- static int bsdiff_stream_file_flush(void *state)
- {
--	FILE *f = (FILE*)state;
-+	FILE *f = (FILE *)state;
- 	return fflush(f) != 0 ? BSDIFF_FILE_ERROR : BSDIFF_SUCCESS;
- }
- 
- static void bsdiff_stream_file_close(void *state)
- {
--	FILE *f = (FILE*)state;
-+	FILE *f = (FILE *)state;
- 	fclose(f);
- }
- 
- int bsdiff_open_file_stream(
--	const char *filename, 
-+	const char *filename,
- 	int write,
- 	struct bsdiff_stream *stream)
- {
- 	FILE *f;
- 
-+#ifdef WIN32
-+	errno_t err = fopen_s(&f, filename, write ? "wb" : "rb");
++#if defined(_MSC_VER)
++	errno_t err = fopen_s(&f, filename, (mode == BSDIFF_MODE_WRITE) ? "wb" : "rb");
 +	if (err)
 +		return BSDIFF_FILE_ERROR;
 +#else
- 	f = fopen(filename, write ? "wb" : "rb");
+ 	f = fopen(filename, (mode == BSDIFF_MODE_WRITE) ? "wb" : "rb");
++#endif
  	if (f == NULL)
  		return BSDIFF_FILE_ERROR;
-+#endif
  
- 	memset(stream, 0, sizeof(*stream));
- 	stream->state = f;
- 	stream->seek = bsdiff_stream_file_seek;
- 	stream->tell = bsdiff_stream_file_tell;
--	if (!write) {
-+	if (!write)
-+	{
- 		stream->read = bsdiff_stream_file_read;
--	} else {
-+	}
-+	else
-+	{
- 		stream->write = bsdiff_stream_file_write;
- 		stream->flush = bsdiff_stream_file_flush;
- 	}

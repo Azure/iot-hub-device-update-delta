@@ -6,11 +6,11 @@
  */
 #pragma once
 
+#include <json/json.h>
+
 #include <map>
 
 #include <hashing/hash.h>
-
-#include <json/json.h>
 
 namespace archive_diff::diffs::core
 {

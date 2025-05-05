@@ -25,6 +25,8 @@
 
 TEST(bspatch_decompression_reader, compress_with_basis_and_then_decompress)
 {
+	using namespace archive_diff;
+
 	// First, acquire the raw uncompressed blob by using ZSTD to decompress it
 	auto compressed_path = g_test_data_root / c_sample_file_zst_compressed;
 
@@ -57,11 +59,11 @@ TEST(bspatch_decompression_reader, compress_with_basis_and_then_decompress)
 	auto new_reader = device::make_reader(uncompressed_data_vector, device::size_kind::vector_size);
 
 	// Make a writer for "diff"
-	auto diff_data_vector = std::make_shared<std::vector<char>>();
-	archive_diff::io::buffer::writer diff_writer(diff_data_vector);
+	auto diff_data_vector                     = std::make_shared<std::vector<char>>();
+	std::shared_ptr<io::writer> buffer_writer = std::make_shared<io::buffer::writer>(diff_data_vector);
 
 	// Call into compressor
-	archive_diff::io::compressed::bsdiff_compressor::delta_compress(old_reader, new_reader, &diff_writer);
+	io::compressed::bsdiff_compressor::delta_compress(old_reader, new_reader, buffer_writer);
 
 	// Now use BSPATCH decompression reader to apply diff
 

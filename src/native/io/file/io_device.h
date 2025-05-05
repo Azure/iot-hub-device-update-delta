@@ -19,7 +19,7 @@ class io_device : public io::io_device
 {
 	public:
 	io_device(const std::string &path);
-	virtual ~io_device() {}
+	virtual ~io_device() = default;
 
 	static reader make_reader(const std::string &path);
 

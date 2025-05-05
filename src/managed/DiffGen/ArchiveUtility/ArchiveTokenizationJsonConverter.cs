@@ -29,9 +29,9 @@ namespace ArchiveUtility
             ItemDefinition archiveItem = null;
             ItemDefinition sourceItem = null;
             SerializedPayloadList payload = null;
-            SerializedRecipeSetList recipes = null;
-            SerializedRecipeList forwardRecipes = null;
-            SerializedRecipeList reverseRecipes = null;
+            List<Recipe> recipes = null;
+            List<Recipe> forwardRecipes = null;
+            List<Recipe> reverseRecipes = null;
 
             while (reader.Read())
             {
@@ -72,13 +72,13 @@ namespace ArchiveUtility
                         payload = JsonSerializer.Deserialize<SerializedPayloadList>(ref reader, options);
                         break;
                     case "Recipes":
-                        recipes = JsonSerializer.Deserialize<SerializedRecipeSetList>(ref reader, options);
+                        recipes = JsonSerializer.Deserialize<List<Recipe>>(ref reader, options);
                         break;
                     case "ForwardRecipes":
-                        forwardRecipes = JsonSerializer.Deserialize<SerializedRecipeList>(ref reader, options);
+                        forwardRecipes = JsonSerializer.Deserialize<List<Recipe>>(ref reader, options);
                         break;
                     case "ReverseRecipes":
-                        reverseRecipes = JsonSerializer.Deserialize<SerializedRecipeList>(ref reader, options);
+                        reverseRecipes = JsonSerializer.Deserialize<List<Recipe>>(ref reader, options);
                         break;
                     default:
                         throw new JsonException();
@@ -111,12 +111,12 @@ namespace ArchiveUtility
 
             if (forwardRecipes != null)
             {
-                tokens.ForwardRecipes = forwardRecipes.ToDictionary();
+                tokens.ForwardRecipes = forwardRecipes.Select(x => new KeyValuePair<ItemDefinition, Recipe>(x.Result, x)).ToDictionary();
             }
 
             if (reverseRecipes != null)
             {
-                tokens.ReverseRecipes = reverseRecipes.ToDictionary();
+                tokens.ReverseRecipes = reverseRecipes.Select(x => new KeyValuePair<ItemDefinition, Recipe>(x.Result, x)).ToDictionary();
             }
 
             return tokens;
@@ -142,10 +142,10 @@ namespace ArchiveUtility
             JsonSerializer.Serialize(writer, value.Recipes, options);
 
             writer.WritePropertyName("ForwardRecipes");
-            JsonSerializer.Serialize(writer, value.ForwardRecipes.ToList(), options);
+            JsonSerializer.Serialize(writer, value.ForwardRecipes.Values.ToList(), options);
 
             writer.WritePropertyName("ReverseRecipes");
-            JsonSerializer.Serialize(writer, value.ReverseRecipes.ToList(), options);
+            JsonSerializer.Serialize(writer, value.ReverseRecipes.Values.ToList(), options);
 
             writer.WriteEndObject();
         }

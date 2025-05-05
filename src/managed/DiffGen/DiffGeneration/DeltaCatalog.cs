@@ -6,6 +6,7 @@
  */
 namespace Microsoft.Azure.DeviceUpdate.Diffs;
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -35,6 +36,23 @@ public class DeltaCatalog
 
     public void AddRecipe(ItemDefinition item, Recipe recipe)
     {
+        if (!recipe.IsDeltaRecipe())
+        {
+            throw new Exception($"Trying to add new recipe, but it is not a delta recipe: {recipe}");
+        }
+
+        if (_recipes.ContainsKey(item))
+        {
+            var deltaItem = recipe.GetDeltaItem();
+            var oldDeltaItem = _recipes[item].GetDeltaItem();
+
+            // Don't bother adding if we already had a better delta.
+            if (deltaItem.Length > oldDeltaItem.Length)
+            {
+                return;
+            }
+        }
+
         _recipes[item] = recipe;
     }
 

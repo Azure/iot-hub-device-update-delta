@@ -73,6 +73,7 @@ public class DiffTests
         }
     }
 
+    // N.B. Nested input data contains malformed data for the inner most CPIO, so an exectpion is normal.
     [DataRow("samples/diffs/simple/source.cpio", "samples/diffs/simple/target.cpio")]
     [DataRow("samples/diffs/nested/source.cpio", "samples/diffs/nested/target.cpio")]
     [DataRow("samples/diffs/complex/source.cpio", "samples/diffs/complex/target.cpio")]

@@ -1,27 +1,30 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 #
-param([string] $VcpkgTriplet, [string] $BuildType, [string] $Stages)
+param([string] $BuildFlavor, [string] $BuildType, [string] $Stages)
 
 function Usage {
-	Write-Host "Usage: build.ps1 [vcpkg_triplet] [build_type] [stages]"
-	Write-Host "   vcpkg_triplet: 'x64-windows' (default) or 'x86-windows'"
+	Write-Host "Usage: build.ps1 [build_flavor] [build_type] [stages]"
+	Write-Host "   build_flavor: 'x64-windows' (default) or 'x86-windows'"
 	Write-Host "   build_type   : 'Debug' (default) or 'Release'"
 	Write-Host "   stages       : 'vcpkg', 'cmake', 'build', 'all' (default)"
 }
 
-if ([string]::IsNullOrEmpty($VcpkgTriplet)) {
-	$VcpkgTriplet = "x64-windows"
+if ([string]::IsNullOrEmpty($BuildFlavor)) {
+	$BuildFlavor = "x64-windows"
+	$VcpkgTriplet = "x64-windows-secure"
 }
 
-if ($VcpkgTriplet -match "x64-windows") {
+if ($BuildFlavor -match "x64-windows") {
+	$VcpkgTriplet = "x64-windows-secure"
 	$cmakePlatformParameter = "-A x64"
 }
-elseif ($VcpkgTriplet -match "x86-windows") {
+elseif ($BuildFlavor -match "x86-windows") {
+	$VcpkgTriplet = "x86-windows-secure"
 	$cmakePlatformParameter = "-DCMAKE_GENERATOR_PLATFORM=WIN32"
 }
 else {
-	Write-Host "Invalid VcpkgTriplet: $VcpkgTriplet"
+	Write-Host "Invalid BuildFlavor: $BuildFlavor"
 	Usage
 	exit 1
 }
@@ -41,6 +44,7 @@ if ([string]::IsNullOrEmpty($Stages)) {
 }
 
 
+Write-Host "BuildFlavor     : $BuildFlavor"
 Write-Host "VcpkgTriplet    : $VcpkgTriplet"
 Write-Host "BuildType       : $BuildType"
 Write-Host "Stages          : $Stages"
@@ -65,7 +69,6 @@ function RunSetupVCPkg {
 	$setupVCPkgScript = Resolve-Path("..\..\vcpkg\setup_vcpkg.ps1")
 
 	Write-Host "Calling ${setupVCPkgScript} $vcpkgRepo $repoRoot $VcpkgTriplet"
-
 	&${setupVCPkgScript} $vcpkgRepo $repoRoot $VcpkgTriplet
 	if ($LASTEXITCODE -ne 0) {
 		Write-Host "VCPKG Setup failed."
@@ -105,7 +108,7 @@ function FindToolInPath {
 }
 
 $cmakeSourceDir = Resolve-Path(".")
-$cmakeBuildDir = & .\GetCMakeBuildDir $VcpkgTriplet $BuildType
+$cmakeBuildDir = & .\GetCMakeBuildDir $BuildFlavor $BuildType
 Write-Host "CMake Source Dir: $cmakeSourceDir"
 Write-Host "CMake Build Dir : $cmakeBuildDir"
 
@@ -149,8 +152,6 @@ function CopyBsdiffBinaryFiles {
 	$targetBin = "${cmakeBuildDir}\bin\$BuildType"
 
 	Copy-Item $bsdiffPackageBinaries/* ${cmakeBuildDir}\bin\$BuildType | Out-Host
-	Move-Item $targetBin/bsdiff_diff.exe $targetBin/bsdiff.exe -Force | Out-Host
-	Move-Item $targetBin/bsdiff_patch.exe $targetBin/bspatch.exe -Force | Out-Host
 }
 
 $targetBin = "${cmakeBuildDir}\bin\$BuildType"
@@ -178,8 +179,8 @@ function CopyVcpkgLicenseFile {
 function RunMsBuild {
 	$msbuild = FindToolInPath $env:ProgramFiles "msbuild.exe"
 
-	Write-Host "Calling: `"${msbuild}`" $cmakeBuildDir\adu_diffs.sln /property:OutputPath=. /property:UseStructuredOutput=false /property:Configuration=$BuildType"
-	& "$msbuild" $cmakeBuildDir\adu_diffs.sln /property:OutputPath=. /property:UseStructuredOutput=false /property:Configuration=$BuildType | Out-Host
+	Write-Host "Calling: `"${msbuild}`" $cmakeBuildDir\adu_diffs.sln /property:OutputPath=. /property:UseStructuredOutput=false /property:Configuration=$BuildType /m"
+	& "$msbuild" $cmakeBuildDir\adu_diffs.sln /property:OutputPath=. /property:UseStructuredOutput=false /property:Configuration=$BuildType /m | Out-Host
 
 	if ($LASTEXITCODE -ne 0) {
 		Write-Host "Build failed."
@@ -187,6 +188,7 @@ function RunMsBuild {
 	}
 
 	Write-Host "Copying VCPKG binaries and license files."
+
 	CopyBsdiffBinaryFiles
 
 	CopyBaseWindowsLicense
@@ -197,7 +199,7 @@ function RunMsBuild {
 	CopyVcpkgLicenseFile jsoncpp
 	CopyVcpkgLicenseFile libconfig
 	CopyVcpkgLicenseFile zlib
-	CopyVcpkgLicenseFile zstd LICENSE
+	CopyVcpkgLicenseFile zstd
 
 	Write-Host "Build Output (binaries): " (Get-ChildItem ${cmakeBuildDir}\bin\$BuildType) | Out-Host
 

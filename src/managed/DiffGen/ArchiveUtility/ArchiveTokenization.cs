@@ -17,7 +17,6 @@ namespace ArchiveUtility
 
     using RecipeLookup = System.Collections.Generic.Dictionary<ArchiveUtility.ItemDefinition, ArchiveUtility.Recipe>;
     using SerializedPayloadList = System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<ArchiveUtility.Payload, System.Collections.Generic.HashSet<ArchiveUtility.ItemDefinition>>>;
-    using SerializedRecipeList = System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<ArchiveUtility.ItemDefinition, System.Collections.Generic.HashSet<ArchiveUtility.Recipe>>>;
 
     [SuppressMessage("Microsoft.StyleCop.CSharp.ReadabilityRules", "SA1121", Justification = "We want to be explicit about bit-width using these aliases.")]
     public class ArchiveTokenization
@@ -39,7 +38,7 @@ namespace ArchiveUtility
 
         public SerializedPayloadList Payload { get => PayloadCatalog.Entries.ToList(); }
 
-        public SerializedRecipeList Recipes { get => RecipeCatalog.Entries.ToList(); }
+        public IEnumerable<Recipe> Recipes { get => GetAllRecipes(); }
 
         public RecipeLookup ForwardRecipes { get; set; } = new();
 
@@ -48,6 +47,10 @@ namespace ArchiveUtility
         private PayloadCatalog PayloadCatalog = new();
 
         private RecipeCatalog RecipeCatalog = new();
+
+        private HashSet<ItemDefinition> Items = new HashSet<ItemDefinition>();
+
+        private Dictionary<UInt64, HashSet<ItemDefinition>> ItemsBySize = new();
 
         public ArchiveTokenization(string type, string subtype)
         {
@@ -94,14 +97,11 @@ namespace ArchiveUtility
             }
         }
 
-        public void SetRecipes(SerializedRecipeList recipes)
+        public void SetRecipes(List<Recipe> recipes)
         {
-            foreach (var recipeEntry in recipes)
+            foreach (var recipe in recipes)
             {
-                foreach (var recipe in recipeEntry.Value)
-                {
-                    RecipeCatalog.AddRecipe(recipe);
-                }
+                AddRecipe(recipe);
             }
         }
 
@@ -129,12 +129,6 @@ namespace ArchiveUtility
             return HasItemImpl(RemainderItem);
         }
 
-        private Dictionary<ItemDefinition, HashSet<string>> ItemToNamesLookup = new();
-        private Dictionary<string, HashSet<ItemDefinition>> NameToItemsLookup = new();
-        private Dictionary<string, HashSet<ItemDefinition>> WildcardNameToItemsLookup = new();
-        private Dictionary<UInt64, HashSet<ItemDefinition>> LengthBasedItemLookup = new();
-        private Dictionary<Hash, HashSet<ItemDefinition>> HashToItemLookup = new();
-
         public bool IsSpecialItem(ItemDefinition item)
         {
             if (item.Equals(ArchiveItem))
@@ -153,16 +147,6 @@ namespace ArchiveUtility
             }
 
             return false;
-        }
-
-        public IEnumerable<ItemDefinition> GetItemsWithSameSize(UInt64 length)
-        {
-            if (LengthBasedItemLookup.ContainsKey(length))
-            {
-                return LengthBasedItemLookup[length];
-            }
-
-            return null;
         }
 
         public void AddRootPayload(string name, ItemDefinition item)
@@ -191,7 +175,35 @@ namespace ArchiveUtility
 
         public void AddRecipe(Recipe recipe)
         {
+            var result = recipe.Result;
+            AddItem(result);
+
+            var ingredients = recipe.ItemIngredients;
+            foreach (var ingredient in ingredients)
+            {
+                AddItem(ingredient);
+            }
+
             RecipeCatalog.AddRecipe(recipe);
+        }
+
+        private void AddItem(ItemDefinition item)
+        {
+            Items.Add(item);
+
+            HashSet<ItemDefinition> itemsForThisSize = null;
+
+            if (!ItemsBySize.ContainsKey(item.Length))
+            {
+                itemsForThisSize = new();
+                ItemsBySize[item.Length] = itemsForThisSize;
+            }
+            else
+            {
+                itemsForThisSize = ItemsBySize[item.Length];
+            }
+
+            itemsForThisSize.Add(item);
         }
 
         public void AddRecipes(IEnumerable<Recipe> recipes)
@@ -228,6 +240,10 @@ namespace ArchiveUtility
         public IEnumerable<Recipe> GetRemainderRecipes() => RecipeCatalog.GetRecipesUsing(RemainderItem);
 
         public IEnumerable<Recipe> GetInlineAssetRecipes() => RecipeCatalog.GetRecipesUsing(InlineAssetsItem);
+
+        public IEnumerable<Recipe> GetAllRecipes() => RecipeCatalog.GetAllRecipes();
+
+        public HashSet<ItemDefinition> GetAllPayloadItems() => PayloadCatalog.Entries.Values.SelectMany(x => x).ToHashSet();
 
         // Serialization
         public static JsonSerializerOptions GetStandardJsonSerializerOptions()
@@ -354,11 +370,11 @@ namespace ArchiveUtility
 
                 if (ArchiveLoader.TryLoadArchive(context, out ArchiveTokenization tokens, type))
                 {
-                    context.Logger.LogInformation("Loaded nested archive of type: {type}", type);
+                    context.Logger?.LogInformation("Loaded nested archive of type: {type}", type);
 
                     string nestedJson = tokens.ArchiveItem.GetExtractionPath(context.WorkingFolder) + $".{type}.json";
 
-                    context.Logger.LogInformation("Writing nested json to {NestedJson}", nestedJson);
+                    context.Logger?.LogInformation("Writing nested json to {NestedJson}", nestedJson);
 
                     using (var nestedJsonStream = File.OpenWrite(nestedJson))
                     {
@@ -582,26 +598,20 @@ namespace ArchiveUtility
             var toArchive = ArchiveItem.GetSha256HashString();
             var fromArchive = tokens.ArchiveItem.GetSha256HashString();
 
-            logger.LogInformation("Importing archive {fromArchive} into {toArchive}", fromArchive, toArchive);
+            logger?.LogInformation("Importing archive {fromArchive} into {toArchive}", fromArchive, toArchive);
 
             if (tokens.RecipeCatalog.HasAnyRecipes(tokens.ArchiveItem))
             {
-                logger.LogInformation("Imported archive has a recipe for the ArchiveItem.");
+                logger?.LogInformation("Imported archive has a recipe for the ArchiveItem.");
             }
             else
             {
-                logger.LogInformation("Imported archive does not have a recipe for the ArchiveItem.");
+                logger?.LogInformation("Imported archive does not have a recipe for the ArchiveItem.");
             }
 
-            foreach (var recipeEntry in tokens.Recipes)
+            foreach (var recipe in tokens.Recipes)
             {
-                var result = recipeEntry.Key;
-                var recipes = recipeEntry.Value;
-
-                foreach (var recipe in recipes)
-                {
-                    RecipeCatalog.AddRecipe(recipe);
-                }
+                RecipeCatalog.AddRecipe(recipe);
             }
 
             foreach (var recipeEntry in tokens.ForwardRecipes)

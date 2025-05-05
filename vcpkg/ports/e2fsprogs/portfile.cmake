@@ -1,4 +1,4 @@
-set(VERSION 1.47)
+set(VERSION 1.47.2)
 
 message(WARNING "${PORT} currently requires the following packages:\n"
  "  x64: gcc-x86-64-linux-gnu g++-x86-64-linux-gnu binutils-x86-64-linux-gnu pkg-config-x86-64-linux-gnu\n"
@@ -10,8 +10,8 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Linux")
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO tytso/e2fsprogs
-    REF 950a0d69c82b585aba30118f01bf80151deffe8c
-    SHA512 b0fbbdd6d55c1de9cd9bc1a8211112ec5ce41fd5bc886070cb7a1d0cb504615d322b6d488b68f7cf99bca43e7e6ef17bc66dd36e3ac75b7e692395535fbca6ca
+    REF ff64357f839071968a727f8b5a08b0ddaedc5bbb
+    SHA512 af19134b97df86ce33564ef0a7f357125af4171d8a1862f775e6404ca6e104223b06b2eeaea6064ba184c410688ca8f95901389b5562bbb551767e230615cdde
     HEAD_REF main
     PATCHES
         get_current_physblock.patch
@@ -51,8 +51,8 @@ else()
 vcpkg_from_github(
     OUT_SOURCE_PATH SOURCE_PATH
     REPO tytso/e2fsprogs
-    REF 950a0d69c82b585aba30118f01bf80151deffe8c
-    SHA512 b0fbbdd6d55c1de9cd9bc1a8211112ec5ce41fd5bc886070cb7a1d0cb504615d322b6d488b68f7cf99bca43e7e6ef17bc66dd36e3ac75b7e692395535fbca6ca
+    REF ff64357f839071968a727f8b5a08b0ddaedc5bbb
+    SHA512 af19134b97df86ce33564ef0a7f357125af4171d8a1862f775e6404ca6e104223b06b2eeaea6064ba184c410688ca8f95901389b5562bbb551767e230615cdde
     HEAD_REF main
     PATCHES
         get_current_physblock.patch

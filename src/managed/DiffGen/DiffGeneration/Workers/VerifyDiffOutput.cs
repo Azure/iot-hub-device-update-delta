@@ -38,19 +38,26 @@ public class VerifyDiffOutput : Worker
 
         session.AddArchive(OutputFile);
 
-        VerifyInlineAssetProcessing(session);
+        try
+        {
+            VerifyArchiveItemProcessing(session);
+            VerifyArchiveItemExtraction(session);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogException(ex);
 
-        VerifyRemainderProcessing(session);
+            VerifyInlineAssetProcessing(session);
 
-        VerifyArchiveItemProcessing(session);
-
-        VerifyArchiveItemExtraction(session);
+            VerifyRemainderProcessing(session);
+            throw;
+        }
     }
 
     private void VerifyInlineAssetProcessing(DiffApi.DiffaSession session)
     {
         int successfulInlineAssetItems = 0;
-        var inlineAssetRecipes = Diff.Tokens.GetInlineAssetRecipes();
+        var inlineAssetRecipes = Diff.GetInlineAssetRecipes();
         Logger.LogInformation("Verifying {inlineAssetRecipesCount:N0} inline asset recipes.", inlineAssetRecipes.Count());
         foreach (var recipe in inlineAssetRecipes)
         {
@@ -71,7 +78,7 @@ public class VerifyDiffOutput : Worker
     private void VerifyRemainderProcessing(DiffApi.DiffaSession session)
     {
         int successfulRemainderItems = 0;
-        var remainderRecipes = Diff.Tokens.GetRemainderRecipes();
+        var remainderRecipes = Diff.GetRemainderRecipes();
         Logger.LogInformation("Verifying {remainderRecipesCount:N0} remainder recipes.", remainderRecipes.Count());
         foreach (var recipe in remainderRecipes)
         {
@@ -94,14 +101,14 @@ public class VerifyDiffOutput : Worker
         session.AddItemToPantry(SourceFile);
 
         session.ClearRequestedItems();
-        session.RequestItem(Diff.Tokens.ArchiveItem);
+        session.RequestItem(Diff.TargetItem);
         if (!session.ProcessRequestedItems())
         {
-            Logger.LogError("Couldn't process archive item: {0}", Diff.Tokens.ArchiveItem);
+            Logger.LogError("Couldn't process archive item: {0}", Diff.TargetItem);
             throw new Exception("Couldn't verify diff. Archive Item failed to process.");
         }
 
-        Logger.LogInformation("Successfully processed diff result item: {diffTokensArchiveItem}", Diff.Tokens.ArchiveItem);
+        Logger.LogInformation("Successfully processed diff result item: {diffTokensArchiveItem}", Diff.TargetItem);
     }
 
     private void VerifyArchiveItemExtraction(DiffApi.DiffaSession session)
@@ -111,18 +118,18 @@ public class VerifyDiffOutput : Worker
         var extractRoot = Path.Combine(WorkingFolder, "VerifyDiff");
 
         Directory.CreateDirectory(extractRoot);
-        var resultExtractPath = Diff.Tokens.ArchiveItem.GetExtractionPath(extractRoot);
+        var resultExtractPath = Diff.TargetItem.GetExtractionPath(extractRoot);
         Logger.LogInformation("Extracting diff result item to: {resultExtractPath}", resultExtractPath);
-        session.ExtractItemToPath(Diff.Tokens.ArchiveItem, resultExtractPath);
+        session.ExtractItemToPath(Diff.TargetItem, resultExtractPath);
 
         var testResult = ItemDefinition.FromFile(resultExtractPath);
-        if (!testResult.Equals(Diff.Tokens.ArchiveItem))
+        if (!testResult.Equals(Diff.TargetItem))
         {
-            Logger.LogError("Extracted file at {resultExtractPath} didn't match expected Archive Item: {Diff.Tokens.ArchiveItem}", resultExtractPath, Diff.Tokens.ArchiveItem);
+            Logger.LogError("Extracted file at {resultExtractPath} didn't match expected Archive Item: {Diff.Tokens.ArchiveItem}", resultExtractPath, Diff.TargetItem);
             throw new Exception("Extracted file does not match expectded item.");
         }
 
-        Logger.LogInformation("Extracted file at {resultExtractPath} matched Archive Item: {diffTokensArchiveItem}", resultExtractPath, Diff.Tokens.ArchiveItem);
+        Logger.LogInformation("Extracted file at {resultExtractPath} matched Archive Item: {diffTokensArchiveItem}", resultExtractPath, Diff.TargetItem);
 
         session.CancelSlicing();
     }

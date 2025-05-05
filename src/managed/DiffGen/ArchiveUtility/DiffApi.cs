@@ -504,11 +504,10 @@ namespace ArchiveUtility
         {
 #if DEBUG
             "zlibd1.dll",
-            "zstdd.dll",
 #else
             "zlib1.dll",
-            "zstd.dll",
 #endif
+            "zstd.dll",
         };
 
         public class NativeMethods

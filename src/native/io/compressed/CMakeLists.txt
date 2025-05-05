@@ -1,9 +1,6 @@
 add_library(io_compressed STATIC
 	bsdiff_compressor.cpp
 	bspatch_decompression_reader.cpp
-	reader_based_bsdiff_stream.cpp
-	sequential_writer_based_bsdiff_stream.cpp
-	writer_based_bsdiff_stream.cpp
 	writer_to_reader_channel.cpp
 	zlib_compression_reader.cpp
 	zlib_compression_writer.cpp
@@ -13,7 +10,9 @@ add_library(io_compressed STATIC
 	zstd_compression_writer.cpp
 	zstd_decompression_reader.cpp
 	zstd_decompression_writer.cpp
-	 "zstd_wrappers.cpp")
+	bsdiff_stream_wrappers.cpp
+	zstd_wrappers.cpp
+	)
 
 if(UNIX)
     target_compile_options(io_compressed PRIVATE -fPIC)
@@ -34,7 +33,8 @@ target_link_libraries(io_compressed PRIVATE ZLIB::ZLIB)
 endif()
 
 find_package(bsdiff REQUIRED)
-target_link_libraries(io_compressed PUBLIC ${BSDIFF_LIBRARIES})
+target_include_directories(io_compressed PRIVATE ${BSDIFF_INCLUDE_DIRS})
+target_link_libraries(io_compressed PRIVATE ${BSDIFF_LIBRARIES})
 
 target_include_directories(io_compressed PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
 	${CMAKE_SOURCE_DIR}

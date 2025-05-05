@@ -40,11 +40,9 @@ namespace ArchiveUtility
 
         public static Dictionary<HashAlgorithmType, Hash> GetHashesAndLengthOfStream(Stream stream, out UInt64 length)
         {
-            Dictionary<HashAlgorithmType, Hash> hashes = new();
             UInt64 totalRead = 0;
 
             using IncrementalHash sha256 = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-            using IncrementalHash md5 = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
 
             int blockSize = 1024 * 64;
             byte[] data = new byte[blockSize];
@@ -58,22 +56,18 @@ namespace ArchiveUtility
 
                 totalRead += (UInt64)bytesRead;
                 sha256.AppendData(data, 0, bytesRead);
-                md5.AppendData(data, 0, bytesRead);
             }
 
-            hashes.Add(HashAlgorithmType.Sha256, new Hash(HashAlgorithmType.Sha256, sha256.GetCurrentHash()));
-            hashes.Add(HashAlgorithmType.Md5, new Hash(HashAlgorithmType.Md5, md5.GetCurrentHash()));
-
             length = totalRead;
+
+            Dictionary<HashAlgorithmType, Hash> hashes = new();
+            hashes.Add(HashAlgorithmType.Sha256, new Hash(HashAlgorithmType.Sha256, sha256.GetCurrentHash()));
             return hashes;
         }
 
         public static Dictionary<HashAlgorithmType, Hash> CalculateHashes(BinaryReader reader, UInt64 length)
         {
-            Dictionary<HashAlgorithmType, Hash> hashes = new();
-
             using IncrementalHash sha256 = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-            using IncrementalHash md5 = IncrementalHash.CreateHash(HashAlgorithmName.MD5);
 
             ulong blockSize = 1024 * 64;
             byte[] data = new byte[blockSize];
@@ -89,7 +83,6 @@ namespace ArchiveUtility
 
                 remaining -= (UInt64)bytesRead;
                 sha256.AppendData(data, 0, bytesRead);
-                md5.AppendData(data, 0, bytesRead);
             }
 
             if (remaining != 0)
@@ -97,9 +90,8 @@ namespace ArchiveUtility
                 throw new Exception($"Couldn't read expected data for hashing. Length: {length}, blockSize: {blockSize}, {remaining}");
             }
 
+            Dictionary<HashAlgorithmType, Hash> hashes = new();
             hashes.Add(HashAlgorithmType.Sha256, new Hash(HashAlgorithmType.Sha256, sha256.GetCurrentHash()));
-            hashes.Add(HashAlgorithmType.Md5, new Hash(HashAlgorithmType.Md5, md5.GetCurrentHash()));
-
             return hashes;
         }
 
@@ -116,12 +108,6 @@ namespace ArchiveUtility
             {
                 Hash hash = new(HashAlgorithmType.Sha256, sha256.ComputeHash(data.ToArray()));
                 hashes.Add(HashAlgorithmType.Sha256, hash);
-            }
-
-            using (var md5 = MD5.Create())
-            {
-                Hash hash = new(HashAlgorithmType.Md5, md5.ComputeHash(data.ToArray()));
-                hashes.Add(HashAlgorithmType.Md5, hash);
             }
 
             return hashes;

@@ -1,20 +1,20 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 #
-param([string] $VcpkgTriplet, [string] $BuildType)
+param([string] $BuildFlavor, [string] $BuildType)
 
 function Usage {
-	Write-Host "Usage: build.ps1 [vcpkg_triplet] [build_type]"
-	Write-Host "   vcpkg_triplet: 'x64-windows' (default) or 'x86-windows'"
+	Write-Host "Usage: build.ps1 [build_flavor] [build_type]"
+	Write-Host "   build_flavor: 'x64-windows' (default) or 'x86-windows'"
 	Write-Host "   build_type   : 'Debug' (default) or 'Release'"
 }
 
-if ([string]::IsNullOrEmpty($VcpkgTriplet)) {
-	$VcpkgTriplet = "x64-windows"
+if ([string]::IsNullOrEmpty($BuildFlavor)) {
+	$BuildFlavor = "x64-windows"
 }
 
-if (-not (($VcpkgTriplet -match "x64-windows") -or ($VcpkgTriplet -match "x86-windows"))) {
-	Write-Host "Invalid VcpkgTriplet: $VcpkgTriplet"
+if (-not (($BuildFlavor -match "x64-windows") -or ($BuildFlavor -match "x86-windows"))) {
+	Write-Host "Invalid BuildFlavor: $BuildFlavor"
 	Usage
 	exit 1
 }
@@ -30,7 +30,7 @@ if (-not ($BuildType -match "Release") -and -not ($BuildType -match "Debug")) {
 }
 
 Push-Location native
-./build.ps1 $VcpkgTriplet $BuildType "all"
+./build.ps1 $BuildFlavor $BuildType "all"
 Pop-Location
 if ($LASTEXITCODE -ne 0) {
 	Write-Host "Result from native build was $LASTEXITCODE, exiting."

@@ -30,12 +30,14 @@
 
 TEST(bspatch_decompression_recipe, make_sequential_reader)
 {
+	using namespace archive_diff;
+
 	// First, acquire the raw uncompressed blob by using ZSTD to decompress it
 	auto compressed_path = g_test_data_root / c_sample_file_zst_compressed;
 
-	auto compressed_file_reader = archive_diff::io::file::io_device::make_reader(compressed_path.string());
+	auto compressed_file_reader = io::file::io_device::make_reader(compressed_path.string());
 
-	archive_diff::io::compressed::zstd_decompression_reader decompression_reader{
+	io::compressed::zstd_decompression_reader decompression_reader{
 		compressed_file_reader, c_sample_file_zst_uncompressed_size};
 	ASSERT_EQ(decompression_reader.size(), c_sample_file_zst_uncompressed_size);
 
@@ -57,66 +59,64 @@ TEST(bspatch_decompression_recipe, make_sequential_reader)
 	// Now use BSDIFF compressor to create a diff
 
 	// Make readers for "old" and "new" file
-	using device    = archive_diff::io::buffer::io_device;
+	using device    = io::buffer::io_device;
 	auto old_reader = device::make_reader(modified_copy_vector, device::size_kind::vector_size);
 	auto new_reader = device::make_reader(uncompressed_data_vector, device::size_kind::vector_size);
 
 	// Make a writer for "diff"
-	auto diff_data_vector = std::make_shared<std::vector<char>>();
-	archive_diff::io::buffer::writer diff_writer(diff_data_vector);
-	auto diff_data = std::string_view{diff_data_vector->data(), diff_data_vector->size()};
+	auto diff_data_vector                     = std::make_shared<std::vector<char>>();
+	std::shared_ptr<io::writer> buffer_writer = std::make_shared<io::buffer::writer>(diff_data_vector);
+	auto diff_data                            = std::string_view{diff_data_vector->data(), diff_data_vector->size()};
 
 	// Call into compressor
-	archive_diff::io::compressed::bsdiff_compressor::delta_compress(old_reader, new_reader, &diff_writer);
+	io::compressed::bsdiff_compressor::delta_compress(old_reader, new_reader, buffer_writer);
 
 	// Now use BSPATCH decompression reader to apply diff
 
 	// Make reader for "diff"
 	auto diff_reader = device::make_reader(diff_data_vector, device::size_kind::vector_size);
 
-	// archive_diff::test_utility::write_to_file(*modified_copy, fs::temp_directory_path() / "old" );
-	// archive_diff::test_utility::write_to_file(*uncompressed_data_vector, fs::temp_directory_path() / "new");
-	// archive_diff::test_utility::write_to_file(*diff_data_vector, fs::temp_directory_path() / "diff");
+	// test_utility::write_to_file(*modified_copy, fs::temp_directory_path() / "old" );
+	// test_utility::write_to_file(*uncompressed_data_vector, fs::temp_directory_path() / "new");
+	// test_utility::write_to_file(*diff_data_vector, fs::temp_directory_path() / "diff");
 
 	auto uncompressed_item = create_definition_from_span(uncompressed_data);
 	auto diff_item         = create_definition_from_data(diff_data);
 	auto basis_item        = create_definition_from_span(modified_copy_data);
 
 	std::vector<uint64_t> number_ingredients;
-	std::vector<archive_diff::diffs::core::item_definition> item_ingredients;
+	std::vector<diffs::core::item_definition> item_ingredients;
 	item_ingredients.push_back(diff_item);
 	item_ingredients.push_back(basis_item);
 
-	archive_diff::diffs::recipes::compressed::bspatch_decompression_recipe::recipe_template recipe_template{};
+	diffs::recipes::compressed::bspatch_decompression_recipe::recipe_template recipe_template{};
 	auto decompress_recipe = recipe_template.create_recipe(uncompressed_item, number_ingredients, item_ingredients);
 
 	// verify there are two item ingredients
 	auto &item_ingredients_found = decompress_recipe->get_item_ingredients();
 	ASSERT_EQ(2, item_ingredients_found.size());
 
-	auto kitchen = archive_diff::diffs::core::kitchen::create();
+	auto kitchen = diffs::core::kitchen::create();
 
 	ASSERT_FALSE(kitchen->can_fetch_item(uncompressed_item));
 
 	kitchen->add_recipe(decompress_recipe);
 	ASSERT_FALSE(kitchen->can_fetch_item(uncompressed_item));
 
-	using device = archive_diff::io::buffer::io_device;
-	std::shared_ptr<archive_diff::io::reader_factory> diff_data_factory =
-		std::make_shared<archive_diff::io::buffer::reader_factory>(
-			diff_data_vector, device::size_kind::vector_capacity);
+	using device = io::buffer::io_device;
+	std::shared_ptr<io::reader_factory> diff_data_factory =
+		std::make_shared<io::buffer::reader_factory>(diff_data_vector, device::size_kind::vector_capacity);
 
-	auto prep_compressed = std::make_shared<archive_diff::diffs::core::prepared_item>(
-		diff_item, archive_diff::diffs::core::prepared_item::reader_kind{diff_data_factory});
+	auto prep_compressed = std::make_shared<diffs::core::prepared_item>(
+		diff_item, diffs::core::prepared_item::reader_kind{diff_data_factory});
 
 	kitchen->store_item(prep_compressed);
 	ASSERT_FALSE(kitchen->can_fetch_item(uncompressed_item));
 
-	std::shared_ptr<archive_diff::io::reader_factory> basis_factory =
-		std::make_shared<archive_diff::io::buffer::reader_factory>(
-			modified_copy_vector, device::size_kind::vector_size);
-	auto prep_basis = std::make_shared<archive_diff::diffs::core::prepared_item>(
-		basis_item, archive_diff::diffs::core::prepared_item::reader_kind{basis_factory});
+	std::shared_ptr<io::reader_factory> basis_factory =
+		std::make_shared<io::buffer::reader_factory>(modified_copy_vector, device::size_kind::vector_size);
+	auto prep_basis = std::make_shared<diffs::core::prepared_item>(
+		basis_item, diffs::core::prepared_item::reader_kind{basis_factory});
 	kitchen->store_item(prep_basis);
 	kitchen->request_item(uncompressed_item);
 	ASSERT_TRUE(kitchen->process_requested_items());

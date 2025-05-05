@@ -271,7 +271,7 @@ void item_definition::write(io::sequential::writer &writer, serialization_option
 	bool zero_size_has_no_details = (options & serialization_options::zero_size_has_no_details) > 0;
 	bool include_only_sha256_hash = (options & serialization_options::include_only_sha256_hash) > 0;
 
-	writer.write_value(m_length);
+	writer.write_uint64_t(m_length);
 
 	if ((m_length == 0) && zero_size_has_no_details)
 	{
@@ -295,7 +295,7 @@ void item_definition::write(io::sequential::writer &writer, serialization_option
 		else
 		{
 			// we really shouldn't expect a lot of hashes!
-			writer.write_value(static_cast<uint8_t>(m_hashes.size()));
+			writer.write_uint8_t(static_cast<uint8_t>(m_hashes.size()));
 			for (auto &hash_entry : m_hashes)
 			{
 				auto &hash = hash_entry.second;
@@ -318,7 +318,7 @@ item_definition item_definition::read(io::sequential::reader &reader, serializat
 	bool include_only_sha256_hash = (options & serialization_options::include_only_sha256_hash) > 0;
 
 	uint64_t length;
-	reader.read(&length);
+	reader.read_uint64_t(&length);
 
 	item_definition item{length};
 
@@ -339,7 +339,7 @@ item_definition item_definition::read(io::sequential::reader &reader, serializat
 		else
 		{
 			uint8_t hash_count;
-			reader.read(&hash_count);
+			reader.read_uint8_t(&hash_count);
 
 			for (uint8_t i = 0; i < hash_count; i++)
 			{

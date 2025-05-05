@@ -61,11 +61,10 @@ class reader
 
 	size_t read_some(uint64_t offset, std::span<char> buffer) const { return m_impl->read_some(offset, buffer); }
 
-	template <typename T>
-	void read(uint64_t offset, T *value)
-	{
-		read(offset, std::span{reinterpret_cast<char *>(value), sizeof(T)});
-	}
+	void read_uint8_t(uint64_t offset, uint8_t *value);
+	void read_uint16_t(uint64_t offset, uint16_t *value);
+	void read_uint32_t(uint64_t offset, uint32_t *value);
+	void read_uint64_t(uint64_t offset, uint64_t *value);
 
 	void read(uint64_t offset, std::span<char> buffer) const { return m_impl->read(offset, buffer); }
 	void read_all(std::vector<char> &buffer) const;

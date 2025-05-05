@@ -7,7 +7,6 @@
 namespace Microsoft.Azure.DeviceUpdate.Diffs.Utility;
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -62,7 +61,7 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
 
         if (File.Exists(badDiff))
         {
-            logger.LogInformation($"{GetType().Name}: Skipping file, detected bad delta: {badDiff}");
+            logger.LogDebug($"{GetType().Name}: Skipping file, detected bad delta: {badDiff}");
             recipe = null;
             deltaItem = null;
             return false;
@@ -80,7 +79,7 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
             {
                 Worker.CreateCookie(badDiff);
 
-                logger.LogInformation("Skipping delta - length of {0} >= the target length of {1}", deltaItem.Length, targetItem.Length);
+                logger.LogDebug("Skipping delta - length of {0} >= the target length of {1}", deltaItem.Length, targetItem.Length);
                 recipe = null;
                 deltaItem = null;
                 return false;
@@ -121,7 +120,7 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
                 {
                     Worker.CreateCookie(badDiff);
 
-                    logger.LogInformation("Skipping delta - length of {0} >= the target length of {1}", deltaItem.Length, targetItem.Length);
+                    logger.LogDebug("Skipping delta - length of {0} >= the target length of {1}", deltaItem.Length, targetItem.Length);
                     recipe = null;
                     deltaItem = null;
                     return false;
@@ -131,12 +130,12 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
                 return true;
             }
 
-            logger.LogInformation($"{GetType().Name}: Failed. Creating bad diff: {badDiff}");
+            logger.LogDebug($"{GetType().Name}: Failed. Creating bad diff: {badDiff}");
             Worker.CreateCookie(badDiff);
 
             if (!process.HasExited)
             {
-                logger.LogInformation($"{GetType().Name}: Killing diff process. Timeout of {timeout / 1000} seconds was exceeded.");
+                logger.LogDebug($"{GetType().Name}: Killing diff process. Timeout of {timeout / 1000} seconds was exceeded.");
                 process.Kill(true);
             }
 

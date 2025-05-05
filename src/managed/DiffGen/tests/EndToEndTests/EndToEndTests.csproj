@@ -45,8 +45,8 @@
       <DiffGenToolBinaries Include="$(DiffGenToolPath)/*" />
     </ItemGroup>
 
-    <Copy SourceFiles="@(DiffGenToolBinaries)" DestinationFolder="$(OutputPath)/bin" />
-    <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)/bin" />
+    <Copy SourceFiles="@(DiffGenToolBinaries)" DestinationFolder="$(OutputPath)/bin" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(NativeBinaries)" DestinationFolder="$(OutputPath)/bin" SkipUnchangedFiles="true" />
   </Target>
 
 </Project>

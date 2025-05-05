@@ -29,6 +29,18 @@ class adu_log
 		return m_singleton.m_logging_enabled;
 	}
 
+	template <typename... Args>
+	static void Log(const std::string &format, Args &&...args)
+	{
+		if (is_logging_enabled())
+		{
+			// Lambda to defer formatting until logging is enabled
+			auto log_message = [&]() { return fmt::format(fmt::runtime(format), std::forward<Args>(args)...); };
+			std::cout << log_message() << std::endl;
+		}
+	}
+
+
 	private:
 	const char *ADU_ENABLE_LOGGING = "ADU_ENABLE_LOGGING";
 
@@ -39,11 +51,7 @@ class adu_log
 	bool m_logging_enabled{};
 };
 
-#define ADU_LOG(_FORMAT, ...) \
-	if (adu_log::is_logging_enabled()) \
-	{ \
-		std::cout << fmt::format(_FORMAT, __VA_ARGS__) << std::endl;\
-	} \
+#define ADU_LOG(_FORMAT, ...) adu_log::Log(_FORMAT, __VA_ARGS__);
 
 #else
 
