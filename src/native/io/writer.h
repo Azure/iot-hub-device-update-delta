@@ -17,6 +17,12 @@ class writer
 	virtual ~writer() = default;
 
 	virtual void write(uint64_t offset, std::string_view buffer) = 0;
+
+	void write_uint8_t(uint64_t offset, uint8_t value);
+	void write_uint16_t(uint64_t offset, uint16_t value);
+	void write_uint32_t(uint64_t offset, uint32_t value);
+	void write_uint64_t(uint64_t offset, uint64_t value);
+
 	virtual void flush()                                         = 0;
 	virtual uint64_t size() const                                = 0;
 };

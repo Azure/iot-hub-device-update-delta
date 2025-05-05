@@ -304,12 +304,12 @@ bool swu_cmd(fs::path &source, fs::path &dest, std::string *signing_cmd)
 }
 
 #ifdef WIN32
-	#define POPEN  _popen
-	#define PCLOSE _pclose
+	#define POPEN           _popen
+	#define PCLOSE          _pclose
 	#define POPEN_READ_MODE "rt"
 #else
-	#define POPEN  popen
-	#define PCLOSE pclose
+	#define POPEN           popen
+	#define PCLOSE          pclose
 	#define POPEN_READ_MODE "r"
 #endif
 

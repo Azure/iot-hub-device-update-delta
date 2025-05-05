@@ -8,7 +8,7 @@ if ([string]::IsNullOrEmpty($vcpkgRoot)) {
 }
 
 if ([string]::IsNullOrEmpty($triplet)) {
-    $triplet = "x64-windows"
+    $triplet = "x64-windows-secure"
 }
 
 Write-Host "vcpkgRoot: $vcpkgRoot"
@@ -32,8 +32,8 @@ else {
     }
 
     Push-Location $vcpkgRoot
-        $mostRecentVcpkgTag=git describe --tags --abbrev=0
-        git checkout $mostRecentVcpkgTag | Out-Host
+    $mostRecentVcpkgTag = git describe --tags --abbrev=0
+    git checkout $mostRecentVcpkgTag | Out-Host
     Pop-Location
 }
 
@@ -113,12 +113,11 @@ InstallToVcpkg "zlib"
 InstallToVcpkg "zstd"
 InstallToVcpkg "gtest"
 InstallToVcpkg "bzip2"
-InstallToVcpkg "bsdiff"
 InstallToVcpkg "e2fsprogs"
 InstallToVcpkg "jsoncpp"
 InstallToVcpkg "libconfig"
 InstallToVcpkg "fmt"
-InstallToVcpkg "openssl"
+InstallToVcpkg "bsdiff"
 
 IntegrateInstall
 ListPackages

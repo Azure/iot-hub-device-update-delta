@@ -21,6 +21,7 @@ namespace Ext4Archives
         private const int CleanupRetries = 5;
         private const int OneSecondInMilliseconds = 1000;
         private const int CleanupRetrySleep = OneSecondInMilliseconds;
+        private const int LoggingVerbosityThreshold = 1024 * 1024 * 10; // Details about failures for smaller files are logged with lower verbosity
 
         public static string DumpextfsPath
         {
@@ -85,17 +86,19 @@ namespace Ext4Archives
 
                     process.OutputDataReceived += (sender, e) =>
                     {
-                        if (e.Data is not null)
+                        if (e.Data is null)
                         {
-                            Context.Logger.LogInformation(e.Data);
+                            return;
                         }
+
+                        LogInformation(e.Data);
                     };
 
                     process.ErrorDataReceived += (sender, e) =>
                     {
                         if (e.Data is not null)
                         {
-                            Context.Logger.LogError(e.Data);
+                            LogError(e.Data);
                         }
                     };
 
@@ -106,12 +109,16 @@ namespace Ext4Archives
 
                     if (!process.HasExited)
                     {
-                        throw new Exception($"{DumpextfsPath} failed to load file within timeout of {FiveMinutesInMilliseconds} milliseconds.");
+                        LogError($"{DumpextfsPath} failed to load file within timeout of {FiveMinutesInMilliseconds} milliseconds.");
+                        tokens = null;
+                        return false;
                     }
 
                     if (process.ExitCode != 0)
                     {
-                        throw new Exception($"{DumpextfsPath} failed to parse the provided file: {archivePath}. Exit Code: {process.ExitCode}");
+                        LogError($"{DumpextfsPath} failed to parse the provided file: {archivePath}. Exit Code: {process.ExitCode}");
+                        tokens = null;
+                        return false;
                     }
 
                     tokens = ArchiveTokenization.FromJsonPath(jsonFile);
@@ -119,13 +126,10 @@ namespace Ext4Archives
             }
             catch (Exception e)
             {
-                if (Context.Logger is not null)
+                LogError($"[Tokenization of file as ext4 failed. Error: {e.Message}]");
+                if (File.Exists(jsonFile))
                 {
-                    Context.Logger.Log(Context.LogLevel, "[Tokenization of file as ext4 failed. Error: {msg}]", e.Message);
-                    if (File.Exists(jsonFile))
-                    {
-                        Context.Logger.Log(Context.LogLevel, "[ext4 JsonFile: {jsonFile}]", jsonFile);
-                    }
+                    LogError($"[ext4 JsonFile: {jsonFile}]");
                 }
 
                 tokens = null;
@@ -133,6 +137,30 @@ namespace Ext4Archives
             }
 
             return true;
+        }
+
+        public void LogInformation(string message)
+        {
+            if (Context.ArchiveItem.Length >= LoggingVerbosityThreshold)
+            {
+                Context.Logger?.LogInformation(message);
+            }
+            else
+            {
+                Context.Logger?.LogDebug(message);
+            }
+        }
+
+        public void LogError(string message)
+        {
+            if (Context.ArchiveItem.Length >= LoggingVerbosityThreshold)
+            {
+                Context.Logger?.LogError(message);
+            }
+            else
+            {
+                Context.Logger?.LogDebug(message);
+            }
         }
     }
 }

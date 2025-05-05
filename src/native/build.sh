@@ -159,16 +159,8 @@ CopyBsdiffBinaryFiles() {
         BSDIFF_PACKAGE_BINARIES=$( realpath -m "${VCPKG_REPO_ROOT_DIR}/packages/bsdiff_${VCPKG_TRIPLET}/debug/bin" )
     fi
 
-    if [ -f "$BIN_TARGET/bsdiff" ] ; then
-        rm $BIN_TARGET/bsdiff
-    fi
-
-    if [ -f "$BIN_TARGET/bspatch" ] ; then
-        rm $BIN_TARGET/bspatch
-    fi
-
-    cp $BSDIFF_PACKAGE_BINARIES/bsdiff_diff $BIN_TARGET/bsdiff
-    cp $BSDIFF_PACKAGE_BINARIES/bsdiff_patch $BIN_TARGET/bspatch
+    cp $BSDIFF_PACKAGE_BINARIES/bsdiff $BIN_TARGET/bsdiff
+    cp $BSDIFF_PACKAGE_BINARIES/bspatch $BIN_TARGET/bspatch
 }
 
 BASE_LICENSE_SOURCE="$THIS_REPO_ROOT_DIR/licenses/LICENSE.linux"
@@ -225,7 +217,7 @@ Build() {
     CopyVcpkgLicenseFile jsoncpp
     CopyVcpkgLicenseFile libconfig
     CopyVcpkgLicenseFile zlib
-    CopyVcpkgLicenseFile zstd LICENSE
+    CopyVcpkgLicenseFile zstd
     CopyVcpkgLicenseFile openssl
 
     echo "Binaries ($CMAKE_BUILD_DIR):"

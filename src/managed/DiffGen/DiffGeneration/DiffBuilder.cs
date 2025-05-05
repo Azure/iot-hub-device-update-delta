@@ -399,22 +399,11 @@ public class DiffBuilder : Worker
         DeltaCatalog = worker.DeltaCatalog;
     }
 
-    private void SelectDeltasFromCatalog()
-    {
-        var worker = new SelectDeltasFromCatalog(Logger, WorkingFolder, CancellationToken)
-        {
-            Diff = diff,
-            DeltaCatalog = DeltaCatalog,
-        };
-
-        worker.Execute();
-    }
-
     private void CreateDiff()
     {
         diff = new(Logger, SourceTokens, TargetTokens, WorkingFolder);
 
-        diff.Version = 1;
+        diff.Version = 2;
     }
 
     private void SelectItemsForDelta()
@@ -432,6 +421,7 @@ public class DiffBuilder : Worker
 
         SourceItemsNeeded = worker.SourceItemsNeeded;
         TargetItemsNeeded = worker.TargetItemsNeeded;
+
         DeltaPlans = worker.DeltaPlans;
     }
 
@@ -453,24 +443,15 @@ public class DiffBuilder : Worker
         worker.Execute();
     }
 
-    private void CreateInlineAssets()
+    private void CreateDiffRecipes()
     {
-        var worker = new CreateInlineAssets(Logger, WorkingFolder, CancellationToken)
+        var worker = new CreateDiffRecipes(Logger, WorkingFolder, CancellationToken)
         {
             Diff = diff,
-            DeltaCatalog = DeltaCatalog,
-        };
-
-        worker.Execute();
-    }
-
-    private void AddRemainderChunks()
-    {
-        var worker = new AddRemainderChunks(Logger, WorkingFolder, CancellationToken)
-        {
-            TargetFile = TargetFile,
+            SourceTokens = SourceTokens,
             TargetTokens = TargetTokens,
-            Diff = diff,
+            TargetFile = TargetFile,
+            DeltaCatalog = DeltaCatalog,
         };
 
         worker.Execute();
@@ -479,12 +460,6 @@ public class DiffBuilder : Worker
     private void DumpDiff()
     {
         var worker = new DumpDiff(Logger, WorkingFolder, CancellationToken) { LogFolder = LogFolder, Diff = diff };
-        worker.Execute();
-    }
-
-    private void VerifyDiffObject()
-    {
-        var worker = new VerifyDiffObject(Logger, WorkingFolder, CancellationToken) { Diff = diff, SourceTokens = SourceTokens, TargetTokens = TargetTokens };
         worker.Execute();
     }
 
@@ -561,20 +536,11 @@ public class DiffBuilder : Worker
             // would be helpful. We don't create a delta if it's not going to be used in a chunk's recipe.
             CreateDeltas,
 
-            // Choose which deltas to use in our diff
-            SelectDeltasFromCatalog,
-
-            // Create Inline Assets file and recipes for entries
-            CreateInlineAssets,
-
-            // Create a basic recipe using the raw bits of the chunk and put that data into the "remainder"
-            AddRemainderChunks,
+            // Create Diff Recipes
+            CreateDiffRecipes,
 
             // Write a JSON file for the diff
             DumpDiff,
-
-            // Verify the diff object
-            VerifyDiffObject,
 
             // Write the diff as a binary file
             WriteDiffToDisk,

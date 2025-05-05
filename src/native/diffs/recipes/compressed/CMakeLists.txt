@@ -2,7 +2,6 @@ add_library(diffs_recipes_compressed STATIC
 	bspatch_decompression_recipe.cpp
 	zlib_compression_recipe.cpp
 	zlib_decompression_recipe.cpp
-	zstd_compression_recipe.cpp
 	zstd_decompression_recipe.cpp
 	)
 

@@ -51,7 +51,7 @@ bool deserializer::is_this_format(io::reader &reader, std::string *reason)
 
 	uint64_t version;
 
-	reader.read(4, &version);
+	reader.read_uint64_t(4, &version);
 
 	if (version != g_STANDARD_DIFF_VERSION)
 	{
@@ -93,8 +93,7 @@ void deserializer::read_header(io::sequential::reader &seq)
 	}
 
 	uint64_t version;
-
-	seq.read(&version);
+	seq.read_uint64_t(&version);
 
 	if (version != g_STANDARD_DIFF_VERSION)
 	{
@@ -126,7 +125,7 @@ void deserializer::add_recipe(
 void deserializer::read_supported_recipe_types(io::sequential::reader &seq)
 {
 	uint32_t supported_recipe_type_count;
-	seq.read(&supported_recipe_type_count);
+	seq.read_uint32_t(&supported_recipe_type_count);
 
 	for (uint32_t i = 0; i < supported_recipe_type_count; i++)
 	{
@@ -138,22 +137,22 @@ void deserializer::read_supported_recipe_types(io::sequential::reader &seq)
 void deserializer::read_recipe(io::sequential::reader &seq, const core::item_definition &result_item)
 {
 	uint32_t recipe_type_id;
-	seq.read(&recipe_type_id);
+	seq.read_uint32_t(&recipe_type_id);
 
 	uint64_t numbers_count;
-	seq.read(&numbers_count);
+	seq.read_uint64_t(&numbers_count);
 
 	std::vector<uint64_t> number_ingredients;
 	while (numbers_count)
 	{
 		uint64_t number;
-		seq.read(&number);
+		seq.read_uint64_t(&number);
 		number_ingredients.push_back(number);
 		numbers_count--;
 	}
 
 	uint64_t items_count;
-	seq.read(&items_count);
+	seq.read_uint64_t(&items_count);
 
 	std::vector<core::item_definition> item_ingredients;
 	while (items_count)
@@ -171,7 +170,7 @@ void deserializer::read_recipe(io::sequential::reader &seq, const core::item_def
 void deserializer::read_recipe_set(io::sequential::reader &seq)
 {
 	uint64_t recipes_count;
-	seq.read(&recipes_count);
+	seq.read_uint64_t(&recipes_count);
 
 	auto result_item = core::item_definition::read(seq, diffs::core::item_definition::standard);
 
@@ -184,7 +183,7 @@ void deserializer::read_recipe_set(io::sequential::reader &seq)
 void deserializer::read_recipes(io::sequential::reader &seq)
 {
 	uint64_t result_count;
-	seq.read(&result_count);
+	seq.read_uint64_t(&result_count);
 
 	for (uint64_t result_index = 0; result_index < result_count; result_index++)
 	{
@@ -316,7 +315,7 @@ void deserializer::read_nested_archives(io::reader &reader)
 {
 	uint32_t nested_archives_count;
 
-	reader.read(0, &nested_archives_count);
+	reader.read_uint32_t(0, &nested_archives_count);
 	uint64_t offset = sizeof(nested_archives_count);
 
 	for (uint32_t i = 0; i < nested_archives_count; i++)

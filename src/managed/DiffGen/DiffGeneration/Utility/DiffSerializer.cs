@@ -13,16 +13,12 @@ public class DiffSerializer
     public static void WriteDiff(Diff diff, string path)
     {
         using var session = new DiffApi.DiffcSession();
-        session.SetTarget(diff.Tokens.ArchiveItem);
-        session.SetSource(diff.Tokens.SourceItem);
+        session.SetTarget(diff.TargetItem);
+        session.SetSource(diff.SourceItem);
 
-        foreach (var entry in diff.Tokens.Recipes)
+        foreach (var recipe in diff.Recipes)
         {
-            var recipes = entry.Value;
-            foreach (var recipe in recipes)
-            {
-                session.AddRecipe(recipe);
-            }
+            session.AddRecipe(recipe);
         }
 
         session.SetInlineAssets(diff.InlineAssetsPath);

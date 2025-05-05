@@ -6,6 +6,7 @@
  */
 namespace Microsoft.Azure.DeviceUpdate.Diffs.Workers;
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -36,6 +37,23 @@ public class SelectItemsForDelta : Worker
     public SelectItemsForDelta(ILogger logger, string workingFolder, CancellationToken cancellationToken)
         : base(logger, workingFolder, cancellationToken)
     {
+    }
+
+    protected override void ExecuteInternal()
+    {
+        AddPayloadDeltas();
+
+        var neededItems = Diff.GetNeededItems().ToHashSet();
+        AddSizeBasedDeltas(neededItems);
+
+        var deltaPlanJsonPath = Path.Combine(WorkingFolder, "DeltaPlans.json");
+        Logger.LogInformation("Writing Delta Plan to: {deltaPlanJsonPath}", deltaPlanJsonPath);
+        using (var stream = File.Create(deltaPlanJsonPath))
+        {
+            DeltaPlans.WriteJson(stream, true);
+        }
+
+        Logger.LogInformation("DeltaPlans contains {DeltaPlanCount} entries.", DeltaPlans.Entries.Count);
     }
 
     private void AddPayloadDeltas()
@@ -99,13 +117,10 @@ public class SelectItemsForDelta : Worker
 
                     totalDifferent += targetItem.Length;
 
-                    if (Diff.IsNeededItem(targetItem))
-                    {
-                        var plan = new DeltaPlan(sourceItem, targetItem, targetPayloadFullPath, true);
-                        DeltaPlans.AddDeltaPlan(targetItem, plan);
-                        TargetItemsNeeded.Add(targetItem);
-                        SourceItemsNeeded.Add(sourceItem);
-                    }
+                    var plan = new DeltaPlan(sourceItem, targetItem, targetPayloadFullPath, true);
+                    DeltaPlans.AddDeltaPlan(targetItem, plan);
+                    TargetItemsNeeded.Add(targetItem);
+                    SourceItemsNeeded.Add(sourceItem);
                 }
             }
         }
@@ -124,13 +139,15 @@ public class SelectItemsForDelta : Worker
         Logger.LogInformation("Total different items found: Count: {differentItemsCount:N0}, Bytes: {totalDifferent:N0}. Details written to {differentItemsFile}", differentItems.Count(), totalDifferent, differentItemsFile);
     }
 
-    private void AddSizeBasedDeltas()
+    private void AddSizeBasedDeltas(HashSet<ItemDefinition> neededItems)
     {
         Dictionary<ulong, HashSet<ItemDefinition>> sourceItemsBySize = new();
 
         // build index of items with recipes by size from source
-        foreach (var (result, recipes) in SourceTokens.Recipes)
+        foreach (var recipe in SourceTokens.Recipes)
         {
+            var result = recipe.Result;
+
             if (!sourceItemsBySize.ContainsKey(result.Length))
             {
                 sourceItemsBySize.Add(result.Length, new());
@@ -139,7 +156,7 @@ public class SelectItemsForDelta : Worker
             sourceItemsBySize[result.Length].Add(result);
         }
 
-        foreach (var needed in Diff.GetNeededItems())
+        foreach (var needed in neededItems)
         {
             if (needed.Length < 256)
             {
@@ -187,18 +204,5 @@ public class SelectItemsForDelta : Worker
     private bool AnyMatchingNames(ItemDefinition left, ItemDefinition right)
     {
         return left.Names.Any(x => right.Names.Contains(x));
-    }
-
-    protected override void ExecuteInternal()
-    {
-        AddPayloadDeltas();
-        AddSizeBasedDeltas();
-
-        using (var stream = File.Create(Path.Combine(WorkingFolder, "DeltaPlans.json")))
-        {
-            DeltaPlans.WriteJson(stream, true);
-        }
-
-        Logger.LogInformation("DeltaPlans contains {DeltaPlanCount} entries.", DeltaPlans.Entries.Count);
     }
 }

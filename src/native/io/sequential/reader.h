@@ -15,12 +15,6 @@ class reader
 	public:
 	virtual ~reader() = default;
 
-	template <typename T>
-	void read(T *value)
-	{
-		read(std::span{reinterpret_cast<char *>(value), sizeof(T)});
-	}
-
 	virtual void skip(uint64_t to_skip)              = 0;
 	virtual size_t read_some(std::span<char> buffer) = 0;
 	virtual uint64_t tellg() const                   = 0;
@@ -28,6 +22,11 @@ class reader
 
 	void read(std::span<char> buffer);
 	void read(std::string *value);
+
+	void read_uint8_t(uint8_t *value);
+	void read_uint16_t(uint16_t *value);
+	void read_uint32_t(uint32_t *value);
+	void read_uint64_t(uint64_t *value);
 
 	void read_all_remaining(std::vector<char> &buffer);
 

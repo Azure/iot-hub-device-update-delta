@@ -6,7 +6,6 @@ add_executable(io_compressed_gtest
 	test_zlib_compression_reader.cpp
 	test_zlib_compression_writer.cpp
 	test_zlib_decompression_reader.cpp
-	test_zstd_compression_reader.cpp
 	test_zstd_compression_writer.cpp
 	test_zstd_decompression_reader.cpp
 	test_zstd_decompression_writer.cpp

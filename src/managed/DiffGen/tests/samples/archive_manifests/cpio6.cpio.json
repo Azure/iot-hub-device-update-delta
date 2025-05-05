@@ -1,4 +1,4 @@
-{
+﻿{
   "Type": "tar",
   "Subtype": "old",
   "ArchiveItem": {
@@ -7,10 +7,6 @@
       "Sha256": {
         "type": 32780,
         "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-      },
-      "Md5": {
-        "type": 32771,
-        "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
       }
     },
     "Names": []
@@ -24,10 +20,6 @@
             "Sha256": {
               "type": 32780,
               "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
             }
           },
           "Names": []
@@ -41,10 +33,6 @@
             "Sha256": {
               "type": 32780,
               "value": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "EA0142D83C111211219A87E6D1991396"
             }
           },
           "Names": [
@@ -61,10 +49,6 @@
             "Sha256": {
               "type": 32780,
               "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
             }
           },
           "Names": []
@@ -78,10 +62,6 @@
             "Sha256": {
               "type": 32780,
               "value": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "F15F36FC9FC367C4674E078AEEA7468F"
             }
           },
           "Names": [
@@ -93,1091 +73,655 @@
   ],
   "Recipes": [
     {
-      "Key": {
+      "Name": "slice",
+      "Result": {
         "Length": 512,
         "Hashes": {
           "Sha256": {
             "type": 32780,
             "value": "AE2C3526761D46E06D274E577E808FD1A4BF03E2E31E88C882C90BE0B357607D"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "B2A83A359DC501B619760CF4D55CD8C9"
           }
         },
         "Names": [
           "Chunk.Header.Payload=deb.deb"
         ]
       },
-      "Value": [
+      "NumberIngredients": [
+        0
+      ],
+      "ItemIngredients": [
         {
-          "Name": "slice",
-          "Result": {
-            "Length": 512,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "AE2C3526761D46E06D274E577E808FD1A4BF03E2E31E88C882C90BE0B357607D"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "B2A83A359DC501B619760CF4D55CD8C9"
-              }
-            },
-            "Names": [
-              "Chunk.Header.Payload=deb.deb"
-            ]
-          },
-          "NumberIngredients": [
-            0
-          ],
-          "ItemIngredients": [
-            {
-              "Length": 3072,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-                }
-              },
-              "Names": []
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
             }
-          ]
+          },
+          "Names": []
         }
       ]
     },
     {
-      "Key": {
+      "Name": "slice",
+      "Result": {
         "Length": 8,
         "Hashes": {
           "Sha256": {
             "type": 32780,
             "value": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "EA0142D83C111211219A87E6D1991396"
           }
         },
         "Names": [
           "deb.deb"
         ]
       },
-      "Value": [
+      "NumberIngredients": [
+        512
+      ],
+      "ItemIngredients": [
         {
-          "Name": "slice",
-          "Result": {
-            "Length": 8,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "EA0142D83C111211219A87E6D1991396"
-              }
-            },
-            "Names": [
-              "deb.deb"
-            ]
-          },
-          "NumberIngredients": [
-            512
-          ],
-          "ItemIngredients": [
-            {
-              "Length": 3072,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-                }
-              },
-              "Names": []
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
             }
-          ]
+          },
+          "Names": []
         }
       ]
     },
     {
-      "Key": {
+      "Name": "slice",
+      "Result": {
         "Length": 504,
         "Hashes": {
           "Sha256": {
             "type": 32780,
             "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "5D2A33958EBE530732FD9C258850C5AA"
           }
         },
         "Names": [
           "Chunk.Padding=520"
         ]
       },
-      "Value": [
+      "NumberIngredients": [
+        520
+      ],
+      "ItemIngredients": [
         {
-          "Name": "slice",
-          "Result": {
-            "Length": 504,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "5D2A33958EBE530732FD9C258850C5AA"
-              }
-            },
-            "Names": [
-              "Chunk.Padding=520"
-            ]
-          },
-          "NumberIngredients": [
-            520
-          ],
-          "ItemIngredients": [
-            {
-              "Length": 3072,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-                }
-              },
-              "Names": []
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
             }
-          ]
-        },
-        {
-          "Name": "slice",
-          "Result": {
-            "Length": 504,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "5D2A33958EBE530732FD9C258850C5AA"
-              }
-            },
-            "Names": [
-              "Chunk.Padding=1544"
-            ]
           },
-          "NumberIngredients": [
-            1544
-          ],
-          "ItemIngredients": [
-            {
-              "Length": 3072,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-                }
-              },
-              "Names": []
-            }
-          ]
+          "Names": []
         }
       ]
     },
     {
-      "Key": {
+      "Name": "slice",
+      "Result": {
+        "Length": 504,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
+          }
+        },
+        "Names": [
+          "Chunk.Padding=1544"
+        ]
+      },
+      "NumberIngredients": [
+        1544
+      ],
+      "ItemIngredients": [
+        {
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
+            }
+          },
+          "Names": []
+        }
+      ]
+    },
+    {
+      "Name": "slice",
+      "Result": {
         "Length": 512,
         "Hashes": {
           "Sha256": {
             "type": 32780,
             "value": "34DB35B45EF36BAEA3CB0C0B70ACB7F732BDABEF852DF621700AC90A7CB90CA4"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "08ADEFB4E5587CC5B836B21EA7821CE2"
           }
         },
         "Names": [
           "Chunk.Header.Payload=mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
         ]
       },
-      "Value": [
+      "NumberIngredients": [
+        1024
+      ],
+      "ItemIngredients": [
         {
-          "Name": "slice",
-          "Result": {
-            "Length": 512,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "34DB35B45EF36BAEA3CB0C0B70ACB7F732BDABEF852DF621700AC90A7CB90CA4"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "08ADEFB4E5587CC5B836B21EA7821CE2"
-              }
-            },
-            "Names": [
-              "Chunk.Header.Payload=mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
-            ]
-          },
-          "NumberIngredients": [
-            1024
-          ],
-          "ItemIngredients": [
-            {
-              "Length": 3072,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-                }
-              },
-              "Names": []
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
             }
-          ]
+          },
+          "Names": []
         }
       ]
     },
     {
-      "Key": {
+      "Name": "slice",
+      "Result": {
         "Length": 8,
         "Hashes": {
           "Sha256": {
             "type": 32780,
             "value": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "F15F36FC9FC367C4674E078AEEA7468F"
           }
         },
         "Names": [
           "mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
         ]
       },
-      "Value": [
+      "NumberIngredients": [
+        1536
+      ],
+      "ItemIngredients": [
         {
-          "Name": "slice",
-          "Result": {
-            "Length": 8,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "F15F36FC9FC367C4674E078AEEA7468F"
-              }
-            },
-            "Names": [
-              "mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
-            ]
-          },
-          "NumberIngredients": [
-            1536
-          ],
-          "ItemIngredients": [
-            {
-              "Length": 3072,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-                }
-              },
-              "Names": []
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Key": {
-        "Length": 512,
-        "Hashes": {
-          "Sha256": {
-            "type": 32780,
-            "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "BF619EAC0CDF3F68D496EA9344137E8B"
-          }
-        },
-        "Names": []
-      },
-      "Value": [
-        {
-          "Name": "slice",
-          "Result": {
-            "Length": 512,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "BF619EAC0CDF3F68D496EA9344137E8B"
-              }
-            },
-            "Names": []
-          },
-          "NumberIngredients": [
-            2048
-          ],
-          "ItemIngredients": [
-            {
-              "Length": 3072,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-                }
-              },
-              "Names": []
-            }
-          ]
-        },
-        {
-          "Name": "all_zeros",
-          "Result": {
-            "Length": 512,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "BF619EAC0CDF3F68D496EA9344137E8B"
-              }
-            },
-            "Names": []
-          },
-          "NumberIngredients": [
-            512
-          ],
-          "ItemIngredients": []
-        },
-        {
-          "Name": "slice",
-          "Result": {
-            "Length": 512,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "BF619EAC0CDF3F68D496EA9344137E8B"
-              }
-            },
-            "Names": []
-          },
-          "NumberIngredients": [
-            2560
-          ],
-          "ItemIngredients": [
-            {
-              "Length": 3072,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-                }
-              },
-              "Names": []
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "Key": {
-        "Length": 3072,
-        "Hashes": {
-          "Sha256": {
-            "type": 32780,
-            "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-          }
-        },
-        "Names": []
-      },
-      "Value": [
-        {
-          "Name": "chain",
-          "Result": {
-            "Length": 3072,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-              }
-            },
-            "Names": []
-          },
-          "NumberIngredients": [],
-          "ItemIngredients": [
-            {
-              "Length": 512,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "AE2C3526761D46E06D274E577E808FD1A4BF03E2E31E88C882C90BE0B357607D"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "B2A83A359DC501B619760CF4D55CD8C9"
-                }
-              },
-              "Names": [
-                "Chunk.Header.Payload=deb.deb"
-              ]
-            },
-            {
-              "Length": 8,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "EA0142D83C111211219A87E6D1991396"
-                }
-              },
-              "Names": [
-                "deb.deb"
-              ]
-            },
-            {
-              "Length": 504,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "5D2A33958EBE530732FD9C258850C5AA"
-                }
-              },
-              "Names": [
-                "Chunk.Padding=520"
-              ]
-            },
-            {
-              "Length": 512,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "34DB35B45EF36BAEA3CB0C0B70ACB7F732BDABEF852DF621700AC90A7CB90CA4"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "08ADEFB4E5587CC5B836B21EA7821CE2"
-                }
-              },
-              "Names": [
-                "Chunk.Header.Payload=mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
-              ]
-            },
-            {
-              "Length": 8,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "F15F36FC9FC367C4674E078AEEA7468F"
-                }
-              },
-              "Names": [
-                "mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
-              ]
-            },
-            {
-              "Length": 504,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "5D2A33958EBE530732FD9C258850C5AA"
-                }
-              },
-              "Names": [
-                "Chunk.Padding=1544"
-              ]
-            },
-            {
-              "Length": 512,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "BF619EAC0CDF3F68D496EA9344137E8B"
-                }
-              },
-              "Names": []
-            },
-            {
-              "Length": 512,
-              "Hashes": {
-                "Sha256": {
-                  "type": 32780,
-                  "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
-                },
-                "Md5": {
-                  "type": 32771,
-                  "value": "BF619EAC0CDF3F68D496EA9344137E8B"
-                }
-              },
-              "Names": []
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "ForwardRecipes": [
-    {
-      "Key": {
-        "Length": 3072,
-        "Hashes": {
-          "Sha256": {
-            "type": 32780,
-            "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-          }
-        },
-        "Names": []
-      },
-      "Value": {
-        "Name": "chain",
-        "Result": {
           "Length": 3072,
           "Hashes": {
             "Sha256": {
               "type": 32780,
               "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
             }
           },
           "Names": []
-        },
-        "NumberIngredients": [],
-        "ItemIngredients": [
-          {
-            "Length": 512,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "AE2C3526761D46E06D274E577E808FD1A4BF03E2E31E88C882C90BE0B357607D"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "B2A83A359DC501B619760CF4D55CD8C9"
-              }
-            },
-            "Names": [
-              "Chunk.Header.Payload=deb.deb"
-            ]
-          },
-          {
-            "Length": 8,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "EA0142D83C111211219A87E6D1991396"
-              }
-            },
-            "Names": [
-              "deb.deb"
-            ]
-          },
-          {
-            "Length": 504,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "5D2A33958EBE530732FD9C258850C5AA"
-              }
-            },
-            "Names": [
-              "Chunk.Padding=520"
-            ]
-          },
-          {
-            "Length": 512,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "34DB35B45EF36BAEA3CB0C0B70ACB7F732BDABEF852DF621700AC90A7CB90CA4"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "08ADEFB4E5587CC5B836B21EA7821CE2"
-              }
-            },
-            "Names": [
-              "Chunk.Header.Payload=mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
-            ]
-          },
-          {
-            "Length": 8,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "F15F36FC9FC367C4674E078AEEA7468F"
-              }
-            },
-            "Names": [
-              "mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
-            ]
-          },
-          {
-            "Length": 504,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "5D2A33958EBE530732FD9C258850C5AA"
-              }
-            },
-            "Names": [
-              "Chunk.Padding=1544"
-            ]
-          },
-          {
-            "Length": 512,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "BF619EAC0CDF3F68D496EA9344137E8B"
-              }
-            },
-            "Names": []
-          },
-          {
-            "Length": 512,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "BF619EAC0CDF3F68D496EA9344137E8B"
-              }
-            },
-            "Names": []
-          }
-        ]
-      }
-    }
-  ],
-  "ReverseRecipes": [
+        }
+      ]
+    },
     {
-      "Key": {
+      "Name": "slice",
+      "Result": {
         "Length": 512,
         "Hashes": {
           "Sha256": {
             "type": 32780,
-            "value": "AE2C3526761D46E06D274E577E808FD1A4BF03E2E31E88C882C90BE0B357607D"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "B2A83A359DC501B619760CF4D55CD8C9"
+            "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
           }
         },
         "Names": []
       },
-      "Value": {
-        "Name": "slice",
-        "Result": {
+      "NumberIngredients": [
+        2048
+      ],
+      "ItemIngredients": [
+        {
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
+            }
+          },
+          "Names": []
+        }
+      ]
+    },
+    {
+      "Name": "all_zeros",
+      "Result": {
+        "Length": 512,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
+          }
+        },
+        "Names": []
+      },
+      "NumberIngredients": [
+        512
+      ],
+      "ItemIngredients": []
+    },
+    {
+      "Name": "slice",
+      "Result": {
+        "Length": 512,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
+          }
+        },
+        "Names": []
+      },
+      "NumberIngredients": [
+        2560
+      ],
+      "ItemIngredients": [
+        {
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
+            }
+          },
+          "Names": []
+        }
+      ]
+    },
+    {
+      "Name": "chain",
+      "Result": {
+        "Length": 3072,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
+          }
+        },
+        "Names": []
+      },
+      "NumberIngredients": [],
+      "ItemIngredients": [
+        {
           "Length": 512,
           "Hashes": {
             "Sha256": {
               "type": 32780,
               "value": "AE2C3526761D46E06D274E577E808FD1A4BF03E2E31E88C882C90BE0B357607D"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "B2A83A359DC501B619760CF4D55CD8C9"
             }
           },
           "Names": [
             "Chunk.Header.Payload=deb.deb"
           ]
         },
-        "NumberIngredients": [
-          0
-        ],
-        "ItemIngredients": [
-          {
-            "Length": 3072,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-              }
-            },
-            "Names": []
-          }
-        ]
-      }
-    },
-    {
-      "Key": {
-        "Length": 8,
-        "Hashes": {
-          "Sha256": {
-            "type": 32780,
-            "value": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "EA0142D83C111211219A87E6D1991396"
-          }
-        },
-        "Names": []
-      },
-      "Value": {
-        "Name": "slice",
-        "Result": {
+        {
           "Length": 8,
           "Hashes": {
             "Sha256": {
               "type": 32780,
               "value": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "EA0142D83C111211219A87E6D1991396"
             }
           },
           "Names": [
             "deb.deb"
           ]
         },
-        "NumberIngredients": [
-          512
-        ],
-        "ItemIngredients": [
-          {
-            "Length": 3072,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-              }
-            },
-            "Names": []
-          }
-        ]
-      }
-    },
-    {
-      "Key": {
-        "Length": 504,
-        "Hashes": {
-          "Sha256": {
-            "type": 32780,
-            "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "5D2A33958EBE530732FD9C258850C5AA"
-          }
-        },
-        "Names": []
-      },
-      "Value": {
-        "Name": "slice",
-        "Result": {
+        {
           "Length": 504,
           "Hashes": {
             "Sha256": {
               "type": 32780,
               "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "5D2A33958EBE530732FD9C258850C5AA"
             }
           },
           "Names": [
-            "Chunk.Padding=1544"
+            "Chunk.Padding=520"
           ]
         },
-        "NumberIngredients": [
-          1544
-        ],
-        "ItemIngredients": [
-          {
-            "Length": 3072,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-              }
-            },
-            "Names": []
-          }
-        ]
-      }
-    },
-    {
-      "Key": {
-        "Length": 512,
-        "Hashes": {
-          "Sha256": {
-            "type": 32780,
-            "value": "34DB35B45EF36BAEA3CB0C0B70ACB7F732BDABEF852DF621700AC90A7CB90CA4"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "08ADEFB4E5587CC5B836B21EA7821CE2"
-          }
-        },
-        "Names": []
-      },
-      "Value": {
-        "Name": "slice",
-        "Result": {
+        {
           "Length": 512,
           "Hashes": {
             "Sha256": {
               "type": 32780,
               "value": "34DB35B45EF36BAEA3CB0C0B70ACB7F732BDABEF852DF621700AC90A7CB90CA4"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "08ADEFB4E5587CC5B836B21EA7821CE2"
             }
           },
           "Names": [
             "Chunk.Header.Payload=mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
           ]
         },
-        "NumberIngredients": [
-          1024
-        ],
-        "ItemIngredients": [
-          {
-            "Length": 3072,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-              }
-            },
-            "Names": []
-          }
-        ]
-      }
-    },
-    {
-      "Key": {
-        "Length": 8,
-        "Hashes": {
-          "Sha256": {
-            "type": 32780,
-            "value": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918"
-          },
-          "Md5": {
-            "type": 32771,
-            "value": "F15F36FC9FC367C4674E078AEEA7468F"
-          }
-        },
-        "Names": []
-      },
-      "Value": {
-        "Name": "slice",
-        "Result": {
+        {
           "Length": 8,
           "Hashes": {
             "Sha256": {
               "type": 32780,
               "value": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "F15F36FC9FC367C4674E078AEEA7468F"
             }
           },
           "Names": [
             "mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
           ]
         },
-        "NumberIngredients": [
-          1536
-        ],
-        "ItemIngredients": [
-          {
-            "Length": 3072,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-              }
-            },
-            "Names": []
-          }
-        ]
-      }
-    },
-    {
-      "Key": {
-        "Length": 512,
-        "Hashes": {
-          "Sha256": {
-            "type": 32780,
-            "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
+        {
+          "Length": 504,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
+            }
           },
-          "Md5": {
-            "type": 32771,
-            "value": "BF619EAC0CDF3F68D496EA9344137E8B"
-          }
+          "Names": [
+            "Chunk.Padding=1544"
+          ]
         },
-        "Names": []
-      },
-      "Value": {
-        "Name": "slice",
-        "Result": {
+        {
           "Length": 512,
           "Hashes": {
             "Sha256": {
               "type": 32780,
               "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
-            },
-            "Md5": {
-              "type": 32771,
-              "value": "BF619EAC0CDF3F68D496EA9344137E8B"
             }
           },
           "Names": []
         },
-        "NumberIngredients": [
-          2560
-        ],
-        "ItemIngredients": [
-          {
-            "Length": 3072,
-            "Hashes": {
-              "Sha256": {
-                "type": 32780,
-                "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
-              },
-              "Md5": {
-                "type": 32771,
-                "value": "D37884A17E6AEB65E1E9D7C7F6D427CA"
-              }
-            },
-            "Names": []
+        {
+          "Length": 512,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
+            }
+          },
+          "Names": []
+        }
+      ]
+    }
+  ],
+  "ForwardRecipes": [
+    {
+      "Name": "chain",
+      "Result": {
+        "Length": 3072,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
           }
+        },
+        "Names": []
+      },
+      "NumberIngredients": [],
+      "ItemIngredients": [
+        {
+          "Length": 512,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "AE2C3526761D46E06D274E577E808FD1A4BF03E2E31E88C882C90BE0B357607D"
+            }
+          },
+          "Names": [
+            "Chunk.Header.Payload=deb.deb"
+          ]
+        },
+        {
+          "Length": 8,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221"
+            }
+          },
+          "Names": [
+            "deb.deb"
+          ]
+        },
+        {
+          "Length": 504,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
+            }
+          },
+          "Names": [
+            "Chunk.Padding=520"
+          ]
+        },
+        {
+          "Length": 512,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "34DB35B45EF36BAEA3CB0C0B70ACB7F732BDABEF852DF621700AC90A7CB90CA4"
+            }
+          },
+          "Names": [
+            "Chunk.Header.Payload=mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
+          ]
+        },
+        {
+          "Length": 8,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918"
+            }
+          },
+          "Names": [
+            "mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
+          ]
+        },
+        {
+          "Length": 504,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
+            }
+          },
+          "Names": [
+            "Chunk.Padding=1544"
+          ]
+        },
+        {
+          "Length": 512,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
+            }
+          },
+          "Names": []
+        },
+        {
+          "Length": 512,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
+            }
+          },
+          "Names": []
+        }
+      ]
+    }
+  ],
+  "ReverseRecipes": [
+    {
+      "Name": "slice",
+      "Result": {
+        "Length": 512,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "AE2C3526761D46E06D274E577E808FD1A4BF03E2E31E88C882C90BE0B357607D"
+          }
+        },
+        "Names": [
+          "Chunk.Header.Payload=deb.deb"
         ]
-      }
+      },
+      "NumberIngredients": [
+        0
+      ],
+      "ItemIngredients": [
+        {
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
+            }
+          },
+          "Names": []
+        }
+      ]
+    },
+    {
+      "Name": "slice",
+      "Result": {
+        "Length": 8,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "52305C8179831C5E5B6428E0B4ADBE81D885F17E080BCB8C28E166353D7EB221"
+          }
+        },
+        "Names": [
+          "deb.deb"
+        ]
+      },
+      "NumberIngredients": [
+        512
+      ],
+      "ItemIngredients": [
+        {
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
+            }
+          },
+          "Names": []
+        }
+      ]
+    },
+    {
+      "Name": "slice",
+      "Result": {
+        "Length": 504,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "696BDA342649EC9268DA57B6A279DF6F24B0E857D5E6D0605FD25AF95ADC3CEE"
+          }
+        },
+        "Names": [
+          "Chunk.Padding=1544"
+        ]
+      },
+      "NumberIngredients": [
+        1544
+      ],
+      "ItemIngredients": [
+        {
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
+            }
+          },
+          "Names": []
+        }
+      ]
+    },
+    {
+      "Name": "slice",
+      "Result": {
+        "Length": 512,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "34DB35B45EF36BAEA3CB0C0B70ACB7F732BDABEF852DF621700AC90A7CB90CA4"
+          }
+        },
+        "Names": [
+          "Chunk.Header.Payload=mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
+        ]
+      },
+      "NumberIngredients": [
+        1024
+      ],
+      "ItemIngredients": [
+        {
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
+            }
+          },
+          "Names": []
+        }
+      ]
+    },
+    {
+      "Name": "slice",
+      "Result": {
+        "Length": 8,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "54181DFE59340B318253E59F7695F547C5C10D071CB75001170A389061349918"
+          }
+        },
+        "Names": [
+          "mnt/c/tests/samples/cpio_samples/absolute/txt.txt"
+        ]
+      },
+      "NumberIngredients": [
+        1536
+      ],
+      "ItemIngredients": [
+        {
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
+            }
+          },
+          "Names": []
+        }
+      ]
+    },
+    {
+      "Name": "slice",
+      "Result": {
+        "Length": 512,
+        "Hashes": {
+          "Sha256": {
+            "type": 32780,
+            "value": "076A27C79E5ACE2A3D47F9DD2E83E4FF6EA8872B3C2218F66C92B89B55F36560"
+          }
+        },
+        "Names": []
+      },
+      "NumberIngredients": [
+        2560
+      ],
+      "ItemIngredients": [
+        {
+          "Length": 3072,
+          "Hashes": {
+            "Sha256": {
+              "type": 32780,
+              "value": "58A67C683E25F8C5E2B01619DE5DFA0886F9B892E7CEFA31169684EF40F9F731"
+            }
+          },
+          "Names": []
+        }
+      ]
     }
   ]
 }

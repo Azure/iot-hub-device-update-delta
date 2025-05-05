@@ -23,9 +23,8 @@
 #include "file_details.h"
 
 const int c_sha256_type = 32780;
-const int c_md5_type    = 32771;
 
-void add_hashes(Json::Value &value, const std::string &sha256_hash_string, const std::string &md5_hash_string)
+void add_hashes(Json::Value &value, const std::string &sha256_hash_string)
 {
 	Json::Value hashes;
 
@@ -35,21 +34,15 @@ void add_hashes(Json::Value &value, const std::string &sha256_hash_string, const
 	sha256Hash["value"] = sha256_hash_string;
 	hashes["Sha256"]    = sha256Hash;
 
-	Json::Value md5Hash;
-	md5Hash["type"]  = c_md5_type;
-	md5Hash["value"] = md5_hash_string;
-	hashes["Md5"]    = md5Hash;
-
 	value["Hashes"] = hashes;
 }
 
-Json::Value create_archive_item_value(
-	uint64_t length, const std::string &hash_sha256_string, const std::string &hash_md5_string)
+Json::Value create_archive_item_value(uint64_t length, const std::string &hash_sha256_string)
 {
 	Json::Value value;
 	value["Length"] = length;
 
-	add_hashes(value, hash_sha256_string, hash_md5_string);
+	add_hashes(value, hash_sha256_string);
 
 	return value;
 }
@@ -73,7 +66,7 @@ void add_payload_recipe(
 	[[maybe_unused]] const Json::Value &payload_item,
 	std::map<Json::Value, std::vector<Json::Value>> &recipes_map)
 {
-	Json::Value result = create_archive_item_value(details.length, details.hash_sha256_string, details.hash_md5_string);
+	Json::Value result = create_archive_item_value(details.length, details.hash_sha256_string);
 
 	// Don't add payload recipe if it's a single item or less.
 	if (details.regions.size() <= 1)
@@ -87,7 +80,7 @@ void add_payload_recipe(
 
 	for (auto &region : details.regions)
 	{
-		Json::Value item = create_archive_item_value(region.length, region.hash_sha256_string, region.hash_md5_string);
+		Json::Value item = create_archive_item_value(region.length, region.hash_sha256_string);
 		recipe["ItemIngredients"].append(item);
 	}
 
@@ -107,7 +100,7 @@ class json_entries
 	json_entries(const archive_details &details)
 	{
 		m_archive_item["Length"] = details.length;
-		add_hashes(m_archive_item, details.hash_sha256_string, details.hash_md5_string);
+		add_hashes(m_archive_item, details.hash_sha256_string);
 
 		for (auto &file : details.files)
 		{
@@ -123,18 +116,11 @@ class json_entries
 
 		for (auto &entry : m_recipes_map)
 		{
-			auto &entry_result  = entry.first;
 			auto &entry_recipes = entry.second;
-
-			Json::Value kvpair_value;
-			kvpair_value["Key"] = entry_result;
-
 			for (auto &recipe : entry_recipes)
 			{
-				kvpair_value["Value"].append(recipe);
+				recipes.append(recipe);
 			}
-
-			recipes.append(kvpair_value);
 		}
 
 		return recipes;
@@ -146,14 +132,8 @@ class json_entries
 
 		for (auto &entry : m_forward_recipes_map)
 		{
-			auto &entry_result = entry.first;
 			auto &entry_recipe = entry.second;
-
-			Json::Value kvpair_value;
-			kvpair_value["Key"]   = entry_result;
-			kvpair_value["Value"] = entry_recipe;
-
-			forward_recipes.append(kvpair_value);
+			forward_recipes.append(entry_recipe);
 		}
 
 		return forward_recipes;
@@ -165,14 +145,8 @@ class json_entries
 
 		for (auto &entry : m_reverse_recipes_map)
 		{
-			auto &entry_result = entry.first;
 			auto &entry_recipe = entry.second;
-
-			Json::Value kvpair_value;
-			kvpair_value["Key"]   = entry_result;
-			kvpair_value["Value"] = entry_recipe;
-
-			reverse_recipes.append(kvpair_value);
+			reverse_recipes.append(entry_recipe);
 		}
 
 		return reverse_recipes;
@@ -204,8 +178,7 @@ class json_entries
 	private:
 	void import_file(const file_details &file)
 	{
-		Json::Value payload_item =
-			create_archive_item_value(file.length, file.hash_sha256_string, file.hash_md5_string);
+		Json::Value payload_item = create_archive_item_value(file.length, file.hash_sha256_string);
 
 		uint64_t offset_in_payload = 0;
 		for (auto &region : file.regions)
@@ -274,8 +247,7 @@ class json_entries
 
 		for (const auto &region : file.regions)
 		{
-			Json::Value item =
-				create_archive_item_value(region.length, region.hash_sha256_string, region.hash_md5_string);
+			Json::Value item = create_archive_item_value(region.length, region.hash_sha256_string);
 
 			recipe["ItemIngredients"].append(item);
 		}
@@ -287,8 +259,7 @@ class json_entries
 		const Json::Value &archive_item, const file_region &region)
 	{
 		Json::Value recipe;
-		Json::Value result =
-			create_archive_item_value(region.length, region.hash_sha256_string, region.hash_md5_string);
+		Json::Value result = create_archive_item_value(region.length, region.hash_sha256_string);
 
 		if (region.all_zeroes)
 		{
@@ -319,8 +290,7 @@ class json_entries
 		const file_region &region, const Json::Value &payload_item, uint64_t offset)
 	{
 		Json::Value recipe;
-		Json::Value result =
-			create_archive_item_value(region.length, region.hash_sha256_string, region.hash_md5_string);
+		Json::Value result = create_archive_item_value(region.length, region.hash_sha256_string);
 
 		recipe["Name"]   = "slice";
 		recipe["Result"] = result;

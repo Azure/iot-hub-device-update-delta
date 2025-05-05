@@ -16,6 +16,7 @@
 
   <PropertyGroup>
     <OutputPathBase>$(SolutionRoot)\..\..\out\managed\$(Configuration)</OutputPathBase>
+    <IntermediateOutputPath>$(SolutionRoot)\..\..\out\managed\$(Configuration)\obj\</IntermediateOutputPath>
   </PropertyGroup>
 
   <!-- Common package references -->

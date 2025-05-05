@@ -65,20 +65,34 @@ fi
 
 function vcpkg_install()
 {
-	echo "Calling $VCPKG_ROOT/vcpkg install $1:$TRIPLET --overlay-ports=$PORT_ROOT"
+    local vcpkgPackage="$1"
+
+	echo "Calling $VCPKG_ROOT/vcpkg install $vcpkgPackage:$TRIPLET --overlay-ports=$PORT_ROOT"
     $VCPKG_ROOT/vcpkg install $1:$TRIPLET --overlay-ports=$PORT_ROOT
     exit_code=$?
     if [ $exit_code != 0 ]
     then
-        echo "Failed to install $1:$TRIPLET with error $exit_code"
+        echo "Failed to install $vcpkgPackage:$TRIPLET with error $exit_code"
+        output_logs_and_errors $VCPKG_ROOT/buildtrees/$vcpkgPackage
         exit $exit_code
     fi
+}
+
+function output_logs_and_errors()
+{
+    local directory="$1"
+
+    # Find all .log and .err files in the directory and its subdirectories
+    find "$directory" -type f \( -name "*.log" -o -name "*.err" \) -print0 | while IFS= read -r -d '' file; do
+        echo "=== Contents of $file ==="
+        cat "$file"
+        echo # Add a blank line for separation
+    done
 }
 
 vcpkg_install zlib
 vcpkg_install zstd
 vcpkg_install bzip2
-vcpkg_install bsdiff
 vcpkg_install gtest
 vcpkg_install openssl
 vcpkg_install e2fsprogs
@@ -87,6 +101,7 @@ vcpkg_install vcpkg-cmake
 vcpkg_install jsoncpp
 vcpkg_install libconfig
 vcpkg_install fmt
+vcpkg_install bsdiff
 
 $VCPKG_ROOT/vcpkg integrate install
 

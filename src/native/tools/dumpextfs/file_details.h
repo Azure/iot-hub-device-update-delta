@@ -16,7 +16,6 @@ struct file_region
 	std::optional<uint64_t> offset;
 	uint64_t length{};
 	bool all_zeroes;
-	std::string hash_md5_string;
 	std::string hash_sha256_string;
 };
 
@@ -25,7 +24,6 @@ struct file_details
 	std::string name;
 	std::string full_path;
 	uint64_t length{};
-	std::string hash_md5_string;
 	std::string hash_sha256_string;
 	std::vector<file_region> regions;
 };
@@ -33,7 +31,6 @@ struct file_details
 struct archive_details
 {
 	uint64_t length{};
-	std::string hash_md5_string;
 	std::string hash_sha256_string;
 
 	std::vector<file_details> files;

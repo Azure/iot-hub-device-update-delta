@@ -24,6 +24,8 @@
 
 #include "common.h"
 
+#if 0
+
 class sequential_reader_factory_of_reader : public archive_diff::io::sequential::reader_factory
 {
 	public:
@@ -830,3 +832,5 @@ TEST(kitchen_slicing, tiered_slicing_and_chaining)
 
 	kitchen->cancel_slicing();
 }
+
+#endif

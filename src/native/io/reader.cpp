@@ -10,6 +10,17 @@
 
 #include <span>
 
+#ifdef WIN32
+	#include <winsock2.h>
+	#undef min
+	#undef max
+#else
+	#include "uint64_t_endian.h"
+
+	#include <sys/socket.h>
+	#include <arpa/inet.h>
+#endif
+
 #include "reader.h"
 
 #include <errors/adu_log.h>
@@ -175,6 +186,29 @@ size_t reader::chained_reader_impl::read_some(uint64_t offset, std::span<char> b
 	}
 
 	return total_read;
+}
+
+void reader::read_uint8_t(uint64_t offset, uint8_t *value)
+{
+	read(offset, std::span<char>{reinterpret_cast<char *>(value), sizeof(*value)});
+}
+
+void reader::read_uint16_t(uint64_t offset, uint16_t *value)
+{
+	read(offset, std::span<char>{reinterpret_cast<char *>(value), sizeof(*value)});
+	*value = ntohs(*value);
+}
+
+void reader::read_uint32_t(uint64_t offset, uint32_t *value)
+{
+	read(offset, std::span<char>{reinterpret_cast<char *>(value), sizeof(*value)});
+	*value = ntohl(*value);
+}
+
+void reader::read_uint64_t(uint64_t offset, uint64_t *value)
+{
+	read(offset, std::span<char>{reinterpret_cast<char *>(value), sizeof(*value)});
+	*value = ntohll(*value);
 }
 
 } // namespace archive_diff::io

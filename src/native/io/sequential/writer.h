@@ -27,19 +27,17 @@ class writer
 	virtual void write(std::string_view buffer) = 0;
 	virtual void flush()                        = 0;
 
-	template <typename T>
-	void write_value(const T &value)
-	{
-		std::string_view buffer{reinterpret_cast<const char *>(&value), sizeof(T)};
-		write(buffer);
-	}
-
 	void write_value(const std::string &value)
 	{
 		uint64_t size = value.size();
-		write_value(size);
+		write_uint64_t(size);
 		write(std::string_view{value.data(), value.size()});
 	}
+
+	void write_uint8_t(uint8_t value);
+	void write_uint16_t(uint16_t value);
+	void write_uint32_t(uint32_t value);
+	void write_uint64_t(uint64_t value);
 
 	template <typename T>
 	void write_value(const T *value)

@@ -215,7 +215,25 @@ struct slicing_thread_data
 static void slicing_thread_worker(slicing_thread_data data)
 {
 	// printf("In slicing_thread_worker\n");
-	data.m_slicer->slice_and_populate_slice_store(data.m_item);
+
+	try
+	{
+		data.m_slicer->slice_and_populate_slice_store(data.m_item);
+	}
+	catch (const std::exception &e)
+	{
+		auto msg = e.what();
+		if (msg == nullptr)
+		{
+			msg = "Unknown error";
+		}
+		ADU_LOG("slicing_thread_worker(): std::exception: {}", msg);
+	}
+	catch (const errors::user_exception &e)
+	{
+		ADU_LOG(
+			"slicing_thread_worker(): user_exception ({}): {}", static_cast<uint32_t>(e.get_error()), e.get_message());
+	}
 }
 
 // transition from paused -> running

@@ -10,6 +10,16 @@
 
 #include <span>
 
+#ifdef WIN32
+	#include <winsock2.h>
+	#undef max
+#else
+	#include "../uint64_t_endian.h"
+
+	#include <sys/socket.h>
+	#include <arpa/inet.h>
+#endif
+
 #include "reader.h"
 
 #include "user_exception.h"
@@ -30,7 +40,7 @@ void reader::read(std::span<char> buffer)
 void reader::read(std::string *value)
 {
 	uint64_t size;
-	read(&size);
+	read_uint64_t(&size);
 	if (size > std::numeric_limits<size_t>::max())
 	{
 		throw std::exception();
@@ -89,4 +99,23 @@ void reader::skip_by_reading(uint64_t to_skip)
 	}
 }
 
+void reader::read_uint8_t(uint8_t *value) { read(std::span<char>{reinterpret_cast<char *>(value), sizeof(*value)}); }
+
+void reader::read_uint16_t(uint16_t *value)
+{
+	read(std::span<char>{reinterpret_cast<char *>(value), sizeof(*value)});
+	*value = ntohs(*value);
+}
+
+void reader::read_uint32_t(uint32_t *value)
+{
+	read(std::span<char>{reinterpret_cast<char *>(value), sizeof(*value)});
+	*value = ntohl(*value);
+}
+
+void reader::read_uint64_t(uint64_t *value)
+{
+	read(std::span<char>{reinterpret_cast<char *>(value), sizeof(*value)});
+	*value = ntohll(*value);
+}
 } // namespace archive_diff::io::sequential

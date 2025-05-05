@@ -25,6 +25,8 @@ class bspatch_decompression_reader_factory : public io::sequential::reader_facto
 		m_dictionary_prepared_item(dictionary_prepared_item)
 	{}
 
+	virtual ~bspatch_decompression_reader_factory() = default;
+
 	virtual std::unique_ptr<io::sequential::reader> make_sequential_reader() override
 	{
 		auto compressed_reader = m_compressed_prepared_item->make_reader();

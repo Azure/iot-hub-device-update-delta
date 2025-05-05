@@ -6,8 +6,8 @@
  */
 #pragma once
 
-#include <io/writer.h>
 #include <io/reader.h>
+#include <io/sequential/writer.h>
 
 namespace archive_diff::io::compressed
 {
@@ -20,6 +20,7 @@ namespace archive_diff::io::compressed
 class bsdiff_compressor
 {
 	public:
-	static void delta_compress(reader &old_reader, reader &new_reader, writer *writer);
+	static void delta_compress(
+		io::reader &old_reader, io::reader &new_reader, std::shared_ptr<io::writer> &diff_writer);
 };
 }; // namespace archive_diff::io::compressed

@@ -44,25 +44,25 @@ namespace ArchiveUtility
         {
             var type = archive.GetType();
 
-            context.Logger.Log(context.LogLevel, "Testing if archive is format: {0}", type.FullName);
+            context.Logger?.Log(context.LogLevel, "Testing if archive is format: {0}", type.FullName);
 
             if (context.TokenCache.ContainsKey(type))
             {
                 tokens = context.TokenCache[type];
-                context.Logger.Log(context.LogLevel, "Found previously loaded tokens for type: {0}. ArchiveItem: {1}", type.FullName, tokens.ArchiveItem.GetSha256HashString());
+                context.Logger?.Log(context.LogLevel, "Found previously loaded tokens for type: {0}. ArchiveItem: {1}", type.FullName, tokens.ArchiveItem.GetSha256HashString());
 
                 return true;
             }
 
             if (!archive.IsMatchingFormat())
             {
-                context.Logger.Log(context.LogLevel, "Archive is not of format: {0}", type.FullName);
+                context.Logger?.Log(context.LogLevel, "Archive is not of format: {0}", type.FullName);
                 tokens = null;
                 return false;
             }
             else
             {
-                context.Logger.Log(context.LogLevel, "Archive is of format: {0}", type.FullName);
+                context.Logger?.Log(context.LogLevel, "Archive is of format: {0}", type.FullName);
             }
 
             // We may have already gotten tokens from determing if this was the same type
@@ -82,7 +82,7 @@ namespace ArchiveUtility
                 tokens = archive.Tokenize();
 
                 context.TokenCache[type] = tokens;
-                context.Logger.Log(context.LogLevel, "Setting into Token Cache: ArchiveItem: {0}", tokens.ArchiveItem.GetSha256HashString());
+                context.Logger?.Log(context.LogLevel, "Setting into Token Cache: ArchiveItem: {0}", tokens.ArchiveItem.GetSha256HashString());
 
                 return true;
             }
@@ -92,8 +92,8 @@ namespace ArchiveUtility
             }
             catch (Exception e)
             {
-                context.Logger.LogError("Exception occurred while processing format: {0}", type.FullName);
-                context.Logger.LogError("Exception: {0}", e.ToString());
+                context.Logger?.LogError("Exception occurred while processing format: {0}", type.FullName);
+                context.Logger?.LogError("Exception: {0}", e.ToString());
                 tokens = null;
                 return false;
             }

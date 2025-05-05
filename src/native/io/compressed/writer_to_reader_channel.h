@@ -26,6 +26,8 @@ class writer_to_reader_channel : public io::sequential::writer, public io::seque
 		m_buffer.reserve(c_buffer_capacity);
 	}
 
+	virtual ~writer_to_reader_channel() = default;
+
 	virtual size_t read_some(std::span<char> buffer) override;
 	virtual uint64_t tellg() const override { return m_total_read; }
 	virtual void skip(uint64_t to_skip) { skip_by_reading(to_skip); }

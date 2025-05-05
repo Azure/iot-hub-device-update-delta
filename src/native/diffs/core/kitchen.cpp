@@ -10,7 +10,10 @@
 #include "recipe.h"
 #include <hashing/hasher.h>
 #include <io/buffer/reader_factory.h>
+#include <io/buffer/writer.h>
 #include <io/sequential/basic_writer_wrapper.h>
+
+#include <io/file/temp_file.h>
 
 namespace archive_diff::diffs::core
 {
@@ -375,4 +378,82 @@ void kitchen::save_selected_recipes(std::shared_ptr<io::writer> &writer) const
 
 	seq_writer.write_text(json_text);
 }
+
+std::shared_ptr<prepared_item> kitchen::prepare_as_reader(std::shared_ptr<prepared_item> &to_prepare)
+{
+	if (to_prepare->can_make_reader())
+	{
+		ADU_LOG("kitchen::prepare_as_reader() returned the passed-in item, because a reader can be created.")
+		return to_prepare;
+	}
+
+	auto required_item = to_prepare->get_item_definition();
+
+	for (const auto &pantry : m_all_pantries)
+	{
+		std::shared_ptr<prepared_item> pantry_item;
+
+		if (pantry->find(required_item, &pantry_item))
+		{
+			if (pantry_item->can_make_reader())
+			{
+				return pantry_item;
+			}
+		}
+	}
+
+	const uint64_t store_as_file_threshold = 64 * 1024; // 64k
+
+	// Ok this isn't available yet, I guess we'll prepare it and then store in temp file or buffer
+	// and make a reader from that, store that in the root pantry and finally
+	// return it.
+
+	if (store_as_file_threshold < required_item.size())
+	{
+		return store_item_as_temp_file(to_prepare);
+	}
+	else
+	{
+		return store_item_as_buffer(to_prepare);
+	}
+}
+
+std::shared_ptr<prepared_item> kitchen::store_item_as_buffer(std::shared_ptr<prepared_item> &to_prepare)
+{
+	auto seq_reader = to_prepare->make_sequential_reader();
+
+	auto required_item = to_prepare->get_item_definition();
+
+	std::shared_ptr<std::vector<char>> result_buffer = std::make_shared<std::vector<char>>();
+	std::shared_ptr<io::writer> buffer_writer        = std::make_shared<io::buffer::writer>(result_buffer);
+	io::sequential::basic_writer_wrapper seq_writer(buffer_writer);
+	seq_writer.write(*seq_reader);
+
+	auto reader = io::buffer::io_device::make_reader(result_buffer, io::buffer::io_device::size_kind::vector_size);
+
+	auto buffer_prepared_item = std::make_shared<prepared_item>(required_item, reader);
+	m_pantry->add(buffer_prepared_item);
+
+	return buffer_prepared_item;
+}
+
+std::shared_ptr<prepared_item> kitchen::store_item_as_temp_file(std::shared_ptr<prepared_item> &to_prepare)
+{
+	auto temp_file  = std::make_shared<io::file::temp_file>();
+	auto seq_reader = to_prepare->make_sequential_reader();
+
+	auto required_item = to_prepare->get_item_definition();
+
+	io::shared_writer writer = std::make_shared<io::file::temp_file_writer>(temp_file);
+	io::sequential::basic_writer_wrapper wrapper(writer);
+	wrapper.write(*seq_reader);
+
+	auto reader = io::file::temp_file_io_device::make_reader(temp_file);
+
+	auto temp_file_prepared_item = std::make_shared<prepared_item>(required_item, reader);
+	m_pantry->add(temp_file_prepared_item);
+
+	return temp_file_prepared_item;
+}
+
 } // namespace archive_diff::diffs::core

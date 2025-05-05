@@ -75,6 +75,8 @@ namespace ArchiveUtility
 
         public bool HasDeltaBasis() => IsDeltaRecipe() && (ItemIngredients.Count == 2 && ItemIngredients[1].Length > 0);
 
+        public ItemDefinition GetDeltaItem() => ItemIngredients[0];
+
         public ItemDefinition GetDeltaBasis() => ItemIngredients[1];
 
         public override int GetHashCode()

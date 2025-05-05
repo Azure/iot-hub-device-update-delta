@@ -1,5 +1,6 @@
 /**
  * @file zstd_compression_recipe.h
+ * This recipe type is no longer supported - zstd compression output has changed.
  *
  * @copyright Copyright (c) Microsoft Corporation.
  * Licensed under the MIT License.
@@ -24,7 +25,13 @@ class zstd_compression_recipe : public recipe
 	zstd_compression_recipe(
 		const item_definition &result_item_definition,
 		const std::vector<uint64_t> &number_ingredients,
-		const std::vector<item_definition> &item_ingredients);
+		const std::vector<item_definition> &item_ingredients) :
+		recipe(result_item_definition, number_ingredients, item_ingredients)
+	{
+		throw errors::user_exception(
+			errors::error_code::recipe_zstd_compression_not_supported,
+			"zstd_compression_recipe::zstd_compression_recipe(): zstd_compression_recipe is no longer supported");
+	}
 
 	virtual std::string get_recipe_name() const override { return c_recipe_name; }
 
@@ -32,10 +39,12 @@ class zstd_compression_recipe : public recipe
 	using recipe_template = diffs::core::recipe_template_impl<zstd_compression_recipe>;
 
 	protected:
-	virtual prepare_result prepare(kitchen *kitchen, std::vector<std::shared_ptr<prepared_item>> &items) const override;
-
-	private:
-	item_definition m_uncompressed_input{};
+	virtual prepare_result prepare(kitchen *, std::vector<std::shared_ptr<prepared_item>> &) const override
+	{
+		throw errors::user_exception(
+			errors::error_code::recipe_zstd_compression_not_supported,
+			"zstd_compression_recipe::prepare(): zstd_compression_recipe is no longer supported");
+	}
 };
 
 } // namespace archive_diff::diffs::recipes::compressed

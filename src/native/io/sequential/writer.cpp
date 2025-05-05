@@ -10,6 +10,15 @@
 
 #include <vector>
 
+#ifdef WIN32
+	#include <winsock2.h>
+#else
+	#include "../uint64_t_endian.h"
+
+	#include <sys/socket.h>
+	#include <arpa/inet.h>
+#endif
+
 namespace archive_diff::io::sequential
 {
 void writer::write(const io::reader &reader)
@@ -55,5 +64,25 @@ void writer::write(io::sequential::reader &reader)
 
 		remaining -= to_read;
 	}
+}
+
+void writer::write_uint8_t(uint8_t value) { write(std::string_view{reinterpret_cast<char *>(&value), sizeof(value)}); }
+
+void writer::write_uint16_t(uint16_t value)
+{
+	value = htons(value);
+	write(std::string_view{reinterpret_cast<char *>(&value), sizeof(value)});
+}
+
+void writer::write_uint32_t(uint32_t value)
+{
+	value = htonl(value);
+	write(std::string_view{reinterpret_cast<char *>(&value), sizeof(value)});
+}
+
+void writer::write_uint64_t(uint64_t value)
+{
+	value = htonll(value);
+	write(std::string_view{reinterpret_cast<char *>(&value), sizeof(value)});
 }
 } // namespace archive_diff::io::sequential

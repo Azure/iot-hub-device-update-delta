@@ -7,7 +7,6 @@
 
 #include "io_device.h"
 
-#include <thread>
 #include <string>
 #include <iostream>
 
@@ -27,13 +26,7 @@ reader io_device::make_reader(const std::string &path)
 	return io::reader{device};
 }
 
-size_t io_device::read_some(uint64_t offset, std::span<char> buffer)
-{
-	// printf("io_device: object: %p, thread: ", this);
-	// std::cout << std::this_thread::get_id() << std::endl;
-	// ADU_LOG("binary_file_reader::read_some(). offset=%llu, length=%zu", offset, buffer.size());
-	return m_File.read_some(offset, buffer);
-}
+size_t io_device::read_some(uint64_t offset, std::span<char> buffer) { return m_File.read_some(offset, buffer); }
 
 uint64_t io_device::size() const { return m_File.size(); }
 } // namespace archive_diff::io::file

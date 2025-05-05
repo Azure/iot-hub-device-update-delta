@@ -43,7 +43,7 @@ hash::hash(algorithm algorithm, io::reader &reader) : m_algorithm(algorithm)
 
 void hash::read(io::sequential::reader& reader)
 {
-	reader.read(&m_algorithm);
+	reader.read_uint32_t(reinterpret_cast<uint32_t *>(&m_algorithm));
 	size_t hash_data_bytes = get_byte_count_for_algorithm(m_algorithm);
 	m_hash_data.resize(hash_data_bytes);
 
@@ -53,7 +53,7 @@ void hash::read(io::sequential::reader& reader)
 
 void hash::write(io::sequential::writer& writer) const
 {
-	writer.write_value(m_algorithm);
+	writer.write_uint32_t(static_cast<uint32_t>(m_algorithm));
 	writer.write(std::string_view{m_hash_data.data(), m_hash_data.size()});
 }
 
