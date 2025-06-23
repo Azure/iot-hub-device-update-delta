@@ -30,7 +30,7 @@ void serializer::write(io::sequential::writer &writer)
 void serializer::write_header(io::sequential::writer &writer)
 {
 	writer.write(std::string_view{g_DIFF_MAGIC_VALUE.data(), g_DIFF_MAGIC_VALUE.size()});
-	writer.write_uint64_t(g_STANDARD_DIFF_VERSION);
+	writer.write_uint64_t(g_STANDARD_DIFF_VERSION_2);
 
 	auto target_item = m_archive->get_archive_item();
 	target_item.write(writer, core::item_definition::serialization_options::standard);

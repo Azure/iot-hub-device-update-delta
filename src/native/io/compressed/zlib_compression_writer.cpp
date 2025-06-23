@@ -7,6 +7,8 @@
 #include <limits>
 #include <assert.h>
 
+#include <fmt/core.h>
+
 #include <adu_log.h>
 
 #include "zlib_compression_writer.h"
@@ -35,6 +37,18 @@ zlib_compression_writer::zlib_compression_writer(
 	{
 		std::string msg = "deflateInit2(): failed.";
 		throw errors::user_exception(errors::error_code::io_zlib_reader_init_failed, msg);
+	}
+
+	if (init_type == zlib_helpers::init_type::gz)
+	{
+		zlib_helpers::initialize_header(m_gz_header);
+
+		auto ret = deflateSetHeader(&m_zstr, &m_gz_header);
+		if (ret)
+		{
+			std::string msg = fmt::format("deflateSetHeader(): failed. ret: {}", ret);
+			throw errors::user_exception(errors::error_code::io_zlib_writer_deflate_set_header_failed, msg);
+		}
 	}
 }
 

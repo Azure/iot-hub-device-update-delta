@@ -154,7 +154,6 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
     {
         const int max_retry_count = 5;
         int retries = 0;
-        bool moved = false;
         Exception lastException = null;
 
         while (retries++ < max_retry_count)
@@ -162,7 +161,7 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
             try
             {
                 File.Move(source, destination);
-                moved = true;
+                return;
             }
             catch (IOException e)
             {
@@ -171,9 +170,6 @@ public abstract class ToolBasedDeltaBuilder : DeltaBuilder
             }
         }
 
-        if (!moved)
-        {
-            throw new Exception($"Failed to move {source} to {destination}. {lastException.Message}", lastException);
-        }
+        throw new Exception($"Failed to move {source} to {destination}. {lastException.Message}", lastException);
     }
 }

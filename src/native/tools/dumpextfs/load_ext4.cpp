@@ -206,9 +206,8 @@ static int populate_file_details_from_inode(ext2_filsys fs, int ino, file_detail
 			{
 				auto offset_value = current_block_all_zeroes ? std::nullopt : std::optional<uint64_t>{offset};
 
-				details->regions.emplace_back(
-					file_region{
-						offset_value, length, current_block_all_zeroes, hasher_sha256_region.get_hash_string()});
+				details->regions.emplace_back(file_region{
+					offset_value, length, current_block_all_zeroes, hasher_sha256_region.get_hash_string()});
 
 				hasher_sha256_region.reset();
 			}

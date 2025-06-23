@@ -29,7 +29,22 @@ class auto_bsdiff_stream : public bsdiff_stream
 		}
 		return *this;
 	}
-	virtual ~auto_bsdiff_stream() { close(state); }
+	virtual ~auto_bsdiff_stream() 
+	{
+		if (close)
+		{
+			close(state);
+		}
+	}
+};
+
+class auto_bsdiff_patch_packer : public bsdiff_patch_packer
+{
+	public:
+	virtual ~auto_bsdiff_patch_packer() 
+	{
+		bsdiff_close_patch_packer(this);
+	}
 };
 
 } // namespace archive_diff::io::compressed

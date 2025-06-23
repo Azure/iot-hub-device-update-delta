@@ -17,11 +17,11 @@ void bsdiff_compressor::delta_compress(
 {
 	bsdiff_ctx ctx{0};
 
-	auto_bsdiff_stream old_stream = create_reader_based_bsdiff_stream(old_reader);
-	auto_bsdiff_stream new_stream = create_reader_based_bsdiff_stream(new_reader);
+	auto_bsdiff_stream old_stream  = create_reader_based_bsdiff_stream(old_reader);
+	auto_bsdiff_stream new_stream  = create_reader_based_bsdiff_stream(new_reader);
 	auto_bsdiff_stream diff_stream = create_writer_based_bsdiff_stream(diff_writer);
 
-	bsdiff_patch_packer diff_packer;
+	auto_bsdiff_patch_packer diff_packer;
 	int ret = bsdiff_open_bz2_patch_packer(BSDIFF_MODE_WRITE, &diff_stream, &diff_packer);
 	if (ret != BSDIFF_SUCCESS)
 	{

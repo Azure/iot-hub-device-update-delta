@@ -48,6 +48,7 @@ class zlib_compression_writer : public io::sequential::writer_impl
 	int m_compression_level{};
 	zlib_helpers::init_type m_init_type{};
 
+	gz_header m_gz_header{};
 	auto_zlib_cstream m_zstr{};
 
 	std::vector<char> m_output_data;

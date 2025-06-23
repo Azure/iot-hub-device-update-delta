@@ -16,5 +16,7 @@ const size_t c_sample_file_zst_uncompressed_size   = 291328;
 const size_t c_sample_file_zst_compressed_size     = 77029;
 const uint64_t c_sample_file_zst_compression_level = 3;
 
-const fs::path c_sample_file_deflate_compressed   = "remainder.dat.deflate";
-const fs::path c_sample_file_deflate_uncompressed = "remainder.dat";
+const fs::path c_sample_file_zlib_uncompressed  = "remainder.dat";
+const fs::path c_sample_file_deflate_compressed = "remainder.dat.deflate";
+const fs::path c_sample_file_gz_compressed      = "remainder.dat.gz";
+const fs::path c_sample_file_zlib_compressed    = "remainder.dat.zlib";

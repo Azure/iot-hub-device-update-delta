@@ -24,7 +24,6 @@
 TEST(zstd_decompression_writer, against_known_result)
 {
 	auto compressed_path = g_test_data_root / c_sample_file_zst_compressed;
-	auto compressed_size = fs::file_size(compressed_path);
 
 	auto compressed_file_reader = archive_diff::io::file::io_device::make_reader(compressed_path.string());
 

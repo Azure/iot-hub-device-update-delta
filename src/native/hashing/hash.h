@@ -19,6 +19,9 @@
 
 #include <json/json.h>
 
+#undef clamp
+#include <fmt/format.h>
+
 #include "algorithm.h"
 
 namespace archive_diff::hashing
@@ -78,7 +81,7 @@ struct hash
 
 	std::string get_type_string() const;
 	std::string get_data_string() const;
-	std::string get_string() const
+	std::string to_string() const
 	{
 		std::string value = get_data_string();
 		value += "(";
@@ -99,3 +102,16 @@ struct hash
 	}
 };
 } // namespace archive_diff::hashing
+
+
+template <>
+struct fmt::formatter<archive_diff::hashing::hash>
+{
+	constexpr auto parse(fmt::format_parse_context &ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
+
+	auto format(const archive_diff::hashing::hash &hash, fmt::format_context &ctx) const
+		-> decltype(ctx.out())
+	{
+		return fmt::format_to(ctx.out(), "{}", hash.to_string());
+	}
+};

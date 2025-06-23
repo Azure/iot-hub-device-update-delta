@@ -606,6 +606,9 @@ namespace ArchiveUtility
 
             [DllImport(AduDiffApiDll, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
             public static extern string diffa_get_error_text(IntPtr handle, [MarshalAs(UnmanagedType.U4)] int index);
+
+            [DllImport(AduDiffApiDll, CharSet = CharSet.Ansi, CallingConvention = CallingConvention.Cdecl)]
+            public static extern uint diff_get_zlib_compression_level(string uncompressedPath, string compressedPath, [MarshalAs(UnmanagedType.I4)] out int compressionLevel);
         }
     }
 }

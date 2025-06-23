@@ -2,6 +2,7 @@ set(ADUDIFFAPI_SOURCE_FILES
 	aduapi_type_conversion.cpp
 	apply_session.cpp
 	create_session.cpp
+	diff_api.cpp
 	diffa_api.cpp
 	diffc_api.cpp
 	legacy_apply_session.cpp

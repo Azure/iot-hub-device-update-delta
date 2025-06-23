@@ -13,6 +13,8 @@
 
 #include <assert.h>
 
+#include <fmt/core.h>
+
 #include "user_exception.h"
 
 #ifdef WIN32
@@ -71,6 +73,18 @@ void zlib_compression_reader::initialize()
 	{
 		std::string msg = "deflateInit2(): failed.";
 		throw errors::user_exception(errors::error_code::io_zlib_reader_init_failed, msg);
+	}
+
+	if (m_init_type == zlib_helpers::init_type::gz)
+	{
+		zlib_helpers::initialize_header(m_gz_header);
+
+		auto ret = deflateSetHeader(&m_zstr, &m_gz_header);
+		if (ret)
+		{
+			std::string msg = fmt::format("deflateSetHeader(): failed. ret: {}", ret);
+			throw errors::user_exception(errors::error_code::io_zlib_reader_deflate_set_header_failed, msg);
+		}
 	}
 }
 

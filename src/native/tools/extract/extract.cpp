@@ -151,7 +151,7 @@ void extract_items(
 		{
 			if (hash.first == archive_diff::hashing::algorithm::sha256)
 			{
-				auto item_path   = target_path / hash.second.get_data_string();
+				item_path        = target_path / hash.second.get_data_string();
 				item_paths[item] = item_path;
 				break;
 			}

@@ -41,6 +41,8 @@ enum class error_code : uint16_t
 	io_zlib_too_much_data_processed                               = 20109,
 	io_zlib_writer_deflate_failed                                 = 20110,
 	io_zlib_writer_inflateEnd_failed                              = 20110,
+	io_zlib_reader_deflate_set_header_failed                      = 20111,
+	io_zlib_writer_deflate_set_header_failed                      = 20112,
 	io_zstd_compressstream2_failed                                = 20200,
 	io_zstd_decompress_stream_failed                              = 20201,
 	io_zstd_decompress_cannot_finish                              = 20202,
@@ -146,11 +148,13 @@ enum class error_code : uint16_t
 	item_definition_no_sha256_hash                 = 32002,
 
 	recipe_zlib_compression_level_invalid = 33000,
+	recipe_self_referential = 33001,
 
 	api_could_not_delete_file        = 40000,
 	api_unexpected_hash_type         = 40001,
 	api_unexpected_archive_item_type = 40002,
 	api_unexpected_recipe_type       = 40003,
 	api_already_finalized            = 40004,
+	api_unknown_zlib_compression     = 40005,
 };
 }

@@ -14,7 +14,17 @@ recipe::recipe(
 	const std::vector<item_definition> &item_ingredients) :
 	m_result_item_definition(result_item_definition), m_number_ingredients(number_ingredients),
 	m_item_ingredients(item_ingredients)
-{}
+{
+	if (std::any_of(
+			m_item_ingredients.begin(),
+			m_item_ingredients.end(),
+			[&](const auto &item_ingredient) { return m_result_item_definition == item_ingredient; }))
+	{
+		throw errors::user_exception(
+			errors::error_code::recipe_self_referential,
+			fmt::format("Recipe is self referential for item: {}", m_result_item_definition.to_string()));
+	}
+}
 
 recipe::~recipe() {}
 

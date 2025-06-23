@@ -193,8 +193,7 @@ int writer_stream_write(void *state, const void *buffer, size_t size)
 	return BSDIFF_SUCCESS;
 }
 
-bsdiff_stream create_writer_based_bsdiff_stream(
-	std::shared_ptr<io::writer> &writer)
+bsdiff_stream create_writer_based_bsdiff_stream(std::shared_ptr<io::writer> &writer)
 {
 	auto state = std::make_unique<bsdiff_writer_stream_context>(writer);
 
@@ -298,8 +297,7 @@ int sequential_writer_stream_write(void *state, const void *buffer, size_t size)
 	return BSDIFF_SUCCESS;
 }
 
-bsdiff_stream create_sequential_writer_based_bsdiff_stream(
-	std::shared_ptr<io::sequential::writer> &writer)
+bsdiff_stream create_sequential_writer_based_bsdiff_stream(std::shared_ptr<io::sequential::writer> &writer)
 {
 	auto state = std::make_unique<bsdiff_sequential_writer_stream_context>(writer);
 

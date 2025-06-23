@@ -74,7 +74,7 @@ uint32_t apply_session::add_file_to_pantry(const std::string &path)
 
 	auto item = diffs::core::create_definition_from_reader(reader);
 
-	ADU_LOG("adding file to pantry: {}", item.to_string());
+	ADU_LOG("adding file to pantry: {}", item);
 
 	std::shared_ptr<io::reader_factory> reader_factory = std::make_shared<io::basic_reader_factory>(reader);
 

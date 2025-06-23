@@ -99,3 +99,15 @@ class prepared_item
 	mutable std::variant<reader_kind, sequential_reader_kind, slice_kind, chain_kind, fetch_slice_kind> m_kind;
 };
 } // namespace archive_diff::diffs::core
+
+template <>
+struct fmt::formatter<archive_diff::diffs::core::prepared_item>
+{
+	constexpr auto parse(fmt::format_parse_context &ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
+
+	auto format(const archive_diff::diffs::core::prepared_item &prepared_item, fmt::format_context &ctx) const
+		-> decltype(ctx.out())
+	{
+		return fmt::format_to(ctx.out(), "{}", prepared_item.to_string());
+	}
+};
