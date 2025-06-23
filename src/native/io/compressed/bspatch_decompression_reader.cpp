@@ -63,10 +63,10 @@ void bspatch_decompression_reader::apply_patch(
 	bsdiff_ctx ctx{0};
 
 	auto_bsdiff_stream old_stream(create_reader_based_bsdiff_stream(*old_reader));
-	auto_bsdiff_stream new_stream    = create_sequential_writer_based_bsdiff_stream(*new_writer);
+	auto_bsdiff_stream new_stream  = create_sequential_writer_based_bsdiff_stream(*new_writer);
 	auto_bsdiff_stream diff_stream = create_reader_based_bsdiff_stream(*diff_reader);
 
-	bsdiff_patch_packer diff_packer;
+	auto_bsdiff_patch_packer diff_packer;
 	int ret = bsdiff_open_bz2_patch_packer(BSDIFF_MODE_READ, &diff_stream, &diff_packer);
 	if (ret != BSDIFF_SUCCESS)
 	{

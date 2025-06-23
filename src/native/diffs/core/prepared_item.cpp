@@ -210,11 +210,7 @@ void prepared_item::write([[maybe_unused]] std::shared_ptr<io::writer> &writer)
 
 std::string prepared_item::to_string() const
 {
-	std::string str;
-
-	str = "{result: ";
-	str += m_item_definition.to_string();
-	str += ", ";
+	std::string str = fmt::format("{{result: {}, ", m_item_definition);
 
 	std::visit(
 		overload{
@@ -264,13 +260,8 @@ std::string prepared_item::to_string() const
 			},
 			[&](slice_kind &slice)
 			{
-				str += "slice: {offset: ";
-				str += std::to_string(slice.m_offset);
-				str += ", length: ";
-				str += std::to_string(slice.m_length);
-				str += ", ";
-				str += slice.m_item->to_string();
-				str += "}";
+				str +=
+					fmt::format("slice: {{offset: {}, length: {}, {}}}", slice.m_offset, slice.m_length, *slice.m_item);
 			},
 			[&](chain_kind &chain)
 			{

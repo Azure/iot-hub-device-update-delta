@@ -140,6 +140,26 @@ TEST(slice, fetch_slice_of_slice)
 					small_slice_number_ingredients.push_back(offset_within);
 					std::vector<archive_diff::diffs::core::item_definition> small_slice_item_ingredients;
 					small_slice_item_ingredients.push_back(big_slice_item);
+
+					if (small_slice_item.size() == big_slice_item.size())
+					{
+						bool caught_exception{false};
+						try
+						{
+							auto self_referential_recipe = slice_recipe_template.create_recipe(
+								small_slice_item, small_slice_number_ingredients, small_slice_item_ingredients);
+						}
+						catch (archive_diff::errors::user_exception &e)
+						{
+							if (e.get_error() == archive_diff::errors::error_code::recipe_self_referential)
+							{
+								caught_exception = true;
+							}
+						}
+						ASSERT_TRUE(caught_exception);
+						continue;
+					}
+
 					auto small_slice_recipe = slice_recipe_template.create_recipe(
 						small_slice_item, small_slice_number_ingredients, small_slice_item_ingredients);
 

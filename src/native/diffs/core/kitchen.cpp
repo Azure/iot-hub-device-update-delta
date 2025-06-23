@@ -15,6 +15,8 @@
 
 #include <io/file/temp_file.h>
 
+#include <fmt/format.h>
+
 namespace archive_diff::diffs::core
 {
 //
@@ -113,7 +115,7 @@ bool kitchen::process_requested_items(bool select_recipes_only, std::set<core::i
 			//{
 			//	cookbook->audit_for_size(itr->size());
 			// }
-			ADU_LOG("Can't process item: {}", itr->to_string());
+			ADU_LOG("Can't process item: {}", *itr);
 			itr++;
 		}
 		else
@@ -154,7 +156,7 @@ bool kitchen::make_dependency_ready(
 
 	if (m_unreachable_items.contains(item))
 	{
-		ADU_LOG("Item already determined unreachable: {}", item.to_string());
+		ADU_LOG("Item already determined unreachable: {}", item);
 		return false;
 	}
 
@@ -202,7 +204,7 @@ bool kitchen::make_dependency_ready(
 				{
 					impossible_item = ingredient;
 
-					ADU_LOG("Found impossible item {}, for: {}", ingredient.to_string(), item.to_string());
+					ADU_LOG("Found impossible item {}, for: {}", ingredient, item);
 
 					found_impossible_ingredient = true;
 					break;
@@ -235,7 +237,7 @@ bool kitchen::make_dependency_ready(
 		}
 	}
 
-	ADU_LOG("Couldn't make dependency: {}", item.to_string());
+	ADU_LOG("Couldn't make dependency: {}", item);
 
 	return false;
 }
@@ -252,7 +254,7 @@ std::shared_ptr<prepared_item> kitchen::fetch_item(const item_definition &item)
 	{
 		throw errors::user_exception(
 			errors::error_code::diffs_kitchen_item_not_ready_to_fetch,
-			"kitchen::fetch_item: Item not ready: " + item.to_string());
+			fmt::format("kitchen::fetch_item: Item not ready: {}", item));
 	}
 
 	return m_ready_items[item];
@@ -280,7 +282,7 @@ std::shared_ptr<recipe> kitchen::fetch_selected_recipe(const item_definition &it
 	if (m_selected_recipes.count(item) == 0)
 	{
 		throw errors::user_exception(
-			errors::error_code::diffs_kitchen_no_selected_recipes, "No selected recipes for: " + item.to_string());
+			errors::error_code::diffs_kitchen_no_selected_recipes, fmt::format("No selected recipes for: {}", item));
 	}
 
 	return m_selected_recipes[item];
@@ -335,11 +337,11 @@ void kitchen::write_item(io::writer &writer, const item_definition &item)
 	{
 		throw errors::user_exception(
 			errors::error_code::diffs_kitchen_item_not_ready_to_fetch,
-			"kitchen::write_item: Can't fetch item:" + item.to_string());
+			fmt::format("kitchen::write_item: Can't fetch item: {}", item));
 	}
 
 	auto prep_result = fetch_item(item);
-	ADU_LOG("prep_result: {}", prep_result->to_string());
+	ADU_LOG("prep_result: {}", *prep_result);
 
 	auto sequential_reader = prep_result->make_sequential_reader();
 

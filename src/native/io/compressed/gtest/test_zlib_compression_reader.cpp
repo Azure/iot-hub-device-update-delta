@@ -5,8 +5,7 @@
  * Licensed under the MIT License.
  */
 #include <test_utility/gtest_includes.h>
-
-#include <test_utility/gtest_includes.h>
+#include <test_utility/read_test_file.h>
 
 #include <hashing/hasher.h>
 #include <io/file/io_device.h>
@@ -25,60 +24,94 @@
 #include "main.h"
 #include "common.h"
 
-TEST(zlib_compression_reader, compare_against_known_result)
+using init_type = archive_diff::io::compressed::zlib_helpers::init_type;
+
+std::vector<char> compress_file_using_reader(
+	fs::path uncompressed_file, size_t known_compressed_file_size, init_type init);
+std::vector<char> compress_file_in_blocks_using_reader(
+	fs::path uncompressed_file, size_t known_compressed_file_size, init_type init);
+
+void test_zlib_compression_reader(init_type init, fs::path known_compressed_file)
 {
-	const fs::path compressed_path = g_test_data_root / c_sample_file_deflate_compressed;
+	const fs::path uncompressed_path = g_test_data_root / c_sample_file_zlib_uncompressed;
 
-	auto compressed_file_reader = archive_diff::io::file::io_device::make_reader(compressed_path.string());
-	auto compressed_size        = static_cast<size_t>(compressed_file_reader.size());
-	auto compressed_data_vector = std::make_shared<std::vector<char>>();
-	compressed_data_vector->reserve(compressed_size);
-	auto compressed_data = std::span<char>{compressed_data_vector->data(), compressed_size};
-	compressed_file_reader.read(0, compressed_data);
+	auto known_compressed_data = read_test_file(known_compressed_file);
+	auto recompressed_data     = compress_file_using_reader(uncompressed_path, known_compressed_data.size(), init);
 
-	const fs::path uncompressed_path = g_test_data_root / c_sample_file_deflate_uncompressed;
+	ASSERT_EQ(known_compressed_data.size(), recompressed_data.size());
+	ASSERT_EQ(0, std::memcmp(known_compressed_data.data(), recompressed_data.data(), known_compressed_data.size()));
 
-	auto uncompressed_file_reader = archive_diff::io::file::io_device::make_reader(uncompressed_path.string());
+	auto recompressed_in_blocks_data =
+		compress_file_in_blocks_using_reader(uncompressed_path, known_compressed_data.size(), init);
+
+	ASSERT_EQ(known_compressed_data.size(), recompressed_in_blocks_data.size());
+	ASSERT_EQ(
+		0, std::memcmp(known_compressed_data.data(), recompressed_in_blocks_data.data(), known_compressed_data.size()));
+}
+
+std::vector<char> compress_file_using_reader(
+	fs::path uncompressed_file, size_t known_compressed_file_size, init_type init)
+{
+	auto uncompressed_file_reader = archive_diff::io::file::io_device::make_reader(uncompressed_file.string());
 	auto uncompressed_size        = static_cast<size_t>(uncompressed_file_reader.size());
-	auto uncompressed_data_vector = std::make_shared<std::vector<char>>();
-	uncompressed_data_vector->reserve(uncompressed_size);
-	auto uncompressed_data = std::span<char>{uncompressed_data_vector->data(), uncompressed_size};
-	uncompressed_file_reader.read(0, uncompressed_data);
 
-	using init_type = archive_diff::io::compressed::zlib_helpers::init_type;
 	archive_diff::io::compressed::zlib_compression_reader compression_reader{
-		uncompressed_file_reader, 9, uncompressed_size, compressed_size, init_type::raw};
+		uncompressed_file_reader, Z_BEST_COMPRESSION, uncompressed_size, known_compressed_file_size, init};
 
-	std::vector<char> from_reader_vector;
-	compression_reader.read_all_remaining(from_reader_vector);
+	std::vector<char> data;
+	compression_reader.read_all_remaining(data);
 
-	ASSERT_EQ(compressed_size, from_reader_vector.size());
-	ASSERT_EQ(0, std::memcmp(compressed_data.data(), from_reader_vector.data(), compressed_size));
+	return data;
+}
 
-	//
-	// Now read from a new reader in 3333 byte chunks
-	//
-	archive_diff::io::compressed::zlib_compression_reader compression_reader2{
-		uncompressed_file_reader, 9, uncompressed_size, compressed_size, init_type::raw};
+std::vector<char> compress_file_in_blocks_using_reader(
+	fs::path uncompressed_file, size_t known_compressed_file_size, init_type init)
+{
+	auto uncompressed_file_reader = archive_diff::io::file::io_device::make_reader(uncompressed_file.string());
+	auto uncompressed_size        = static_cast<size_t>(uncompressed_file_reader.size());
 
-	std::vector<char> from_reader_vector2;
-	from_reader_vector2.reserve(compressed_size);
+	archive_diff::io::compressed::zlib_compression_reader compression_reader{
+		uncompressed_file_reader, Z_BEST_COMPRESSION, uncompressed_size, known_compressed_file_size, init};
+
+	std::vector<char> data;
+	data.resize(known_compressed_file_size);
 
 	const size_t block_size = 3333;
 	uint64_t offset         = 0;
-	uint64_t remaining      = compressed_size;
-	char *output_buffer     = const_cast<char *>(from_reader_vector2.data());
+	uint64_t remaining      = known_compressed_file_size;
+	char *output_buffer     = const_cast<char *>(data.data());
 
 	while (remaining > 0)
 	{
 		auto to_read = std::min<size_t>(block_size, remaining);
 		auto span    = std::span<char>{output_buffer + offset, to_read};
 
-		auto actual_read = compression_reader2.read_some(span);
+		auto actual_read = compression_reader.read_some(span);
 
 		offset += actual_read;
 		remaining -= actual_read;
 	}
 
-	ASSERT_EQ(0, std::memcmp(compressed_data.data(), from_reader_vector2.data(), compressed_size));
+	return data;
+}
+
+TEST(zlib_compression_reader_raw_deflate, compare_against_known_result)
+{
+	const fs::path compressed_path = g_test_data_root / c_sample_file_deflate_compressed;
+
+	test_zlib_compression_reader(init_type::raw, compressed_path);
+}
+
+TEST(zlib_compression_reader_gz, compare_against_known_result)
+{
+	const fs::path compressed_path = g_test_data_root / c_sample_file_gz_compressed;
+
+	test_zlib_compression_reader(init_type::gz, compressed_path);
+}
+
+TEST(zlib_compression_reader_zlib, compare_against_known_result)
+{
+	const fs::path compressed_path = g_test_data_root / c_sample_file_zlib_compressed;
+
+	test_zlib_compression_reader(init_type::zlib, compressed_path);
 }

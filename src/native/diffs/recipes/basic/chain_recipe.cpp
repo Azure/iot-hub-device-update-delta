@@ -16,7 +16,7 @@ chain_recipe::chain_recipe(
 {}
 
 diffs::core::recipe::prepare_result chain_recipe::prepare(
-	kitchen *kitchen, std::vector<std::shared_ptr<prepared_item>> &items) const
+	kitchen *, std::vector<std::shared_ptr<prepared_item>> &items) const
 {
 	diffs::core::prepared_item::chain_kind chain;
 

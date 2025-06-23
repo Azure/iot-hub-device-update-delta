@@ -30,7 +30,7 @@ void recompress(archive_diff::io::reader &reader, std::shared_ptr<archive_diff::
 	auto wrapper = archive_diff::io::sequential::basic_writer_wrapper::make_shared(writer);
 	std::shared_ptr<archive_diff::io::sequential::writer> compressor =
 		std::make_shared<archive_diff::io::compressed::zlib_compression_writer>(
-			wrapper, 9, archive_diff::io::compressed::zlib_init_type::gz);
+			wrapper, Z_BEST_COMPRESSION, archive_diff::io::compressed::zlib_init_type::gz);
 	archive_diff::io::compressed::zlib_decompression_writer decompressor(
 		compressor, archive_diff::io::compressed::zlib_init_type::gz);
 

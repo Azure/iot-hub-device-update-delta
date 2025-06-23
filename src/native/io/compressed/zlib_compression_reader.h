@@ -56,6 +56,7 @@ class zlib_compression_reader : public io::sequential::reader
 	uint64_t m_processed_bytes{};
 	uint64_t m_read_offset{};
 
+	gz_header m_gz_header{};
 	auto_zlib_cstream m_zstr{};
 
 	std::vector<char> m_input_data;

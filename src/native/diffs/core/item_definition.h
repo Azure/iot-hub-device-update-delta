@@ -7,6 +7,7 @@
 #pragma once
 
 #include <json/json.h>
+#include <fmt/format.h>
 
 #include <map>
 
@@ -100,3 +101,15 @@ item_definition::serialization_options operator|(
 item_definition::serialization_options operator&(
 	const item_definition::serialization_options &lhs, const item_definition::serialization_options &rhs);
 } // namespace archive_diff::diffs::core
+
+template <>
+struct fmt::formatter<archive_diff::diffs::core::item_definition>
+{
+	constexpr auto parse(fmt::format_parse_context &ctx) -> decltype(ctx.begin()) { return ctx.begin(); }
+
+	auto format(const archive_diff::diffs::core::item_definition &item, fmt::format_context &ctx) const
+		-> decltype(ctx.out())
+	{
+		return fmt::format_to(ctx.out(), "{}", item.to_string());
+	}
+};

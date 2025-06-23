@@ -31,7 +31,7 @@ namespace archive_diff::diffs::serialization::standard
 {
 bool deserializer::is_this_format(io::reader &reader, std::string *reason)
 {
-	const auto c_header_size = (g_DIFF_MAGIC_VALUE.size() + sizeof(g_STANDARD_DIFF_VERSION));
+	const auto c_header_size = (g_DIFF_MAGIC_VALUE.size() + sizeof(g_STANDARD_DIFF_VERSION_2));
 	if (reader.size() < c_header_size)
 	{
 		*reason = "Too small. Found: " + std::to_string(reader.size())
@@ -53,9 +53,9 @@ bool deserializer::is_this_format(io::reader &reader, std::string *reason)
 
 	reader.read_uint64_t(4, &version);
 
-	if (version != g_STANDARD_DIFF_VERSION)
+	if (version != g_STANDARD_DIFF_VERSION_2)
 	{
-		*reason = "Wrong version. Expected: " + std::to_string(g_STANDARD_DIFF_VERSION)
+		*reason = "Wrong version. Expected: " + std::to_string(g_STANDARD_DIFF_VERSION_2)
 		        + ", Found: " + std::to_string(version);
 		return false;
 	}
@@ -95,9 +95,9 @@ void deserializer::read_header(io::sequential::reader &seq)
 	uint64_t version;
 	seq.read_uint64_t(&version);
 
-	if (version != g_STANDARD_DIFF_VERSION)
+	if (version != g_STANDARD_DIFF_VERSION_2)
 	{
-		std::string msg = "Not a valid version. Expected: " + std::to_string(g_STANDARD_DIFF_VERSION)
+		std::string msg = "Not a valid version. Expected: " + std::to_string(g_STANDARD_DIFF_VERSION_2)
 		                + ", Found: " + std::to_string(version);
 		throw errors::user_exception(errors::error_code::diff_version_wrong, msg);
 	}

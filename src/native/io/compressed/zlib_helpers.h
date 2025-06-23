@@ -9,6 +9,7 @@
 #include <zlib.h>
 
 #include <string>
+#include <cstring>
 
 #include <errors/user_exception.h>
 
@@ -38,6 +39,15 @@ class zlib_helpers
 
 		std::string msg = "get_init_bits(): Invalid init_type: " + std::to_string(static_cast<int>(init_type));
 		throw errors::user_exception(errors::error_code::io_zlib_init_type_invalid, msg);
+	}
+
+	static void initialize_header(gz_header &header)
+	{
+		// from RFC 1952: https://www.rfc-editor.org/rfc/rfc1952
+		const int GZ_HEADER_OS_UNIX = 3;
+
+		memset(&header, 0, sizeof(gz_header));
+		header.os = GZ_HEADER_OS_UNIX;
 	}
 };
 

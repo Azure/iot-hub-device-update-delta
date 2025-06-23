@@ -1,7 +1,6 @@
 ﻿namespace ZipArchives
 {
     using System;
-    using System.ComponentModel;
     using System.Diagnostics.CodeAnalysis;
     using System.IO;
     using System.IO.Compression;
@@ -24,31 +23,25 @@
 
         private const ulong ZlibGzInitType = 1;
 
-        private bool TryDetermineGzRecipe(string unzippedPath, ItemDefinition unzippedItem, ItemDefinition zippedItem, out Recipe gzRecipe)
+        private bool TryDetermineGzRecipe(ItemDefinition unzippedItem, string unzippedPath, ItemDefinition zippedItem, string zippedPath, out Recipe gzRecipe)
         {
-            ulong[] compressionLevels = { 1, 0xFFFFFFFF, 9, 5 };
+            var result = DiffApi.NativeMethods.diff_get_zlib_compression_level(unzippedPath, zippedPath, out int compressionLevel);
 
-            foreach (var compressionLevel in compressionLevels)
+            if (result != 0)
             {
-#pragma warning disable SA1010 // Opening square brackets should be spaced correctly
-                Recipe recipe = new(RecipeType.ZlibCompression, zippedItem, [ZlibGzInitType, compressionLevel], new() { unzippedItem });
-
-                ArchiveTokenization tokens = new("zlib", "zlib");
-                tokens.WorkingFolder = Path.Combine(Context.WorkingFolder, "TestGzRecipe");
-                tokens.ArchiveItem = unzippedItem;
-
-                tokens.AddRecipe(recipe);
-                if (!tokens.TryExtractItems(null, unzippedPath, [zippedItem]))
-                {
-                    continue;
-                }
-
-                gzRecipe = recipe;
-                return true;
+                gzRecipe = null;
+                return false;
             }
 
-            gzRecipe = null;
-            return false;
+            ulong compressionLevelUlong = (ulong)compressionLevel;
+
+            if (compressionLevel == -1)
+            {
+                compressionLevelUlong = uint.MaxValue;
+            }
+
+            gzRecipe = new Recipe(RecipeType.ZlibCompression, zippedItem, new() { ZlibGzInitType, compressionLevelUlong }, new() { unzippedItem });
+            return true;
         }
 
         public override bool TryTokenize(ItemDefinition archiveItem, out ArchiveTokenization tokens)
@@ -90,8 +83,9 @@
                     }
 
                     unzippedItem = ItemDefinition.FromFile(unzippedPath);
+                    using FileFromStream zippedFile = new FileFromStream(Context.Stream, Context.WorkingFolder);
 
-                    if (TryDetermineGzRecipe(unzippedPath, unzippedItem, zippedItem, out var gzRecipe))
+                    if (TryDetermineGzRecipe(unzippedItem, unzippedPath, zippedItem, zippedFile.Name, out var gzRecipe))
                     {
                         newTokens.AddForwardRecipe(gzRecipe);
                     }

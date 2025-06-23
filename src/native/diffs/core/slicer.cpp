@@ -16,6 +16,8 @@
 #include <limits>
 #include <string>
 
+#include <fmt/format.h>
+
 namespace archive_diff::diffs::core
 {
 slicer::~slicer()
@@ -64,7 +66,7 @@ void slicer::request_slice(std::shared_ptr<prepared_item> &to_slice, uint64_t of
 	// Add an entry about the request we're making
 	if (m_slice_item_request_counts.count(slice) != 0)
 	{
-		ADU_LOG("slicer::request_slice: Already have a request for this item: {}", slice.to_string());
+		ADU_LOG("slicer::request_slice: Already have a request for this item: {}", slice);
 		//  There's already a pending request for a matching slice
 		//  make one more request and bail
 		m_slice_item_request_counts[slice]++;
@@ -89,7 +91,7 @@ void slicer::request_slice(std::shared_ptr<prepared_item> &to_slice, uint64_t of
 
 	auto &offset_to_slice_map = *(m_items_to_slices_requested[item_to_slice].get());
 
-	ADU_LOG("slicer::request_slice: Adding entry for offset: {}, for item: {}", offset, slice.to_string());
+	ADU_LOG("slicer::request_slice: Adding entry for offset: {}, for item: {}", offset, slice);
 
 	// check that we're not overlapping with the previous result
 	if (offset_to_slice_map.size() != 0)
@@ -367,14 +369,11 @@ void slicer::slice_and_populate_slice_store(const item_definition &item_to_slice
 		auto offset = offset_and_slice.first;
 		auto slice  = offset_and_slice.second;
 
-		ADU_LOG(
-			"slicer::slice_and_populate_slice_store: Slicing {} out of {}",
-			slice.to_string(),
-			item_to_slice.to_string());
+		ADU_LOG("slicer::slice_and_populate_slice_store: Slicing {} out of {}", slice, item_to_slice);
 
 		auto current_offset = reader->tellg();
 
-		ADU_LOG("Expecting slice: {} at offset: {}. Current offset: {}", slice.to_string(), offset, current_offset);
+		ADU_LOG("Expecting slice: {} at offset: {}. Current offset: {}", slice, offset, current_offset);
 
 		if (current_offset > offset)
 		{
@@ -411,10 +410,11 @@ void slicer::slice_and_populate_slice_store(const item_definition &item_to_slice
 
 		if (!slice.has_matching_hash(slice_hash))
 		{
-			std::string msg = "Generated slice doesn't match expected slice. ";
-			msg += "Current offset: " + std::to_string(offset);
-			msg += ", Slice: " + slice.to_string();
-			msg += ", slice_hash: " + slice_hash.get_string();
+			std::string msg = fmt::format(
+				"Generated slice doesn't match expected slice. Current offset: {}, Slice: {}, slice_hash: {}",
+				offset,
+				slice,
+				slice_hash);
 			throw errors::user_exception(errors::error_code::diff_slicing_produced_hash_mismatch, msg);
 		}
 
@@ -435,13 +435,13 @@ void slicer::slice_and_populate_slice_store(const item_definition &item_to_slice
 
 			auto count = m_slice_item_request_counts[slice];
 
-			ADU_LOG("Stored slice for {}.", slice.to_string());
+			ADU_LOG("Stored slice for {}.", slice);
 			m_stored_slices.insert(std::pair{slice, std::pair{prep_slice, count}});
 
 			m_slice_item_request_counts.erase(slice);
 		}
 
-		ADU_LOG("Notified: m_stored_slices_cv for {}", slice.to_string());
+		ADU_LOG("Notified: m_stored_slices_cv for {}", slice);
 		m_store_cv.notify_all();
 	}
 }

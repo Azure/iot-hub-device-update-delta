@@ -40,7 +40,6 @@ class adu_log
 		}
 	}
 
-
 	private:
 	const char *ADU_ENABLE_LOGGING = "ADU_ENABLE_LOGGING";
 
