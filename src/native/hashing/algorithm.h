@@ -7,6 +7,7 @@
 
 #pragma once
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -20,20 +21,21 @@
 
 namespace archive_diff::hashing
 {
-enum class algorithm : uint32_t
+enum  adu_algorithm
 {
 	invalid = 0,
 	md5     = 32771,
 	sha256  = 32780,
 };
 
-const algorithm all_algorithms[] = {algorithm::md5, algorithm::sha256};
+
+const archive_diff::hashing::adu_algorithm all_algorithms[] = {archive_diff::hashing::adu_algorithm::md5, archive_diff::hashing::adu_algorithm::sha256};
 
 #ifndef USE_BCRYPT
-int alg_to_gcrypt_algo(hashing::algorithm alg);
+int adu_alg_to_gcrypt_algo(archive_diff::hashing::adu_algorithm alg);
 #endif
 
-std::string get_algorithm_name(algorithm algo);
+std::string get_adu_algorithm_name(archive_diff::hashing::adu_algorithm algo);
 
-size_t get_byte_count_for_algorithm(algorithm algo);
+size_t get_byte_count_for_adu_algorithm(archive_diff::hashing::adu_algorithm algo);
 } // namespace archive_diff::hashing

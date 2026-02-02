@@ -10,7 +10,7 @@
 
 archive_diff::diffs::core::item_definition create_definition_from_data(std::string_view data)
 {
-	archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 
 	hasher.hash_data(data.data(), data.size());
 	auto hash = hasher.get_hash();

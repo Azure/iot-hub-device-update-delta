@@ -1,5 +1,6 @@
 #include "cpio_archive.h"
 
+#include <algorithm>
 #include <io/reader.h>
 #include <io/sequential/writer.h>
 

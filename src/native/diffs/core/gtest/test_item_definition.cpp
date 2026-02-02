@@ -13,10 +13,10 @@ TEST(item_definition, operator_less_than_overload_starting_equivalent_items)
 {
 	using item_definition = archive_diff::diffs::core::item_definition;
 
-	archive_diff::hashing::hasher sha256(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher sha256(archive_diff::hashing::adu_algorithm::sha256);
 	auto hash1 = sha256.get_hash();
 
-	archive_diff::hashing::hasher md5(archive_diff::hashing::algorithm::md5);
+	archive_diff::hashing::hasher md5(archive_diff::hashing::adu_algorithm::md5);
 	auto hash2 = md5.get_hash();
 
 	// two items with no hashes (and same name) at construction and equal length should
@@ -57,10 +57,10 @@ TEST(item_definition, operator_less_than_overload_starting_differing_sized_items
 {
 	using item_definition = archive_diff::diffs::core::item_definition;
 
-	archive_diff::hashing::hasher sha256(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher sha256(archive_diff::hashing::adu_algorithm::sha256);
 	auto hash1 = sha256.get_hash();
 
-	archive_diff::hashing::hasher md5(archive_diff::hashing::algorithm::md5);
+	archive_diff::hashing::hasher md5(archive_diff::hashing::adu_algorithm::md5);
 	auto hash2 = md5.get_hash();
 
 	// two items with no hashes (and same name) at construction, but first is smaller than second
@@ -101,10 +101,10 @@ TEST(item_definition, match_starting_equivalent_items)
 {
 	using item_definition = archive_diff::diffs::core::item_definition;
 
-	archive_diff::hashing::hasher sha256(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher sha256(archive_diff::hashing::adu_algorithm::sha256);
 	auto hash1 = sha256.get_hash();
 
-	archive_diff::hashing::hasher md5(archive_diff::hashing::algorithm::md5);
+	archive_diff::hashing::hasher md5(archive_diff::hashing::adu_algorithm::md5);
 	auto hash2 = md5.get_hash();
 
 	// two items with no hashes (and same name) at construction and equal length should
@@ -143,10 +143,10 @@ TEST(item_definition, match_starting_differing_sized_items)
 {
 	using item_definition = archive_diff::diffs::core::item_definition;
 
-	archive_diff::hashing::hasher sha256(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher sha256(archive_diff::hashing::adu_algorithm::sha256);
 	auto hash1 = sha256.get_hash();
 
-	archive_diff::hashing::hasher md5(archive_diff::hashing::algorithm::md5);
+	archive_diff::hashing::hasher md5(archive_diff::hashing::adu_algorithm::md5);
 	auto hash2 = md5.get_hash();
 
 	// two items with no hashes (and same name) at construction, but first is smaller than second
@@ -188,10 +188,10 @@ TEST(item_definition, has_matching_hash)
 {
 	using item_definition = archive_diff::diffs::core::item_definition;
 
-	archive_diff::hashing::hasher sha256(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher sha256(archive_diff::hashing::adu_algorithm::sha256);
 	auto hash1 = sha256.get_hash();
 
-	archive_diff::hashing::hasher md5(archive_diff::hashing::algorithm::md5);
+	archive_diff::hashing::hasher md5(archive_diff::hashing::adu_algorithm::md5);
 	auto hash2 = md5.get_hash();
 
 	item_definition test_data[] = {
@@ -228,10 +228,10 @@ TEST(item_definition, size)
 {
 	using item_definition = archive_diff::diffs::core::item_definition;
 
-	archive_diff::hashing::hasher sha256(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher sha256(archive_diff::hashing::adu_algorithm::sha256);
 	auto hash1 = sha256.get_hash();
 
-	archive_diff::hashing::hasher md5(archive_diff::hashing::algorithm::md5);
+	archive_diff::hashing::hasher md5(archive_diff::hashing::adu_algorithm::md5);
 	auto hash2 = md5.get_hash();
 
 	std::pair<item_definition, uint64_t> test_data[] = {

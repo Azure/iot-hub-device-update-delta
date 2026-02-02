@@ -346,7 +346,7 @@ void slicer::slice_and_populate_slice_store(const item_definition &item_to_slice
 	auto reader = prepared_item_to_slice->make_sequential_reader();
 
 	// printf("We're slicing %s\n", item_to_slice.to_string().c_str());
-	hashing::hasher hasher(hashing::algorithm::sha256);
+	hashing::hasher hasher(hashing::adu_algorithm::sha256);
 
 	for (auto offset_and_slice : *slices_requested)
 	{

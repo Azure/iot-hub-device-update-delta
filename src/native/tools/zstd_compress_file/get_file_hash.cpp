@@ -16,7 +16,7 @@ std::vector<char> get_file_hash(fs::path path)
 	auto reader = archive_diff::io::file::io_device::make_reader(path.string());
 	archive_diff::io::sequential::basic_reader_wrapper wrapped_reader(reader);
 
-	archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 
 	const size_t block_size = 1024 * 1024;
 	std::vector<char> read_buffer;

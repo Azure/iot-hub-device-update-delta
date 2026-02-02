@@ -31,7 +31,7 @@ void test_all_zero_reader(
 	ASSERT_EQ(result_data.size(), expected_data.size());
 	ASSERT_EQ(0, std::memcmp(result_data.data(), expected_data.data(), expected_data.size()));
 
-	archive_diff::hashing::hasher result_hasher(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher result_hasher(archive_diff::hashing::adu_algorithm::sha256);
 	result_hasher.hash_data(result_data);
 	auto actual_hash = result_hasher.get_hash();
 
@@ -53,7 +53,7 @@ void test_all_zero_sequential_reader(
 	ASSERT_EQ(result_data.size(), expected_data.size());
 	ASSERT_EQ(0, std::memcmp(result_data.data(), expected_data.data(), expected_data.size()));
 
-	archive_diff::hashing::hasher result_hasher(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher result_hasher(archive_diff::hashing::adu_algorithm::sha256);
 	result_hasher.hash_data(result_data);
 	auto actual_hash = result_hasher.get_hash();
 
@@ -66,7 +66,7 @@ TEST(zeros_io_device, make_reader)
 	{
 		std::vector<char> expected_data;
 		expected_data.resize(num_zeros);
-		archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+		archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 		hasher.hash_data(expected_data);
 		auto expected_hash = hasher.get_hash();
 
@@ -82,7 +82,7 @@ TEST(all_zero_recipe, prepare)
 	{
 		std::vector<char> expected_data;
 		expected_data.resize(num_zeros);
-		archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+		archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 		hasher.hash_data(expected_data);
 		auto expected_hash = hasher.get_hash();
 
@@ -119,7 +119,7 @@ TEST(all_zero_recipe_template, make_reader)
 	{
 		std::vector<char> expected_data;
 		expected_data.resize(num_zeros);
-		archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+		archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 		hasher.hash_data(expected_data);
 		auto expected_hash = hasher.get_hash();
 
@@ -159,7 +159,7 @@ TEST(all_zero_recipe, fetch_from_kitchen)
 	{
 		std::vector<char> expected_data;
 		expected_data.resize(num_zeros);
-		archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+		archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 		hasher.hash_data(expected_data);
 		auto expected_hash = hasher.get_hash();
 

@@ -155,7 +155,7 @@ void serializer::write_nested_archives(io::sequential::writer &writer)
 	{
 		auto serialized_diff                      = std::make_shared<std::vector<char>>();
 		std::shared_ptr<io::writer> buffer_writer = std::make_shared<io::buffer::writer>(serialized_diff);
-		auto hasher                               = std::make_shared<hashing::hasher>(hashing::algorithm::sha256);
+		auto hasher                               = std::make_shared<hashing::hasher>(hashing::adu_algorithm::sha256);
 		io::hashed::hashed_sequential_writer seq(buffer_writer, hasher);
 
 		serializer nested(archive);

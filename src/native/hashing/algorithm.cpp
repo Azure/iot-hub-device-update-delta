@@ -13,47 +13,47 @@
 
 namespace archive_diff::hashing
 {
-size_t get_byte_count_for_algorithm(algorithm algo)
+size_t get_byte_count_for_adu_algorithm(archive_diff::hashing::adu_algorithm algo)
 {
 	switch (algo)
 	{
-	case algorithm::md5:
+	case archive_diff::hashing::adu_algorithm::md5:
 		return 16;
-	case algorithm::sha256:
+	case archive_diff::hashing::adu_algorithm::sha256:
 		return 32;
 	default:
-		std::string msg = "diffs::hash::get_byte_count_for_algorithm(): Unexpected hash type: "
+		std::string msg = "diffs::hash::get_byte_count_for_adu_algorithm(): Unexpected hash type: "
 		                + std::to_string(static_cast<int>(algo));
 		throw errors::user_exception(errors::error_code::diff_bad_hash_type, msg);
 	}
 }
 
-std::string get_algorithm_name(algorithm algo)
+std::string get_adu_algorithm_name(archive_diff::hashing::adu_algorithm algo)
 {
 	switch (algo)
 	{
-	case algorithm::md5:
+	case archive_diff::hashing::adu_algorithm::md5:
 		return "md5";
-	case algorithm::sha256:
+	case archive_diff::hashing::adu_algorithm::sha256:
 		return "sha256";
 	default:
 		std::string msg =
-			"diffs::hash::get_algorithm_name(): Unexpected hash type: " + std::to_string(static_cast<int>(algo));
+			"diffs::hash::get_adu_algorithm_name(): Unexpected hash type: " + std::to_string(static_cast<int>(algo));
 		throw errors::user_exception(errors::error_code::diff_bad_hash_type, msg);
 	}
 }
 
 #ifdef USE_LIBGCRYPT
-int alg_to_gcrypt_algo(hashing::algorithm alg)
+int adu_alg_to_gcrypt_algo(archive_diff::hashing::adu_algorithm alg)
 {
 	switch (alg)
 	{
-	case hashing::algorithm::md5:
+	case archive_diff::hashing::adu_algorithm::md5:
 		return GCRY_MD_MD5;
-	case hashing::algorithm::sha256:
+	case archive_diff::hashing::adu_algorithm::sha256:
 		return GCRY_MD_SHA256;
 	default:
-		std::string msg = "alg_to_gcrypt_algo() has invalid value: " + std::to_string(static_cast<int>(alg));
+		std::string msg = "adu_alg_to_gcrypt_algo() has invalid value: " + std::to_string(static_cast<int>(alg));
 		throw errors::user_exception(errors::error_code::hash_alg_to_gcrypt_algo, msg);
 	}
 }

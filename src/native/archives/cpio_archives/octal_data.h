@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string_view>
 
 uint32_t get_octal_two_bytes(std::string_view view, size_t offset);

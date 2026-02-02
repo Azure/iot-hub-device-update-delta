@@ -179,7 +179,7 @@ std::string replace(const std::string &s, std::span<char> find_values, char repl
 
 archive_diff::hashing::hash hash_reader(archive_diff::io::reader &reader)
 {
-	archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 
 	const size_t block_size = 8 * 1024;
 

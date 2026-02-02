@@ -28,15 +28,15 @@ namespace archive_diff::hashing
 {
 struct hash
 {
-	hash() : m_algorithm(algorithm::invalid) {}
-	hash(algorithm algo, io::reader &reader);
+	hash() : m_algorithm(archive_diff::hashing::adu_algorithm::invalid) {}
+	hash(archive_diff::hashing::adu_algorithm algo, io::reader &reader);
 
-	static hash import_hash_value(algorithm algo, std::string_view hash_value)
+	static hash import_hash_value(archive_diff::hashing::adu_algorithm algo, std::string_view hash_value)
 	{
 		hash new_hash;
 		new_hash.m_algorithm = algo;
 
-		auto expected_byte_count = get_byte_count_for_algorithm(algo);
+		auto expected_byte_count = get_byte_count_for_adu_algorithm(algo);
 
 		if (hash_value.size() != expected_byte_count)
 		{
@@ -76,7 +76,7 @@ struct hash
 	static void verify_hashes_match(std::string_view actual, std::string_view expected);
 	static void verify_data_against_hash(std::string_view data, const hash &hash);
 
-	algorithm m_algorithm{algorithm::invalid};
+	archive_diff::hashing::adu_algorithm m_algorithm{archive_diff::hashing::adu_algorithm::invalid};
 	std::vector<char> m_hash_data;
 
 	std::string get_type_string() const;

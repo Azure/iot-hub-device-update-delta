@@ -128,6 +128,19 @@ def fix_file_list(list_path, strings_to_replace, should_have_sig_file):
     elif not should_have_sig_file and do_have_sig_file:
         lines.remove('sw-description.sig\n')
 
+    # CRITICAL FIX: Ensure sw-description and sw-description.sig are ALWAYS first
+    # SWUpdate requires EXACT order: sw-description, sw-description.sig, then other files
+    # Remove sw-description and optionally sw-description.sig from current position
+    if 'sw-description\n' in lines:
+        lines.remove('sw-description\n')
+    if 'sw-description.sig\n' in lines:
+        lines.remove('sw-description.sig\n')
+    
+    # Insert them at the BEGINNING in correct order
+    if should_have_sig_file:
+        lines.insert(0, 'sw-description.sig\n')
+    lines.insert(0, 'sw-description\n')
+
     with open(list_path, 'w') as list:
         lines = list.writelines(lines)
 

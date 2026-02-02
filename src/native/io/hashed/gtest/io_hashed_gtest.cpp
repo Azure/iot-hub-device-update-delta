@@ -43,7 +43,7 @@ fs::path test_data_root;
 
 std::vector<char> get_hash(const char *data, size_t length)
 {
-	archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 	std::string_view view{data, length};
 	hasher.hash_data(view);
 
@@ -52,7 +52,7 @@ std::vector<char> get_hash(const char *data, size_t length)
 
 std::vector<char> get_hash(archive_diff::io::reader *reader, uint64_t offset, uint64_t length)
 {
-	archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 	std::vector<char> buffer;
 	buffer.resize(32 * 1024);
 
@@ -77,7 +77,7 @@ std::vector<char> get_hash(archive_diff::io::reader *reader, uint64_t offset, ui
 
 std::vector<char> get_hash(fs::path path, uint64_t offset, uint64_t length)
 {
-	archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 
 	auto reader = archive_diff::io::file::io_device::make_reader(path.string());
 	return get_hash(&reader, offset, static_cast<size_t>(length));
@@ -97,7 +97,7 @@ TEST(hashed_sequential_writer, binary_file_writer)
 
 	std::shared_ptr<archive_diff::io::writer> binary_writer =
 		std::make_shared<archive_diff::io::file::binary_file_writer>(test_file.string());
-	auto hasher = std::make_shared<archive_diff::hashing::hasher>(archive_diff::hashing::algorithm::sha256);
+	auto hasher = std::make_shared<archive_diff::hashing::hasher>(archive_diff::hashing::adu_algorithm::sha256);
 
 	archive_diff::io::hashed::hashed_sequential_writer hashed_writer(binary_writer, hasher);
 
@@ -127,11 +127,11 @@ TEST(hashed_sequential_writer, child_hasher)
 
 	std::shared_ptr<archive_diff::io::writer> binary_writer =
 		std::make_shared<archive_diff::io::file::binary_file_writer>(test_file.string());
-	auto hasher = std::make_shared<archive_diff::hashing::hasher>(archive_diff::hashing::algorithm::sha256);
+	auto hasher = std::make_shared<archive_diff::hashing::hasher>(archive_diff::hashing::adu_algorithm::sha256);
 
 	archive_diff::io::hashed::hashed_sequential_writer hashed_writer(binary_writer, hasher);
 
-	auto child_hasher = std::make_shared<archive_diff::hashing::hasher>(archive_diff::hashing::algorithm::sha256);
+	auto child_hasher = std::make_shared<archive_diff::hashing::hasher>(archive_diff::hashing::adu_algorithm::sha256);
 
 	archive_diff::io::hashed::hashed_sequential_writer child_hashed_writer(hashed_writer, child_hasher);
 

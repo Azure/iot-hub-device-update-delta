@@ -15,9 +15,9 @@
 
 namespace archive_diff::hashing
 {
-hash::hash(algorithm algorithm, io::reader &reader) : m_algorithm(algorithm)
+hash::hash(archive_diff::hashing::adu_algorithm algorithm, io::reader &reader) : m_algorithm(algorithm)
 {
-	hashing::hasher hasher{hashing::algorithm::sha256};
+	hashing::hasher hasher{archive_diff::hashing::adu_algorithm::sha256};
 
 	auto remaining = reader.size();
 	uint64_t offset{};
@@ -44,7 +44,7 @@ hash::hash(algorithm algorithm, io::reader &reader) : m_algorithm(algorithm)
 void hash::read(io::sequential::reader& reader)
 {
 	reader.read_uint32_t(reinterpret_cast<uint32_t *>(&m_algorithm));
-	size_t hash_data_bytes = get_byte_count_for_algorithm(m_algorithm);
+	size_t hash_data_bytes = get_byte_count_for_adu_algorithm(m_algorithm);
 	m_hash_data.resize(hash_data_bytes);
 
 	memset(m_hash_data.data(), 0, hash_data_bytes);
@@ -61,9 +61,9 @@ std::string hash::get_type_string() const
 {
 	switch (m_algorithm)
 	{
-	case algorithm::md5:
+	case archive_diff::hashing::adu_algorithm::md5:
 		return std::string("Md5");
-	case algorithm::sha256:
+	case archive_diff::hashing::adu_algorithm::sha256:
 		return std::string("Sha256");
 	default:
 		std::string msg =
@@ -99,7 +99,7 @@ void hash::verify_hashes_match(std::string_view actual, std::string_view expecte
 
 void hash::verify_data_against_hash(std::string_view data, const hash &hash)
 {
-	hashing::hasher hasher(hashing::algorithm::sha256);
+	hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 	hasher.hash_data(data.data(), data.size());
 	auto calculated_hash = hasher.get_hash_binary();
 

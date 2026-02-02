@@ -51,14 +51,14 @@ class item_definition
 	[[nodiscard]] item_definition with_hash(const hashing::hash &hash) const;
 
 	using item_names_set  = std::set<std::string>;
-	using item_hashes_map = std::map<hashing::algorithm, hashing::hash>;
+	using item_hashes_map = std::map<archive_diff::hashing::adu_algorithm, hashing::hash>;
 
 	const item_hashes_map &get_hashes() const { return m_hashes; }
 	const item_names_set &get_names() const { return m_names; }
 
 	bool has_matching_hash(hashing::hash &hash) const;
 	bool has_matching_name(const std::string &name) const { return m_names.count(name) > 0; }
-	bool has_hash_for_alg(hashing::algorithm algo) const { return m_hashes.count(algo) > 0; }
+	bool has_hash_for_alg(archive_diff::hashing::adu_algorithm algo) const { return m_hashes.count(algo) > 0; }
 	bool has_any_hashes() const { return !m_hashes.empty(); }
 
 	uint64_t size() const { return m_length; }

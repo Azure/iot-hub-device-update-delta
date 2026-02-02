@@ -120,7 +120,7 @@ bool compare_file_hashes(fs::path &file1, fs::path &file2, const std::string &ha
 
 std::string get_filehash_string(fs::path &path)
 {
-	archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 
 	auto reader = archive_diff::io::file::io_device::make_reader(path.string());
 	archive_diff::io::sequential::basic_reader_wrapper seq(reader);

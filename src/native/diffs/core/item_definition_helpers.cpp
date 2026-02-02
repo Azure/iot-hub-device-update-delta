@@ -17,7 +17,7 @@ item_definition create_definition_from_span(const std::span<char> data)
 
 item_definition create_definition_from_string_view(std::string_view data)
 {
-	hashing::hasher hasher(hashing::algorithm::sha256);
+	hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 
 	hasher.hash_data(data.data(), data.size());
 	auto hash = hasher.get_hash();
@@ -37,7 +37,7 @@ item_definition create_definition_from_vector_using_size(std::vector<char> &data
 
 item_definition create_definition_from_reader(io::reader &reader)
 {
-	hashing::hasher hasher(hashing::algorithm::sha256);
+	hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 
 	const size_t block_size = 8 * 1024;
 
@@ -62,7 +62,7 @@ item_definition create_definition_from_reader(io::reader &reader)
 
 item_definition create_definition_from_sequential_reader(io::sequential::reader *reader)
 {
-	hashing::hasher hasher(hashing::algorithm::sha256);
+	hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 
 	const size_t block_size = 8 * 1024;
 

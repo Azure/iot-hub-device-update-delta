@@ -198,7 +198,7 @@ void prepared_item::write([[maybe_unused]] std::shared_ptr<io::writer> &writer)
 {
 	auto reader = make_sequential_reader();
 #if 0
-	auto hasher = std::make_shared<hashing::hasher>(hashing::algorithm::sha256);
+	auto hasher = std::make_shared<hashing::hasher>(hashing::adu_algorithm::sha256);
 	io::hashed::hashed_sequential_writer hashed_writer(writer, hasher);
 
 	hashed_writer.write(*reader);

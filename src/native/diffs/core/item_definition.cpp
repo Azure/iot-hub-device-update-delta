@@ -282,7 +282,7 @@ void item_definition::write(io::sequential::writer &writer, serialization_option
 	{
 		if (include_only_sha256_hash)
 		{
-			auto itr = m_hashes.find(hashing::algorithm::sha256);
+			auto itr = m_hashes.find(archive_diff::hashing::adu_algorithm::sha256);
 
 			if (itr == m_hashes.cend())
 			{

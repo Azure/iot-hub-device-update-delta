@@ -140,7 +140,7 @@ void extract_items(
 	kitchen.clear_requested_items();
 	for (const auto &item : items)
 	{
-		if (!item.has_hash_for_alg(archive_diff::hashing::algorithm::sha256))
+		if (!item.has_hash_for_alg(archive_diff::hashing::adu_algorithm::sha256))
 		{
 			continue;
 		}
@@ -149,7 +149,7 @@ void extract_items(
 		auto hashes = item.get_hashes();
 		for (const auto &hash : hashes)
 		{
-			if (hash.first == archive_diff::hashing::algorithm::sha256)
+			if (hash.first == archive_diff::hashing::adu_algorithm::sha256)
 			{
 				item_path        = target_path / hash.second.get_data_string();
 				item_paths[item] = item_path;
@@ -240,7 +240,7 @@ int extract(fs::path source_path, fs::path diff_path, std::string hash, size_t s
 	}
 	std::string_view hash_view{hash_data.data(), hash_data.size()};
 	auto hash_value =
-		archive_diff::hashing::hash::import_hash_value(archive_diff::hashing::algorithm::sha256, hash_view);
+		archive_diff::hashing::hash::import_hash_value(archive_diff::hashing::adu_algorithm::sha256, hash_view);
 	item = item.with_hash(hash_value);
 	printf("Item: %s\n", item.to_string().c_str());
 

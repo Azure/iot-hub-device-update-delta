@@ -347,7 +347,7 @@ void deserializer::add_nested_archive(const std::string &path)
 	auto reader            = io::file::io_device::make_reader(path);
 	auto archive_data_size = reader.size();
 
-	hashing::hash archive_data_hash{hashing::algorithm::sha256, reader};
+	hashing::hash archive_data_hash{hashing::adu_algorithm::sha256, reader};
 	auto archive_data_item = core::item_definition{archive_data_size}.with_hash(archive_data_hash);
 
 	deserializer nested;

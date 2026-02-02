@@ -32,7 +32,7 @@ namespace archive_diff::hashing
 class hasher
 {
 	public:
-	hasher(algorithm alg);
+	hasher(archive_diff::hashing::adu_algorithm alg);
 	~hasher();
 	void reset();
 	int hash_data(std::span<char> data) { return hash_data(data.data(), data.size()); }
@@ -49,7 +49,7 @@ class hasher
 	}
 
 	private:
-	algorithm m_alg;
+	archive_diff::hashing::adu_algorithm m_alg;
 #ifdef USE_BCRYPT
 	struct algorithm_provider_handle_deleter
 	{

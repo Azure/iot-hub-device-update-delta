@@ -26,7 +26,7 @@ TEST(inline_asset_recipe, make_reader)
 		{
 			auto expected_data = std::string_view{c_test_inline_asset_data + offset, length};
 
-			archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+			archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 			hasher.hash_data(expected_data);
 
 			archive_diff::diffs::blob_definition blobdef;
@@ -46,7 +46,7 @@ TEST(inline_asset_recipe, make_reader)
 			ASSERT_EQ(recipe_result_data.size(), expected_data.size());
 			ASSERT_EQ(0, memcmp(recipe_result_data.data(), expected_data.data(), expected_data.size()));
 
-			archive_diff::hashing::hasher result_hasher(archive_diff::hashing::algorithm::sha256);
+			archive_diff::hashing::hasher result_hasher(archive_diff::hashing::adu_algorithm::sha256);
 			result_hasher.hash_data(recipe_result_data);
 
 			archive_diff::hashing::hash::verify_hashes_match(expected_hash, result_hasher.get_hash());
@@ -72,7 +72,7 @@ TEST(inline_asset_recipe, apply)
 		{
 			auto expected_data = std::string_view{c_test_inline_asset_data + offset, length};
 
-			archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+			archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 			hasher.hash_data(expected_data);
 
 			archive_diff::diffs::blob_definition blobdef;
@@ -88,7 +88,7 @@ TEST(inline_asset_recipe, apply)
 			std::shared_ptr<archive_diff::io::writer> buffer_writer =
 				std::make_shared<archive_diff::io::buffer::writer>(write_result_buffer);
 			auto write_result_hasher =
-				std::make_shared<archive_diff::hashing::hasher>(archive_diff::hashing::algorithm::sha256);
+				std::make_shared<archive_diff::hashing::hasher>(archive_diff::hashing::adu_algorithm::sha256);
 			archive_diff::io::hashed::hashed_sequential_writer hashed_writer(buffer_writer, write_result_hasher);
 
 			recipe.apply(&context, hashed_writer);
@@ -96,7 +96,7 @@ TEST(inline_asset_recipe, apply)
 			ASSERT_EQ(write_result_buffer->size(), expected_data.size());
 			ASSERT_EQ(0, std::memcmp(write_result_buffer->data(), expected_data.data(), expected_data.size()));
 
-			archive_diff::hashing::hasher result_hasher(archive_diff::hashing::algorithm::sha256);
+			archive_diff::hashing::hasher result_hasher(archive_diff::hashing::adu_algorithm::sha256);
 			result_hasher.hash_data(*write_result_buffer);
 
 			archive_diff::hashing::hash::verify_hashes_match(expected_hash, result_hasher.get_hash());
@@ -116,7 +116,7 @@ TEST(inline_asset_recipe, no_inline_assets)
 		{
 			auto expected_data = std::string_view{c_test_inline_asset_data + offset, length};
 
-			archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+			archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 			hasher.hash_data(expected_data);
 
 			archive_diff::diffs::blob_definition blobdef;
@@ -151,7 +151,7 @@ TEST(inline_asset_recipe, make_reader_buggy_result_bad_hash)
 		{
 			auto expected_data = std::string_view{c_test_inline_asset_data + offset, length};
 
-			archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+			archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 			hasher.hash_data(expected_data);
 
 			archive_diff::diffs::blob_definition blobdef;
@@ -173,7 +173,7 @@ TEST(inline_asset_recipe, make_reader_buggy_result_bad_hash)
 				ASSERT_NE(0, memcmp(buggy_recipe_result_data.data(), expected_data.data(), expected_data.size()));
 			}
 
-			archive_diff::hashing::hasher buggy_result_hasher(archive_diff::hashing::algorithm::sha256);
+			archive_diff::hashing::hasher buggy_result_hasher(archive_diff::hashing::adu_algorithm::sha256);
 			buggy_result_hasher.hash_data(buggy_recipe_result_data);
 
 			bool caught_exception = false;
@@ -210,7 +210,7 @@ TEST(inline_asset_recipe, apply_buggy_result_bad_hash)
 		{
 			auto expected_data = std::string_view{c_test_inline_asset_data + offset, length};
 
-			archive_diff::hashing::hasher hasher(archive_diff::hashing::algorithm::sha256);
+			archive_diff::hashing::hasher hasher(archive_diff::hashing::adu_algorithm::sha256);
 			hasher.hash_data(expected_data);
 
 			archive_diff::diffs::blob_definition blobdef;
@@ -226,7 +226,7 @@ TEST(inline_asset_recipe, apply_buggy_result_bad_hash)
 			std::shared_ptr<archive_diff::io::writer> buffer_writer =
 				std::make_shared<archive_diff::io::buffer::writer>(write_result_buffer);
 			auto write_result_hasher =
-				std::make_shared<archive_diff::hashing::hasher>(archive_diff::hashing::algorithm::sha256);
+				std::make_shared<archive_diff::hashing::hasher>(archive_diff::hashing::adu_algorithm::sha256);
 
 			archive_diff::io::hashed::hashed_sequential_writer hashed_writer(buffer_writer, write_result_hasher);
 
@@ -237,7 +237,7 @@ TEST(inline_asset_recipe, apply_buggy_result_bad_hash)
 				ASSERT_NE(0, std::memcmp(write_result_buffer->data(), expected_data.data(), expected_data.size()));
 			}
 
-			archive_diff::hashing::hasher result_hasher(archive_diff::hashing::algorithm::sha256);
+			archive_diff::hashing::hasher result_hasher(archive_diff::hashing::adu_algorithm::sha256);
 			result_hasher.hash_data(*write_result_buffer);
 
 			bool caught_exception = false;

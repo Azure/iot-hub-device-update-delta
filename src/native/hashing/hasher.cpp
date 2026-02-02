@@ -36,13 +36,13 @@ namespace archive_diff::hashing
 {
 #ifdef USE_BCRYPT
 
-ALG_ID alg_to_BCRYPT_ALG_ID(algorithm alg)
+ALG_ID alg_to_BCRYPT_ALG_ID(archive_diff::hashing::adu_algorithm alg)
 {
 	switch (alg)
 	{
-	case algorithm::md5:
+	case archive_diff::hashing::adu_algorithm::md5:
 		return CALG_MD5;
-	case algorithm::sha256:
+	case archive_diff::hashing::adu_algorithm::sha256:
 		return CALG_SHA_256;
 	default:
 		std::string msg = "alg_to_BCRYPT_ALG_ID() has invalid value: " + std::to_string(static_cast<int>(alg));
@@ -136,14 +136,14 @@ std::string gcrypt_algo_to_string(int algo)
 #endif
 
 #ifdef USE_OPENSSL
-const EVP_MD *algorithm_to_EVP_MP(algorithm alg)
+const EVP_MD *algorithm_to_EVP_MP(archive_diff::hashing::adu_algorithm alg)
 { 
 	switch (alg)
 	{
-	case algorithm::md5:
+	case archive_diff::hashing::adu_algorithm::md5:
 		return EVP_md5();
 
-	case algorithm::sha256:
+	case archive_diff::hashing::adu_algorithm::sha256:
 		return EVP_sha256();
 
 	default:
@@ -177,7 +177,7 @@ void hasher::reset()
 	}
 	else
 	{
-		auto algo = alg_to_gcrypt_algo(m_alg);
+		auto algo = adu_alg_to_gcrypt_algo(m_alg);
 
 		auto open_err = gcry_md_open(&m_hd, algo, 0);
 		if (open_err)
@@ -214,7 +214,7 @@ void hasher::reset()
 #endif
 }
 
-hasher::hasher(algorithm alg) : m_alg(alg)
+hasher::hasher(adu_algorithm alg) : m_alg(alg)
 {
 #ifdef USE_BCRYPT
 	#ifndef STATUS_SUCCESS
@@ -341,7 +341,7 @@ std::vector<char> hasher::get_hash_binary()
 #endif
 
 #ifdef USE_LIBGCRYPT
-	auto algo         = alg_to_gcrypt_algo(m_alg);
+	auto algo         = adu_alg_to_gcrypt_algo(m_alg);
 	auto start        = reinterpret_cast<char *>(gcry_md_read(m_hd, algo));
 	size_t hash_bytes = gcry_md_get_algo_dlen(algo);
 	auto end          = &start[hash_bytes];

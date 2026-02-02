@@ -61,7 +61,7 @@ void get_file_hashes(const char *path, archive_details &details)
 
 	input.seekg(0, std::ios::beg);
 
-	archive_diff::hashing::hasher sha256_hasher(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher sha256_hasher(archive_diff::hashing::adu_algorithm::sha256);
 
 	const size_t read_block_size = 4 * 1024;
 	char buffer[read_block_size];
@@ -174,9 +174,9 @@ static int populate_file_details_from_inode(ext2_filsys fs, int ino, file_detail
 	__u64 offset           = std::numeric_limits<__u64>::max();
 	__u64 length           = 0;
 
-	archive_diff::hashing::hasher hasher_sha256(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher hasher_sha256(archive_diff::hashing::adu_algorithm::sha256);
 
-	archive_diff::hashing::hasher hasher_sha256_region(archive_diff::hashing::algorithm::sha256);
+	archive_diff::hashing::hasher hasher_sha256_region(archive_diff::hashing::adu_algorithm::sha256);
 
 	while (read < file_size)
 	{
