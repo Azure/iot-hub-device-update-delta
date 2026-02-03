@@ -4,14 +4,14 @@ add_executable(recompress
 	swupdate_helpers.cpp
 	)
 
-# Use PkgConfig to find libconfig since it doesn't provide CMake config in Yocto
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(LIBCONFIG REQUIRED libconfig++)
-include_directories(${LIBCONFIG_INCLUDE_DIRS})
-link_directories(${LIBCONFIG_LIBRARY_DIRS})
+find_package(libconfig CONFIG REQUIRED)
 
-target_link_libraries(recompress PRIVATE stdc++fs)
-target_link_libraries(recompress PRIVATE ${LIBCONFIG_LIBRARIES} config++)
+if(UNIX)
+	target_link_libraries(recompress PRIVATE stdc++fs)
+	target_link_libraries(recompress PRIVATE libconfig::config libconfig::config++)
+else()
+	target_link_libraries(recompress PRIVATE libconfig::libconfig libconfig::libconfig++)
+endif()
 
 target_link_libraries(recompress
 	PRIVATE

@@ -9,10 +9,7 @@ add_executable (diffs_core_gtest
     )
 
 find_package(ZLIB REQUIRED)
-
-# Use PkgConfig to find zstd since it doesn't provide CMake config in Yocto
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(ZSTD REQUIRED libzstd)
+find_package(zstd CONFIG REQUIRED)
 
 target_link_libraries(diffs_core_gtest PUBLIC 
 	diffs_core

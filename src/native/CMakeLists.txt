@@ -68,6 +68,6 @@ if (UNIX)
     add_subdirectory(packaging/debian)
 endif()
 
-install(TARGETS adudiffapi adudiffapi_static)
+install(TARGETS adudiffapi)
 
 

@@ -19,17 +19,12 @@ if(UNIX)
 endif()
 
 find_package(ZLIB REQUIRED)
-
-# Use PkgConfig to find zstd since it doesn't provide CMake config in Yocto
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(ZSTD REQUIRED libzstd)
+find_package(zstd CONFIG REQUIRED)
 
 target_link_libraries(io_compressed PUBLIC errors io io_sequential)
 
 if(UNIX)
-target_link_libraries(io_compressed PUBLIC ${ZSTD_LIBRARIES})
-target_include_directories(io_compressed PRIVATE ${ZSTD_INCLUDE_DIRS})
-target_compile_options(io_compressed PRIVATE ${ZSTD_CFLAGS_OTHER})
+target_link_libraries(io_compressed PUBLIC zstd::libzstd_static)
 target_link_libraries(io_compressed PRIVATE ZLIB::ZLIB)
 target_link_libraries(io_compressed PUBLIC ${ZLIB_LIBRARIES})
 elseif(WIN32)
@@ -37,8 +32,7 @@ target_link_libraries(io_compressed PUBLIC zstd::libzstd_shared)
 target_link_libraries(io_compressed PRIVATE ZLIB::ZLIB)
 endif()
 
-# Use PkgConfig to find bsdiff since it doesn't provide CMake config in Yocto
-pkg_check_modules(BSDIFF REQUIRED bsdiff)
+find_package(bsdiff REQUIRED)
 target_include_directories(io_compressed PRIVATE ${BSDIFF_INCLUDE_DIRS})
 target_link_libraries(io_compressed PRIVATE ${BSDIFF_LIBRARIES})
 

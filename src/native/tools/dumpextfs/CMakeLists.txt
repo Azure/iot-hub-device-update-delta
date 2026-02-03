@@ -4,10 +4,7 @@ add_executable(dumpextfs
     main.cpp
     )
 
-# Use PkgConfig to find e2fsprogs since it doesn't provide CMake config in Yocto
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(E2FSPROGS REQUIRED ext2fs)
-
+find_package(e2fsprogs REQUIRED)
 target_include_directories(dumpextfs PRIVATE ${E2FSPROGS_INCLUDE_DIRS})
 target_link_libraries(dumpextfs PRIVATE ${E2FSPROGS_LIBRARIES})
 
@@ -19,6 +16,7 @@ target_link_libraries(dumpextfs PRIVATE JsonCpp::JsonCpp)
 if (WIN32)
     target_link_libraries(dumpextfs PRIVATE Ws2_32)
 else()
+target_link_libraries(dumpextfs PRIVATE -static)
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 set(THREADS_PREFER_PTHREAD_FLAG TRUE)
 find_package(Threads REQUIRED)
